@@ -8,8 +8,8 @@ import {
   CUSTOMER_TYPES,
   DIFFICULTY,
   SEATS,
-  MAX_STRIKES,
   BOSS,
+  RUSH_LEVEL,
 } from './config.js';
 import { W, HUD_H, SEAT_X, TRAY, BOSS_X, stationRect, traySlotRect, inside, seatAt } from './layout.js';
 import { makeLook } from './sprites.js';
@@ -38,10 +38,13 @@ export class Game {
    * @param {Function} opts.t       Translation function.
    * @param {Function} [opts.rng]   Random function (seeded for the daily challenge).
    * @param {object} [opts.twist]   Daily twist from DAILY_TWISTS.
+   * @param {object} [opts.level]   A day from WEEK, or RUSH_LEVEL (default).
    * @param {Function} [opts.isNewType] Returns true if a customer type was never met.
    * @param {Function} [opts.onEvent] Receives (type, data) for sound, vibration and UI.
    */
-  constructor({ staff, t, rng = Math.random, twist = null, isNewType = () => false, onEvent = () => {} }) {
+  constructor({ staff, t, rng = Math.random, twist = null, level = RUSH_LEVEL, isNewType = () => false, onEvent = () => {} }) {
+    this.level = level;
+    this.available = new Set(level.stations || STATIONS);
     this.staff = staff;
     this.t = t;
     this.rng = rng;
@@ -74,21 +77,39 @@ export class Game {
     this.shake = 0;
     this.onFireShown = false;
     this.player = { x: W / 2, target: W / 2 };
-    this.boss = { active: false, t: 0, next: BOSS.firstAfter * this.bossFactor(), x: -12 };
+    this.boss = { active: false, t: 0, next: BOSS.firstAfter * this.bossFactor(), x: -14 };
     this.currentPhase = this.phase();
 
     this.say(cosmetic(t('phrases.start')));
     if (twist) this.float(W / 2, 122, t(`twists.${twist.id}`), COLORS.gold, 6, 2.4);
+    if (level.intro && level.intro.length) {
+      const names = level.intro.map((id) => t(`items.${id}`)).join(', ');
+      this.float(W / 2, 140, t('newItem', { name: names }), COLORS.green, 5, 3);
+    }
   }
 
   // ---- Derived values -------------------------------------------------------
 
+  startMinutes() {
+    return this.level.startMinutes !== undefined ? this.level.startMinutes : CLOCK.startMinutes;
+  }
+
   clockMinutes() {
-    return (CLOCK.startMinutes + this.time * CLOCK.minutesPerSecond) % (24 * 60);
+    return (this.startMinutes() + this.time * CLOCK.minutesPerSecond) % (24 * 60);
+  }
+
+  /** Seconds left in a timed shift, or null in endless mode. */
+  timeLeft() {
+    return this.level.duration ? Math.max(0, this.level.duration - this.time) : null;
+  }
+
+  /** How far through the shift we are, from 0 to 1. */
+  progress() {
+    return this.level.duration ? clamp01(this.time / this.level.duration) : this.ramp();
   }
 
   phase() {
-    const m = CLOCK.startMinutes + this.time * CLOCK.minutesPerSecond;
+    const m = this.startMinutes() + this.time * CLOCK.minutesPerSecond;
     if (m < CLOCK.lunchAt) return 'breakfast';
     if (m < CLOCK.afternoonAt) return 'lunch';
     return 'afternoon';
@@ -99,11 +120,20 @@ export class Game {
   }
 
   spawnInterval() {
+    if (this.level.spawn) return lerp(this.level.spawn[0], this.level.spawn[1], this.progress());
     return lerp(DIFFICULTY.spawnStart, DIFFICULTY.spawnMin, this.ramp()) * (this.twist.spawn || 1);
   }
 
   patienceFactor() {
+    if (this.level.patience) return this.level.patience * this.staff.patienceBonus;
     return lerp(1, DIFFICULTY.patienceMinFactor, this.ramp()) * this.staff.patienceBonus * (this.twist.patience || 1);
+  }
+
+  /** Stars earned so far (0-3) in a day with targets, otherwise null. */
+  stars() {
+    const targets = this.level.targets;
+    if (!targets) return null;
+    return targets.filter((target) => this.score >= target).length;
   }
 
   bossFactor() {
@@ -119,6 +149,52 @@ export class Game {
     let busy = 0;
     for (const id of STATIONS) if (this.stations[id].busy) busy++;
     return this.tray.length + busy;
+  }
+
+  /** True if the tray holds something this waiting customer still needs. */
+  canServe(c) {
+    if (!c || c.state !== 'wait') return false;
+    return c.order.some((id, k) => !c.served[k] && this.tray.includes(id));
+  }
+
+  /**
+   * Suggests the next tap for beginners: a customer to serve, or a station to use.
+   * Returns { seat }, { station } (station index) or { tray } (slot to empty), or null.
+   */
+  hint() {
+    const waiting = this.seats.filter((c) => c && c.state === 'wait').sort((a, b) => a.patience - b.patience);
+    for (const c of waiting) if (this.canServe(c)) return { seat: c.seat };
+    if (this.reservedSlots() >= this.trayCapacity) {
+      // Tray full of things nobody is waiting for: suggest throwing one away.
+      const needed = [];
+      for (const c of this.seats) {
+        if (!c || (c.state !== 'wait' && c.state !== 'enter')) continue;
+        c.order.forEach((id, k) => {
+          if (!c.served[k]) needed.push(id);
+        });
+      }
+      for (let i = 0; i < this.tray.length; i++) {
+        const at = needed.indexOf(this.tray[i]);
+        if (at >= 0) needed.splice(at, 1);
+        else return { tray: i };
+      }
+      return null;
+    }
+    const pending = [...this.tray];
+    for (const id of STATIONS) if (this.stations[id].busy) pending.push(id);
+    for (const c of waiting) {
+      for (let k = 0; k < c.order.length; k++) {
+        if (c.served[k]) continue;
+        const id = c.order[k];
+        const at = pending.indexOf(id);
+        if (at >= 0) {
+          pending.splice(at, 1);
+          continue;
+        }
+        return { station: STATIONS.indexOf(id) };
+      }
+    }
+    return null;
   }
 
   // ---- Helpers ------------------------------------------------------------
@@ -142,7 +218,10 @@ export class Game {
   // ---- Customers ----------------------------------------------------------
 
   chooseType() {
-    const entries = Object.entries(CUSTOMER_TYPES).filter(([, def]) => (def.minTime || 0) <= this.time);
+    const allowed = this.level.customers;
+    const entries = Object.entries(CUSTOMER_TYPES).filter(([id, def]) =>
+      allowed ? allowed.includes(id) : (def.minTime || 0) <= this.time,
+    );
     const weights = entries.map(([id, def]) => (id === 'critic' ? def.weight * (this.twist.criticWeight || 1) : def.weight));
     const total = weights.reduce((a, b) => a + b, 0);
     let roll = this.rng() * total;
@@ -156,10 +235,12 @@ export class Game {
   makeOrder(def) {
     let menu = def.menu || MENUS[this.phase()];
     if (!def.menu && this.twist.coffeeBias) menu = menu.concat(new Array(this.twist.coffeeBias).fill('coffee'));
+    menu = menu.filter((id) => this.available.has(id));
+    if (!menu.length) menu = [...this.available];
     let count = this.randInt(def.items[0], def.items[1]);
     if (this.twist.extraItem && this.rng() < this.twist.extraItem) count++;
-    if (this.time > 90 && this.rng() < 0.3) count++;
-    count = Math.min(count, 3);
+    if (this.level.endless && this.time > 90 && this.rng() < 0.3) count++;
+    count = Math.min(count, this.level.maxOrder || 3);
     const order = [];
     for (let i = 0; i < count; i++) order.push(this.pick(menu));
     return order;
@@ -199,13 +280,19 @@ export class Game {
     c.state = 'leave';
     c.st = 0;
     c.mood = 'angry';
-    this.strikes++;
     this.combo = 0;
     this.multiplier = 1;
     this.onFireShown = false;
+    this.fx.push({ kind: 'puff', x: SEAT_X[c.seat], y: 68 });
+    if (!this.level.strikes) {
+      // Relaxed days: no lives to lose, the customer just leaves without a tip.
+      this.float(SEAT_X[c.seat], 64, this.t('noTip'), COLORS.cream, 5);
+      this.emit('missed', { type: c.type });
+      return;
+    }
+    this.strikes++;
     this.shake = 0.3;
     this.float(SEAT_X[c.seat], 64, 'X', COLORS.red, 8);
-    this.fx.push({ kind: 'puff', x: SEAT_X[c.seat], y: 68 });
     this.say(cosmetic(this.t('phrases.bad')));
     this.emit('angry', { type: c.type });
   }
@@ -249,6 +336,7 @@ export class Game {
 
   updateBoss(dt) {
     const b = this.boss;
+    if (!this.level.boss) return;
     if (b.active) {
       b.t -= dt;
       b.x = Math.min(BOSS_X, b.x + dt * 60);
@@ -299,7 +387,8 @@ export class Game {
     const occupied = this.seats.filter(Boolean).length;
     this.spawnTimer -= dt;
     if (occupied === 0) this.spawnTimer = Math.min(this.spawnTimer, 0.5);
-    if (this.spawnTimer <= 0) {
+    const closing = this.level.duration && this.level.duration - this.time < 5;
+    if (this.spawnTimer <= 0 && !closing) {
       if (occupied < SEATS) this.spawn();
       this.spawnTimer = this.spawnInterval() * (0.7 + this.rng() * 0.6);
     }
@@ -342,7 +431,9 @@ export class Game {
       this.emit('phase', { phase });
     }
 
-    if (this.strikes >= MAX_STRIKES) {
+    const outOfLives = this.level.strikes && this.strikes >= this.level.strikes;
+    const timeUp = this.level.duration && this.time >= this.level.duration;
+    if (outOfLives || timeUp) {
       this.over = true;
       this.emit('gameover', this.summary());
     }
@@ -354,7 +445,7 @@ export class Game {
   }
 
   summary() {
-    return { score: this.score, served: this.served, bestCombo: this.bestCombo, time: this.time };
+    return { score: this.score, served: this.served, bestCombo: this.bestCombo, time: this.time, stars: this.stars() };
   }
 
   // ---- Input --------------------------------------------------------------
@@ -387,6 +478,10 @@ export class Game {
     const id = STATIONS[index];
     const s = this.stations[id];
     const r = stationRect(index);
+    if (!this.available.has(id)) {
+      this.emit('nope', {});
+      return;
+    }
     this.player.target = r.x + r.w / 2;
     if (s.busy) {
       this.emit('nope', {});

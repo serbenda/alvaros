@@ -28,12 +28,12 @@ export const FONT = '"Press Start 2P", ui-monospace, monospace';
 const LAYER_SCALE = 4;
 
 const STATION_ACCENTS = {
-  coffee: '#8b5a2b',
+  coffee: '#8b4a2b',
   juice: '#e67e22',
-  toast: '#c0843d',
-  beer: '#d4a017',
-  tapa: '#c9a227',
-  menu: '#2e9e5b',
+  toast: '#c0392b',
+  beer: '#d49a0c',
+  tapa: '#8e5f9e',
+  menu: '#27ae60',
 };
 
 // ---- Drawing helpers ------------------------------------------------------------
@@ -102,137 +102,180 @@ function layer(name, paint) {
   return layers[name];
 }
 
+// Colours taken from the real bar: white walls, light wood, mustard and mauve chairs.
+const PALETTE = {
+  wall: '#fbf8f2',
+  wallShade: '#efe9de',
+  wood: '#d9a868',
+  woodLight: '#ecc48d',
+  woodDark: '#a8743e',
+  panel: '#7d5a45',
+  panelDark: '#664633',
+  mustard: '#e8c21c',
+  mustardDark: '#c29a0e',
+  mauve: '#8f777d',
+  mauveDark: '#6f5a60',
+  copper: '#c8794a',
+  tile: '#d39a6a',
+  tileDark: '#bd8456',
+  brick: '#9a948c',
+};
+
+const SEAT_CHAIRS = [PALETTE.mustard, PALETTE.mauve, PALETTE.mustard, PALETTE.mauve];
+
 function paintWall(ctx) {
-  // Upper wall: warm plaster with soft vertical boards
-  rect(ctx, 0, 0, W, 50, '#ecd2a2');
-  for (let x = 0; x < W; x += 10) {
-    rect(ctx, x, HUD_H, 1, 32, '#e0c08c');
-    rect(ctx, x + 1, HUD_H, 1, 32, '#f3dcb2');
-  }
-  const top = ctx.createLinearGradient(0, HUD_H, 0, 50);
-  top.addColorStop(0, 'rgba(60,30,10,0.25)');
-  top.addColorStop(1, 'rgba(60,30,10,0)');
-  ctx.fillStyle = top;
-  ctx.fillRect(0, HUD_H, W, 32);
+  // White plaster wall
+  rect(ctx, 0, 0, W, COUNTER_Y, PALETTE.wall);
+  for (let x = 0; x < W; x += 30) rect(ctx, x, HUD_H, 0.5, COUNTER_Y - HUD_H, PALETTE.wallShade);
 
-  // Spanish tiles (azulejos) behind the customers
-  const T = 9;
-  for (let ty = 50; ty < COUNTER_Y; ty += T) {
-    for (let tx = 0; tx < W; tx += T) {
-      rect(ctx, tx, ty, T, T, '#f4efe2');
-      rect(ctx, tx, ty, T, 0.5, '#c9c1ae');
-      rect(ctx, tx, ty, 0.5, T, '#c9c1ae');
-      const cx = tx + T / 2;
-      const cy = ty + T / 2;
-      rect(ctx, cx - 0.5, cy - 3, 1, 6, '#2e6fa8');
-      rect(ctx, cx - 3, cy - 0.5, 6, 1, '#2e6fa8');
-      rect(ctx, cx - 1.5, cy - 1.5, 3, 3, '#2e6fa8');
-      rect(ctx, cx - 0.5, cy - 0.5, 1, 1, '#f5c542');
-      rect(ctx, tx + 0.5, ty + 0.5, 1.5, 1.5, '#7fb0d8');
-      rect(ctx, tx + T - 2, ty + 0.5, 1.5, 1.5, '#7fb0d8');
-      rect(ctx, tx + 0.5, ty + T - 2, 1.5, 1.5, '#7fb0d8');
-      rect(ctx, tx + T - 2, ty + T - 2, 1.5, 1.5, '#7fb0d8');
+  // Wooden beam frame along the top, like the bar's ceiling
+  rect(ctx, 0, HUD_H, W, 3, PALETTE.wood);
+  rect(ctx, 0, HUD_H, W, 0.75, PALETTE.woodLight);
+  rect(ctx, 0, HUD_H + 2.5, W, 0.5, PALETTE.woodDark);
+
+  // Grey brick strip behind the customers
+  const by = 56;
+  rect(ctx, 0, by, W, COUNTER_Y - by, '#b3ada4');
+  for (let row = 0; by + row * 4 < COUNTER_Y; row++) {
+    const y = by + row * 4;
+    rect(ctx, 0, y, W, 0.5, '#8f8981');
+    const offset = row % 2 ? 4 : 0;
+    for (let x = offset; x < W; x += 8) rect(ctx, x, y, 0.5, 4, '#8f8981');
+  }
+  for (let x = 0; x < W; x += 16) rect(ctx, x + 1, by + 1, 6, 1, '#c4beb6');
+  rect(ctx, 0, by - 1.5, W, 1.5, PALETTE.wood);
+  rect(ctx, 0, by - 1.5, W, 0.5, PALETTE.woodLight);
+
+  // Light wood shelf with cups, jars and bottles under the sign
+  rect(ctx, 50, 46, 80, 2.5, PALETTE.wood);
+  rect(ctx, 50, 46, 80, 0.75, PALETTE.woodLight);
+  rect(ctx, 50, 48.5, 80, 0.5, PALETTE.woodDark);
+  const things = ['cup', 'cup', 'jar', 'bottle', 'cup', 'jar', 'bottle', 'cup', 'cup', 'jar'];
+  things.forEach((kind, i) => {
+    const x = 53 + i * 7.6;
+    if (kind === 'cup') {
+      rect(ctx, x - 0.5, 41.5, 5, 4.5, OUTLINE);
+      rect(ctx, x, 42, 4, 4, '#ffffff');
+      rect(ctx, x + 3, 42, 1, 4, '#dcdce4');
+    } else if (kind === 'jar') {
+      rect(ctx, x - 0.5, 39.5, 5, 6.5, OUTLINE);
+      rect(ctx, x, 40, 4, 6, '#f4d7a1');
+      rect(ctx, x, 40, 4, 1.5, '#c0392b');
+    } else {
+      rect(ctx, x + 0.5, 37.5, 3, 8.5, OUTLINE);
+      rect(ctx, x + 1, 38, 2, 8, '#7a1f2b');
+      rect(ctx, x + 1, 41, 2, 2, '#f3ead3');
     }
-  }
-  rect(ctx, 0, 49, W, 2, '#8b5a33');
-  rect(ctx, 0, 49, W, 0.5, '#c58b52');
+  });
 
-  // Shelf with bottles
-  const bottles = ['#2e7d32', '#6a1b9a', '#b71c1c', '#c99a1c', '#00796b', '#5d6d7e', '#d35400', '#1b4f72'];
-  for (let i = 0; i < 7; i++) {
-    const bx = 53 + i * 11;
-    const color = bottles[i % bottles.length];
-    const h = 6 + ((i * 5) % 3);
-    const by = 46 - h;
-    rect(ctx, bx - 0.5, by - 0.5, 5, h + 1, OUTLINE);
-    rect(ctx, bx, by, 4, h, color);
-    rect(ctx, bx + 0.5, by + 1, 1, h - 2, shade(color, 0.35));
-    rect(ctx, bx + 3, by, 1, h, shade(color, -0.3));
-    rect(ctx, bx, by + h / 2 - 1, 4, 2.5, '#f3ead3');
-    rect(ctx, bx + 1, by - 2, 2, 2, color);
-    rect(ctx, bx + 1, by - 2.5, 2, 0.75, '#d4a017');
-  }
-  rect(ctx, 0, 46, W, 3, '#7a4a28');
-  rect(ctx, 0, 46, W, 0.75, '#b07a48');
-  rect(ctx, 0, 48.5, W, 0.5, '#4a2c16');
-
-  // Sign board
-  rect(ctx, 48, 20, 84, 16, OUTLINE);
-  rect(ctx, 49, 21, 82, 14, '#5a361d');
-  rect(ctx, 50, 22, 80, 12, '#2f1d12');
-  rect(ctx, 50, 22, 80, 1, '#4a2e1c');
-  rect(ctx, 89.5, HUD_H, 1, 2, '#3a2a20');
+  // Sign board in light wood
+  rect(ctx, 56, 22, 68, 15, OUTLINE);
+  rect(ctx, 57, 23, 66, 13, PALETTE.wood);
+  rect(ctx, 58, 24, 64, 11, '#fffaf0');
+  rect(ctx, 57, 23, 66, 0.75, PALETTE.woodLight);
 }
 
 function paintCounter(ctx) {
   const y = COUNTER_Y;
-  rect(ctx, 0, y - 1, W, 1, 'rgba(0,0,0,0.25)');
-  rect(ctx, 0, y, W, 5, '#c98d55');
-  rect(ctx, 0, y, W, 1, '#e8b37c');
-  rect(ctx, 0, y + 4, W, 1, '#8a5a32');
-  rect(ctx, 0, y + 5, W, COUNTER_H - 5, '#86532e');
-  for (let x = 0; x < W; x += 20) {
-    rect(ctx, x, y + 5, 0.75, COUNTER_H - 7, '#6b3f20');
-    rect(ctx, x + 0.75, y + 5, 0.75, COUNTER_H - 7, '#a06a3c');
-    rect(ctx, x + 6, y + 9, 6, 0.5, '#76461f');
-    rect(ctx, x + 3, y + 14, 8, 0.5, '#76461f');
+  rect(ctx, 0, y - 1, W, 1, 'rgba(0,0,0,0.15)');
+  // Light wood counter top
+  rect(ctx, 0, y, W, 4, PALETTE.wood);
+  rect(ctx, 0, y, W, 1, PALETTE.woodLight);
+  rect(ctx, 0, y + 3.5, W, 0.75, PALETTE.woodDark);
+  // Front: brown panels framed with light wood
+  rect(ctx, 0, y + 4, W, COUNTER_H - 4, PALETTE.wood);
+  for (let x = 2; x < W; x += 30) {
+    rect(ctx, x, y + 6, 26, COUNTER_H - 9, PALETTE.panel);
+    rect(ctx, x, y + 6, 26, 0.75, PALETTE.panelDark);
+    for (let k = 0; k < 4; k++) rect(ctx, x + 1, y + 8 + k * 3, 24, 0.5, PALETTE.panelDark);
   }
-  rect(ctx, 0, y + COUNTER_H - 3, W, 1, '#d4a017');
-  rect(ctx, 0, y + COUNTER_H - 2, W, 2, '#4a2a14');
+  rect(ctx, 0, y + COUNTER_H - 2, W, 2, PALETTE.woodDark);
 
-  // Little things on the counter between seats
-  const things = [
-    [46, 'napkins'],
-    [90, 'sugar'],
-    [134, 'napkins'],
-  ];
-  for (const [cx, kind] of things) {
-    if (kind === 'napkins') {
-      rect(ctx, cx - 3.5, y - 4.5, 7, 5, OUTLINE);
-      rect(ctx, cx - 3, y - 4, 6, 4, '#b0b8bf');
-      rect(ctx, cx - 2, y - 6, 4, 2.5, '#ffffff');
-      rect(ctx, cx - 3, y - 4, 6, 1, '#dfe5ea');
-    } else {
-      rect(ctx, cx - 3.5, y - 4.5, 7, 5, OUTLINE);
-      rect(ctx, cx - 3, y - 4, 6, 4, '#ffffff');
-      rect(ctx, cx - 3, y - 2, 6, 1, '#2e6fa8');
-      rect(ctx, cx - 1, y - 6, 2, 1.5, OUTLINE);
+  // Little things on the counter between seats: napkins, sugar, sunflowers
+  const napkins = (cx) => {
+    rect(ctx, cx - 3.5, y - 5.5, 7, 6, OUTLINE);
+    rect(ctx, cx - 3, y - 5, 6, 5, '#c0392b');
+    rect(ctx, cx - 2, y - 7, 4, 2.5, '#ffffff');
+    rect(ctx, cx - 3, y - 3, 6, 1, '#ffffff');
+  };
+  const sugar = (cx) => {
+    rect(ctx, cx - 2, y - 5.5, 4, 6, OUTLINE);
+    rect(ctx, cx - 1.5, y - 5, 3, 5, '#f4f4f8');
+    rect(ctx, cx - 1.5, y - 6.5, 3, 1.5, '#9aa3a8');
+  };
+  const sunflowers = (cx) => {
+    rect(ctx, cx - 2.5, y - 6.5, 5, 7, OUTLINE);
+    rect(ctx, cx - 2, y - 6, 4, 6, '#e8f4f8');
+    rect(ctx, cx - 0.25, y - 13, 0.75, 7, '#2e7d32');
+    rect(ctx, cx - 3.5, y - 12, 0.75, 6, '#2e7d32');
+    for (const [fx, fy] of [[cx, y - 15], [cx - 4, y - 13], [cx + 3, y - 12]]) {
+      rect(ctx, fx - 2, fy - 0.5, 4, 1, PALETTE.mustard);
+      rect(ctx, fx - 0.5, fy - 2, 1, 4, PALETTE.mustard);
+      rect(ctx, fx - 1.5, fy - 1.5, 3, 3, PALETTE.mustard);
+      rect(ctx, fx - 0.75, fy - 0.75, 1.5, 1.5, '#6b3f1d');
     }
-  }
+  };
+  sunflowers(46);
+  napkins(88);
+  sugar(93);
+  napkins(134);
 }
 
 function paintFloor(ctx) {
   const top = FLOOR_Y;
   const bottom = STATION_PANEL_Y;
-  const T = 10;
+  // Warm terracotta tiles with slight variation, like the bar's floor
+  const T = 12;
   for (let ty = top; ty < bottom; ty += T) {
-    for (let tx = 0; tx < W; tx += T) {
-      const even = ((tx / T) + Math.floor((ty - top) / T)) % 2 === 0;
-      rect(ctx, tx, ty, T, T, even ? '#8c4a33' : '#d6c3a1');
-      rect(ctx, tx, ty, T, 0.5, even ? '#a35a40' : '#e6d6b8');
+    for (let tx = ((ty - top) / T) % 2 ? -6 : 0; tx < W; tx += T) {
+      const v = (Math.sin(tx * 12.9 + ty * 78.2) * 43758.5) % 1;
+      const color = v > 0.3 ? PALETTE.tile : v > -0.3 ? '#cb8f5f' : PALETTE.tileDark;
+      rect(ctx, tx, ty, T, T, color);
+      rect(ctx, tx, ty, T, 0.75, '#e2b48a');
+      rect(ctx, tx, ty, 0.75, T, '#a86f45');
+      rect(ctx, tx + 3, ty + 4, 2, 1, 'rgba(255,255,255,0.12)');
     }
   }
-  const g = ctx.createLinearGradient(0, top, 0, top + 18);
-  g.addColorStop(0, 'rgba(20,10,5,0.55)');
-  g.addColorStop(1, 'rgba(20,10,5,0)');
+  const g = ctx.createLinearGradient(0, top, 0, top + 14);
+  g.addColorStop(0, 'rgba(60,30,10,0.35)');
+  g.addColorStop(1, 'rgba(60,30,10,0)');
   ctx.fillStyle = g;
-  ctx.fillRect(0, top, W, 18);
-  const g2 = ctx.createLinearGradient(0, bottom - 20, 0, bottom);
-  g2.addColorStop(0, 'rgba(20,10,5,0)');
-  g2.addColorStop(1, 'rgba(20,10,5,0.4)');
-  ctx.fillStyle = g2;
-  ctx.fillRect(0, bottom - 20, W, 20);
+  ctx.fillRect(0, top, W, 14);
 }
 
 function paintPanel(ctx) {
   const g = ctx.createLinearGradient(0, STATION_PANEL_Y, 0, H);
-  g.addColorStop(0, '#3a2518');
-  g.addColorStop(1, '#1f130c');
+  g.addColorStop(0, PALETTE.woodLight);
+  g.addColorStop(1, PALETTE.wood);
   ctx.fillStyle = g;
   ctx.fillRect(0, STATION_PANEL_Y, W, H - STATION_PANEL_Y);
-  rect(ctx, 0, STATION_PANEL_Y, W, 2, OUTLINE);
-  rect(ctx, 0, STATION_PANEL_Y + 2, W, 1, '#6b4530');
-  for (let x = 0; x < W; x += 14) rect(ctx, x, STATION_PANEL_Y + 3, 0.5, H, 'rgba(0,0,0,0.15)');
+  rect(ctx, 0, STATION_PANEL_Y, W, 2, PALETTE.woodDark);
+  rect(ctx, 0, STATION_PANEL_Y + 2, W, 1, '#f6dcb2');
+  for (let x = 0; x < W; x += 22) rect(ctx, x, STATION_PANEL_Y + 3, 0.5, H, 'rgba(120,70,30,0.15)');
+}
+
+/** Mustard and mauve armchair backs behind each seat, like the real bar. */
+function drawChairs(ctx) {
+  SEAT_X.forEach((x, i) => {
+    const color = SEAT_CHAIRS[i];
+    const dark = color === PALETTE.mustard ? PALETTE.mustardDark : PALETTE.mauveDark;
+    box(ctx, x - 12, 66, 24, 20, OUTLINE, 4);
+    box(ctx, x - 11, 67, 22, 18, color, 4);
+    rect(ctx, x - 9, 68, 18, 1, 'rgba(255,255,255,0.3)');
+    rect(ctx, x + 6, 69, 4, 15, dark);
+  });
+}
+
+/** Copper pendant lamps hanging from the beam. */
+function drawLamps(ctx, now) {
+  for (const lx of [50, 130]) {
+    rect(ctx, lx - 0.25, HUD_H + 3, 0.5, 5, '#5a4030');
+    rect(ctx, lx - 3.5, HUD_H + 7.5, 7, 4, OUTLINE);
+    rect(ctx, lx - 3, HUD_H + 8, 6, 3, PALETTE.copper);
+    rect(ctx, lx - 3, HUD_H + 8, 6, 0.75, '#e8a57a');
+    rect(ctx, lx - 1, HUD_H + 11, 2, 1, '#fff6c0');
+    glow(ctx, lx, HUD_H + 16, 26, '#ffe2a8', 0.3 + Math.sin(now * 3 + lx) * 0.02);
+  }
 }
 
 // ---- Particles --------------------------------------------------------------------
@@ -407,12 +450,12 @@ function drawParticles(ctx, front) {
 // ---- Scene pieces ----------------------------------------------------------------
 
 function drawSign(ctx, now, game) {
-  text(ctx, "ÁLVARO'S", W / 2, 24.5, { size: 7, color: '#f5c542', align: 'center', shadow: '#7a3a12' });
+  text(ctx, "ÁLVARO'S", W / 2, 26, { size: 7, color: '#c0392b', align: 'center', shadow: '#f0c9a0' });
   // Marquee bulbs around the sign
   const bulbs = [];
-  for (let x = 51; x <= 129; x += 4) {
-    bulbs.push([x, 21.5]);
-    bulbs.push([x, 33.5]);
+  for (let x = 58; x <= 122; x += 4) {
+    bulbs.push([x, 22.5]);
+    bulbs.push([x, 36.5]);
   }
   const speed = game && game.multiplier >= 3 ? 10 : 4;
   const phase = Math.floor(now * speed);
@@ -518,6 +561,12 @@ function drawBubbles(ctx, game, now) {
     const pop = Math.min(1, c.st / 0.2);
     const by = BUBBLE_Y + (1 - pop) * 4;
     ctx.globalAlpha = pop;
+    if (game.canServe(c)) {
+      const a = 0.55 + Math.sin(now * 10) * 0.45;
+      ctx.globalAlpha = pop * a;
+      box(ctx, bx - 3, by - 3, bw + 6, 22, '#2ecc71', 3);
+      ctx.globalAlpha = pop;
+    }
     box(ctx, bx - 1, by - 1, bw + 2, 18, OUTLINE, 2);
     box(ctx, bx, by, bw, 16, '#fffaf0', 2);
     rect(ctx, bx + 1, by + 14, bw - 2, 1, '#e8dcc4');
@@ -633,12 +682,18 @@ function drawTray(ctx, game) {
 
 function drawStations(ctx, game, t, now) {
   const full = game && game.reservedSlots() >= game.trayCapacity;
+  const hint = game && !game.over ? game.hint() : null;
   STATIONS.forEach((id, i) => {
     const r = stationRect(i);
+    if (game && !game.available.has(id)) {
+      drawLockedStation(ctx, r);
+      return;
+    }
     const s = game ? game.stations[id] : null;
     const busy = s && s.busy;
     const accent = STATION_ACCENTS[id];
     const disabled = full && !busy;
+    const suggested = hint && hint.station === i;
 
     // Card with bevel
     ctx.globalAlpha = 0.5;
@@ -646,14 +701,14 @@ function drawStations(ctx, game, t, now) {
     ctx.globalAlpha = 1;
     box(ctx, r.x - 1, r.y - 1, r.w + 2, r.h + 2, OUTLINE, 2);
     const g = ctx.createLinearGradient(0, r.y, 0, r.y + r.h);
-    g.addColorStop(0, busy ? '#7d5640' : '#6a4632');
-    g.addColorStop(1, busy ? '#4e3324' : '#3e281c');
+    g.addColorStop(0, busy ? '#fff4d6' : '#fffaf0');
+    g.addColorStop(1, busy ? '#f6d98f' : '#f1dfc0');
     ctx.fillStyle = g;
     ctx.fillRect(r.x + 1, r.y, r.w - 2, r.h);
     ctx.fillRect(r.x, r.y + 1, r.w, r.h - 2);
     rect(ctx, r.x + 1, r.y, r.w - 2, 3, accent);
     rect(ctx, r.x + 1, r.y, r.w - 2, 0.75, shade(accent, 0.35));
-    rect(ctx, r.x, r.y + 3, 0.75, r.h - 4, 'rgba(255,255,255,0.12)');
+    rect(ctx, r.x, r.y + 3, 0.75, r.h - 4, 'rgba(255,255,255,0.6)');
 
     // Icon with a soft spotlight and shadow
     glow(ctx, r.x + r.w / 2, r.y + 18, 18, busy ? '#ffd27a' : '#ffffff', busy ? 0.35 : 0.12);
@@ -681,8 +736,8 @@ function drawStations(ctx, game, t, now) {
     }
 
     // Label plate
-    box(ctx, r.x + 4, r.y + r.h - 11, r.w - 8, 8, 'rgba(0,0,0,0.35)', 1);
-    text(ctx, t(`items.${id}`), r.x + r.w / 2, r.y + r.h - 9.5, { size: 5, color: '#f5e6c8', align: 'center' });
+    box(ctx, r.x + 4, r.y + r.h - 11, r.w - 8, 8, accent, 1);
+    text(ctx, t(`items.${id}`), r.x + r.w / 2, r.y + r.h - 9.5, { size: 5, color: '#ffffff', align: 'center', shadow: shade(accent, -0.35) });
 
     if (busy) {
       const f = Math.min(1, s.t / s.dur);
@@ -693,7 +748,7 @@ function drawStations(ctx, game, t, now) {
     }
     if (disabled) {
       ctx.globalAlpha = 0.55;
-      box(ctx, r.x, r.y, r.w, r.h, '#120a06', 2);
+      box(ctx, r.x, r.y, r.w, r.h, '#7a6a5a', 2);
       ctx.globalAlpha = 1;
     }
     if (s && s.flash > 0) {
@@ -701,7 +756,14 @@ function drawStations(ctx, game, t, now) {
       box(ctx, r.x, r.y, r.w, r.h, '#ffffff', 2);
       ctx.globalAlpha = 1;
     }
+    if (suggested && game.level.guide) {
+      const a = 0.5 + Math.sin(now * 8) * 0.5;
+      ctx.globalAlpha = a;
+      outline(ctx, r.x - 2, r.y - 2, r.w + 4, r.h + 4, '#2ecc71', 1.5);
+      ctx.globalAlpha = 1;
+    }
   });
+  if (hint && game.level.guide) drawGuideHand(ctx, game, hint, now);
 }
 
 let shownScore = 0;
@@ -716,8 +778,8 @@ function drawHud(ctx, game, now, dt) {
   scoreBump = Math.max(0, scoreBump - dt);
 
   const g = ctx.createLinearGradient(0, 0, 0, HUD_H);
-  g.addColorStop(0, '#3a2518');
-  g.addColorStop(1, '#1d1410');
+  g.addColorStop(0, '#8a5a32');
+  g.addColorStop(1, '#6e4426');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, HUD_H);
   rect(ctx, 0, HUD_H, W, 1, OUTLINE);
@@ -741,14 +803,112 @@ function drawHud(ctx, game, now, dt) {
     const pulse = 1 + Math.max(0, Math.sin(now * 8)) * (game.multiplier >= 4 ? 0.15 : 0.05);
     const label = `x${game.multiplier}`;
     ctx.save();
-    ctx.translate(14, 26);
+    ctx.translate(game.stars() !== null ? 47 : 14, 26);
     ctx.scale(pulse, pulse);
     box(ctx, -12, -5, 24, 11, OUTLINE, 2);
     box(ctx, -11, -4, 22, 9, game.multiplier >= 4 ? '#e74c3c' : '#ff9f43', 2);
     text(ctx, label, 0, -3, { size: 7, color: '#fff6c0', align: 'center' });
     ctx.restore();
   }
-  for (let i = 0; i < MAX_STRIKES; i++) drawHeart(ctx, 102 + i * 9, 5.5, i < MAX_STRIKES - game.strikes);
+  if (game.level.strikes) {
+    for (let i = 0; i < game.level.strikes; i++) drawHeart(ctx, 102 + i * 9, 5.5, i < game.level.strikes - game.strikes);
+  } else if (game.level.duration) {
+    // Time left in the shift
+    const left = game.timeLeft() / game.level.duration;
+    const hurry = game.timeLeft() < 10 && Math.sin(now * 10) > 0;
+    box(ctx, 100, 6, 34, 6, OUTLINE, 1);
+    rect(ctx, 101, 7, 32, 4, '#3a2a20');
+    rect(ctx, 101, 7, 32 * left, 4, hurry ? '#e74c3c' : '#5dade2');
+    rect(ctx, 101, 7, 32 * left, 1, 'rgba(255,255,255,0.4)');
+  }
+  const stars = game.stars();
+  if (stars !== null) {
+    box(ctx, 2, 20, 31, 10, 'rgba(0,0,0,0.45)', 2);
+    for (let i = 0; i < 3; i++) drawStar(ctx, 4 + i * 9.5, 21.5, i < stars, 1);
+  }
+}
+
+const STAR = [
+  '...o...',
+  '..oyo..',
+  'ooyyyoo',
+  'oyyyyyo',
+  '.oyyyo.',
+  '.oyoyo.',
+  'oo...oo',
+];
+
+/** Pixel star, filled (gold) or empty (dark). */
+export function drawStar(ctx, x, y, filled, scale = 1) {
+  for (let r = 0; r < STAR.length; r++) {
+    for (let c = 0; c < STAR[r].length; c++) {
+      const ch = STAR[r][c];
+      if (ch === '.') continue;
+      ctx.fillStyle = ch === 'o' ? OUTLINE : filled ? (r < 3 ? '#fff1a8' : '#f5c542') : '#4a3a33';
+      ctx.fillRect(x + c * scale, y + r * scale, scale + 0.02, scale + 0.02);
+    }
+  }
+}
+
+function outline(ctx, x, y, w, h, color, t = 1) {
+  rect(ctx, x, y, w, t, color);
+  rect(ctx, x, y + h - t, w, t, color);
+  rect(ctx, x, y, t, h, color);
+  rect(ctx, x + w - t, y, t, h, color);
+}
+
+function drawLockedStation(ctx, r) {
+  box(ctx, r.x - 1, r.y - 1, r.w + 2, r.h + 2, OUTLINE, 2);
+  box(ctx, r.x, r.y, r.w, r.h, '#e6d6bd', 2);
+  const cx = r.x + r.w / 2;
+  const cy = r.y + r.h / 2 - 2;
+  rect(ctx, cx - 4, cy - 7, 8, 1.5, '#b3a28c');
+  rect(ctx, cx - 4, cy - 7, 1.5, 6, '#b3a28c');
+  rect(ctx, cx + 2.5, cy - 7, 1.5, 6, '#b3a28c');
+  box(ctx, cx - 6, cy - 2, 12, 9, '#b3a28c', 1);
+  rect(ctx, cx - 1, cy + 1, 2, 3, '#e6d6bd');
+}
+
+const HAND = [
+  '...oo.....',
+  '..owwo....',
+  '..owwo....',
+  '..owwoooo.',
+  '..owwowwoo',
+  'oooowwwwwo',
+  'owwowwwwwo',
+  'owwwwwwwwo',
+  '.owwwwwwso',
+  '..owwwwsso',
+  '...owwsso.',
+  '....oooo..',
+];
+
+/** A white glove pointing at the suggested tap, for beginners. */
+function drawGuideHand(ctx, game, hint, now) {
+  let x;
+  let y;
+  if (hint.station !== undefined) {
+    const r = stationRect(hint.station);
+    x = r.x + r.w / 2 + 2;
+    y = r.y + 22;
+  } else if (hint.tray !== undefined) {
+    const r = traySlotRect(hint.tray, game.trayCapacity);
+    x = r.x + 10;
+    y = r.y + 12;
+  } else {
+    x = SEAT_X[hint.seat] + 2;
+    y = CUSTOMER_TOP + 14;
+  }
+  const bob = Math.abs(Math.sin(now * 5)) * 3;
+  for (let r = 0; r < HAND.length; r++) {
+    for (let c = 0; c < HAND[r].length; c++) {
+      const ch = HAND[r][c];
+      if (ch === '.') continue;
+      ctx.fillStyle = ch === 'o' ? OUTLINE : ch === 's' ? '#c9c9d4' : '#ffffff';
+      ctx.fillRect(x + c, y + r + bob, 1.02, 1.02);
+    }
+  }
 }
 
 function drawFloats(ctx, game) {
@@ -847,13 +1007,14 @@ function drawWindow(ctx, game, now) {
   ctx.globalAlpha = 1;
   ctx.restore();
   // Frame
-  rect(ctx, x - 1.5, y - 1.5, w + 3, 1.5, '#5a361d');
-  rect(ctx, x - 1.5, y + h, w + 3, 2, '#5a361d');
-  rect(ctx, x - 1.5, y - 1.5, 1.5, h + 3, '#5a361d');
-  rect(ctx, x + w, y - 1.5, 1.5, h + 3, '#5a361d');
-  rect(ctx, x + w / 2 - 0.5, y, 1, h, '#5a361d');
-  rect(ctx, x, y + h / 2 - 3, w, 1, '#5a361d');
-  rect(ctx, x - 2, y + h + 1.5, w + 4, 1, '#8b5a33');
+  rect(ctx, x - 2, y - 2, w + 4, 2, OUTLINE);
+  rect(ctx, x - 1.5, y - 1.5, w + 3, 1.5, PALETTE.wood);
+  rect(ctx, x - 1.5, y + h, w + 3, 2, PALETTE.wood);
+  rect(ctx, x - 1.5, y - 1.5, 1.5, h + 3, PALETTE.wood);
+  rect(ctx, x + w, y - 1.5, 1.5, h + 3, PALETTE.wood);
+  rect(ctx, x + w / 2 - 0.5, y, 1, h, PALETTE.wood);
+  rect(ctx, x, y + h / 2 - 3, w, 1, PALETTE.wood);
+  rect(ctx, x - 2, y + h + 1.5, w + 4, 1, PALETTE.woodDark);
   // Daylight on the wall
   glow(ctx, x + w / 2, y + h / 2 + 8, 34, '#fff1c8', 0.22);
 }
@@ -954,7 +1115,7 @@ function drawLighting(ctx, game) {
 
   const v = ctx.createRadialGradient(W / 2, 110, 60, W / 2, 110, 150);
   v.addColorStop(0, 'rgba(0,0,0,0)');
-  v.addColorStop(1, 'rgba(0,0,0,0.35)');
+  v.addColorStop(1, 'rgba(60,30,10,0.12)');
   ctx.fillStyle = v;
   ctx.fillRect(0, HUD_H, W, STATION_PANEL_Y - HUD_H);
 }
@@ -977,6 +1138,8 @@ export function render(ctx, game, { t, now, dt = 0 }) {
   drawSign(ctx, now, game);
   drawWindow(ctx, game, now);
   drawTv(ctx, game, now);
+  drawLamps(ctx, now);
+  drawChairs(ctx);
   if (game) drawCustomers(ctx, game, now);
   ctx.drawImage(layer('counter', paintCounter), 0, 0, W, H);
   if (game) drawCounterItems(ctx, game);

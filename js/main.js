@@ -1,6 +1,6 @@
 // Entry point: wires the canvas, menus, input, sound and saved progress.
 
-import { STAFF, STATIONS, DAILY_TWISTS, CUSTOMER_TYPES } from './config.js';
+import { STAFF, STATIONS, DAILY_TWISTS, CUSTOMER_TYPES, WEEK, RUSH_LEVEL } from './config.js';
 import { W, H } from './layout.js';
 import { Game } from './game.js';
 import { render } from './renderer.js';
@@ -11,7 +11,7 @@ import { makeLook, drawPerson } from './sprites.js';
 import { mulberry32, hashString } from './rng.js';
 
 const SCALE = 4;
-const SCREENS = ['title', 'howto', 'album', 'pause', 'over'];
+const SCREENS = ['title', 'week', 'howto', 'album', 'pause', 'over'];
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('game');
@@ -25,7 +25,8 @@ const sfx = new Sfx();
 sfx.muted = state.muted;
 
 let game = null;
-let mode = 'classic';
+let mode = 'week';
+let day = 0;
 let paused = false;
 let lastFrame = performance.now();
 let lastScore = 0;
@@ -72,8 +73,25 @@ function toast(message) {
   toast.timer = setTimeout(() => el.classList.remove('visible'), 2200);
 }
 
+function weekStars() {
+  if (!Array.isArray(state.weekStars)) state.weekStars = WEEK.map(() => 0);
+  return state.weekStars;
+}
+
+function totalStars() {
+  return weekStars().reduce((a, b) => a + b, 0);
+}
+
+function dayUnlocked(index) {
+  return index === 0 || weekStars()[index - 1] > 0;
+}
+
+function starsText(n, max = 3) {
+  return '★'.repeat(n) + '☆'.repeat(max - n);
+}
+
 function selectedStaff() {
-  const found = STAFF.find((s) => s.id === state.staff && state.totalTips >= s.unlock);
+  const found = STAFF.find((s) => s.id === state.staff && totalStars() >= s.unlock);
   return found || STAFF[0];
 }
 
@@ -94,7 +112,7 @@ function renderTeam() {
   list.innerHTML = '';
   const current = selectedStaff();
   for (const member of STAFF) {
-    const unlocked = state.totalTips >= member.unlock;
+    const unlocked = totalStars() >= member.unlock;
     const button = document.createElement('button');
     button.className = 'member';
     if (member.id === current.id) button.classList.add('selected');
@@ -107,7 +125,7 @@ function renderTeam() {
     button.appendChild(name);
     button.addEventListener('click', () => {
       if (!unlocked) {
-        toast(t('unlockAt', { tips: money(member.unlock) }));
+        toast(t('unlockAt', { n: member.unlock }));
         return;
       }
       state.staff = member.id;
@@ -121,9 +139,38 @@ function renderTeam() {
 
 function renderTitle() {
   $('title-best').textContent = money(state.best);
-  $('title-total').textContent = money(state.totalTips);
+  $('title-total').textContent = `${totalStars()} / ${WEEK.length * 3} ★`;
   $('daily-twist').textContent = t(`twists.${dailyTwist().id}`);
   renderTeam();
+}
+
+function renderWeek() {
+  const list = $('week-list');
+  list.innerHTML = '';
+  WEEK.forEach((level, index) => {
+    const open = dayUnlocked(index);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = open ? 'day' : 'day locked';
+    const name = document.createElement('span');
+    name.className = 'day-name';
+    name.textContent = t(`days.${level.id}`);
+    const info = document.createElement('span');
+    info.className = 'day-info';
+    info.textContent = open ? level.stations.map((id) => t(`items.${id}`)).join(' · ') : t('dayLocked');
+    const stars = document.createElement('span');
+    stars.className = 'day-stars';
+    stars.textContent = open ? starsText(weekStars()[index]) : '🔒';
+    button.append(name, stars, info);
+    button.addEventListener('click', () => {
+      if (!open) {
+        toast(t('dayLocked'));
+        return;
+      }
+      startGame('week', index);
+    });
+    list.appendChild(button);
+  });
 }
 
 function renderHowTo() {
@@ -164,6 +211,7 @@ function applyLanguage() {
   $('btn-lang').textContent = getLang() === 'es' ? 'English' : 'Español';
   $('btn-sound').textContent = state.muted ? t('soundOff') : t('soundOn');
   renderTitle();
+  renderWeek();
   renderHowTo();
 }
 
@@ -193,6 +241,9 @@ function onEvent(type, data) {
     case 'onfire':
       sfx.play('onfire');
       break;
+    case 'missed':
+      sfx.play('discard');
+      break;
     case 'angry':
       sfx.play('angry');
       vibrate([60, 40, 60]);
@@ -220,11 +271,13 @@ function onEvent(type, data) {
   }
 }
 
-function startGame(newMode) {
+function startGame(newMode, dayIndex = day) {
   sfx.unlock();
   mode = newMode;
+  day = dayIndex;
   let rng = Math.random;
   let twist = null;
+  const level = mode === 'week' ? WEEK[day] : RUSH_LEVEL;
   if (mode === 'daily') {
     twist = dailyTwist();
     rng = mulberry32(hashString(`alvaros-${todayKey()}`));
@@ -234,6 +287,7 @@ function startGame(newMode) {
     t,
     rng,
     twist,
+    level,
     isNewType: (type) => !state.album[type],
     onEvent,
   });
@@ -246,36 +300,67 @@ function startGame(newMode) {
 
 function finishGame(summary) {
   lastScore = summary.score;
-  const unlockedBefore = STAFF.filter((s) => state.totalTips >= s.unlock).map((s) => s.id);
-  const isRecord = summary.score > state.best;
-  if (isRecord) state.best = summary.score;
+  const unlockedBefore = STAFF.filter((s) => totalStars() >= s.unlock).map((s) => s.id);
   state.totalTips += summary.score;
-  let isDailyRecord = false;
-  if (mode === 'daily') {
+
+  let isRecord = false;
+  if (mode === 'week') {
+    const stars = weekStars();
+    if (summary.stars > stars[day]) {
+      stars[day] = summary.stars;
+      isRecord = true;
+    }
+  } else if (mode === 'daily') {
     if (state.daily.date !== todayKey()) state.daily = { date: todayKey(), best: 0 };
     if (summary.score > state.daily.best) {
       state.daily.best = summary.score;
-      isDailyRecord = true;
+      isRecord = true;
     }
+  } else if (summary.score > state.best) {
+    state.best = summary.score;
+    isRecord = true;
   }
   save(state);
-  const newcomers = STAFF.filter((s) => state.totalTips >= s.unlock && !unlockedBefore.includes(s.id));
+  const newcomers = STAFF.filter((s) => totalStars() >= s.unlock && !unlockedBefore.includes(s.id));
 
   setTimeout(() => {
-    $('over-mode').textContent =
-      mode === 'daily' ? t('modeDaily', { twist: t(`twists.${dailyTwist().id}`) }) : t('modeClassic');
+    const week = mode === 'week';
+    $('over-title').textContent = week ? t('shiftOver') : t('gameOver');
+    let label = t('modeRush');
+    if (mode === 'daily') label = t('modeDaily', { twist: t(`twists.${dailyTwist().id}`) });
+    if (week) label = t(`days.${WEEK[day].id}`);
+    $('over-mode').textContent = label;
     $('over-score').textContent = money(summary.score);
-    $('over-record').classList.toggle('hidden', !(isRecord || isDailyRecord) || summary.score === 0);
+
+    const starsEl = $('over-stars');
+    starsEl.classList.toggle('hidden', !week);
+    starsEl.textContent = week ? starsText(summary.stars) : '';
+    const hint = $('over-hint');
+    if (week) {
+      const [a, b, c] = WEEK[day].targets;
+      let message = t('starTargets', { a: money(a), b: money(b), c: money(c) });
+      if (summary.stars === 0) message = t('tryAgainStar');
+      else if (day === WEEK.length - 1) message = t('weekDone');
+      hint.textContent = message;
+    }
+    hint.classList.toggle('hidden', !week);
+
+    $('over-record').classList.toggle('hidden', !isRecord || summary.score === 0);
     $('over-served').textContent = String(summary.served);
     $('over-combo').textContent = String(summary.bestCombo);
-    $('over-best-label').textContent = mode === 'daily' ? t('dailyBest') : t('best');
-    $('over-best').textContent = money(mode === 'daily' ? dailyBest() : state.best);
+    $('over-best-label').textContent = week ? t('totalStars') : mode === 'daily' ? t('dailyBest') : t('best');
+    $('over-best').textContent = week ? `${totalStars()} / ${WEEK.length * 3}` : money(mode === 'daily' ? dailyBest() : state.best);
     $('over-total').textContent = money(state.totalTips);
+
+    const canAdvance = week && summary.stars > 0 && day < WEEK.length - 1;
+    $('btn-next').classList.toggle('hidden', !canAdvance);
+    $('btn-retry').classList.toggle('primary', !canAdvance);
+
     const unlock = $('over-unlock');
     unlock.textContent = newcomers.map((s) => t('unlocked', { name: s.name })).join(' ');
     unlock.classList.toggle('hidden', newcomers.length === 0);
     show('over');
-  }, 900);
+  }, 1200);
 }
 
 function pauseGame() {
@@ -294,7 +379,12 @@ function quitToTitle() {
   game = null;
   paused = false;
   renderTitle();
-  show('title');
+  if (mode === 'week') {
+    renderWeek();
+    show('week');
+  } else {
+    show('title');
+  }
 }
 
 async function share() {
@@ -346,7 +436,12 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden) pauseGame();
 });
 
-$('btn-play').addEventListener('click', () => startGame('classic'));
+$('btn-play').addEventListener('click', () => {
+  renderWeek();
+  show('week');
+});
+$('btn-rush').addEventListener('click', () => startGame('rush'));
+$('btn-next').addEventListener('click', () => startGame('week', day + 1));
 $('btn-daily').addEventListener('click', () => startGame('daily'));
 $('btn-retry').addEventListener('click', () => startGame(mode));
 $('btn-howto').addEventListener('click', () => show('howto'));

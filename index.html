@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <title>Rush Hour at Álvaro's</title>
     <meta name="description" content="A pixel-art arcade game about serving the regulars at Álvaro's bar before they lose their patience." />
-    <meta name="theme-color" content="#1d1410" />
+    <meta name="theme-color" content="#8a5a32" />
     <meta property="og:title" content="Rush Hour at Álvaro's" />
     <meta property="og:description" content="Serve the regulars before they lose their patience. Can you beat my score?" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>" />
@@ -22,8 +22,8 @@
         <h1 data-i18n="title"></h1>
         <p class="subtitle" data-i18n="subtitle"></p>
         <p class="scores">
-          <span data-i18n="best"></span>: <strong id="title-best"></strong>
-          · <span data-i18n="totalTips"></span>: <strong id="title-total"></strong>
+          <span data-i18n="totalStars"></span>: <strong id="title-total"></strong>
+          · <span data-i18n="rush"></span>: <strong id="title-best"></strong>
         </p>
         <div class="team">
           <p class="team-title" data-i18n="team"></p>
@@ -31,7 +31,14 @@
           <p id="team-desc" class="team-desc"></p>
         </div>
         <div class="buttons">
-          <button id="btn-play" class="btn primary" type="button" data-i18n="play"></button>
+          <button id="btn-play" class="btn primary" type="button">
+            <span data-i18n="play"></span>
+            <small class="light" data-i18n="week"></small>
+          </button>
+          <button id="btn-rush" class="btn" type="button">
+            <span data-i18n="rush"></span>
+            <small data-i18n="rushDesc"></small>
+          </button>
           <button id="btn-daily" class="btn" type="button">
             <span data-i18n="daily"></span>
             <small id="daily-twist"></small>
@@ -45,6 +52,13 @@
           <button id="btn-lang" class="chip" type="button"></button>
           <button id="btn-sound" class="chip" type="button"></button>
         </div>
+      </section>
+
+      <section id="screen-week" class="screen hidden">
+        <h2 data-i18n="week"></h2>
+        <p class="subtitle" data-i18n="chooseDay"></p>
+        <div id="week-list" class="week"></div>
+        <button class="btn" type="button" data-back data-i18n="back"></button>
       </section>
 
       <section id="screen-howto" class="screen hidden">
@@ -70,9 +84,11 @@
       </section>
 
       <section id="screen-over" class="screen hidden">
-        <h2 data-i18n="gameOver"></h2>
+        <h2 id="over-title"></h2>
         <p id="over-mode" class="subtitle"></p>
+        <p id="over-stars" class="big-stars hidden"></p>
         <p id="over-score" class="big-score"></p>
+        <p id="over-hint" class="subtitle hidden"></p>
         <p id="over-record" class="record hidden" data-i18n="newRecord"></p>
         <p id="over-unlock" class="unlock hidden"></p>
         <dl class="stats">
@@ -82,6 +98,7 @@
           <dt data-i18n="totalTips"></dt><dd id="over-total"></dd>
         </dl>
         <div class="buttons">
+          <button id="btn-next" class="btn primary hidden" type="button" data-i18n="nextDay"></button>
           <button id="btn-retry" class="btn primary" type="button" data-i18n="retry"></button>
           <div class="row">
             <button id="btn-share" class="btn" type="button" data-i18n="share"></button>

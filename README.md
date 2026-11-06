@@ -6,26 +6,27 @@ The game is available in **English and Spanish** and runs in any mobile or deskt
 
 ## How to play
 
-1. Customers sit at the bar and show their order in a speech bubble.
-2. Tap a station (coffee, juice, toast, beer, tapa, menu) to prepare an item. It goes to the tray when it is ready.
-3. Tap a customer to hand over the items on your tray that they ordered.
-4. Serve full orders quickly for bigger tips. Chain orders without losing anyone to build a combo multiplier (up to x5).
-5. When **Pepe Nacho**, the boss, shows up, tips are doubled for a while.
-6. Tap an item on the tray to throw it away.
-7. If three customers leave angry, the bar closes. How long can you last?
+1. Customers sit at the bar and show what they want in a speech bubble.
+2. Tap a station (coffee, juice, toast, beer, tapa, menu) to prepare it. When it is ready it goes to the tray.
+3. Tap the customer to hand it over. A customer you can serve glows green.
+4. Serve quickly for bigger tips, and chain orders to build a combo multiplier.
 
 Keyboard (desktop): `1`–`6` stations, `Q W E R` customers, `Z X C V` tray slots, `P` or `Esc` to pause.
 
+## Game modes
+
+- **A week at Álvaro's** (main mode, for everyone): one shift per day, from Monday to Sunday. Monday only has coffee and toast and a pointing hand shows what to tap; each day adds new items and a bit more pace. Shifts always end (90–120 seconds), customers who get tired just leave without a tip, and each day earns 1 to 3 stars. One star opens the next day.
+- **Rush hour** (competitive): endless, with 3 lives and a growing pace. Pepe Nacho, the boss, shows up and doubles the tips for a while.
+- **Daily challenge**: rush hour with the same customers and the same twist for every player on a given day.
+
 ## Features
 
-- **Short, tense shifts** that get harder as the day goes on: breakfast, lunch and afternoon, each with its own menu.
-- **Combo multiplier** and a "Blanca on fire!" state for long streaks.
-- **The team**: Blanca is always available. Mari, Andrea and Alejandro unlock with the total tips earned, each with a different ability.
-- **The boss event**: Pepe Nacho drops by to keep an eye on things. Tips are doubled while he is there.
-- **Daily challenge**: the same customers and the same twist for every player on a given day (coffee rush, critics in town, local festival…).
-- **Regulars album**: every customer type you meet is added to a collection.
-- **Records and sharing**: best score, best score of the day, total tips and a share button.
-- Chiptune sound effects and vibration, generated in code. No image or audio files.
+- Designed to be fun for children and older players: relaxed pace, no losing on weekdays, visual hints and big, clear buttons.
+- Live bar scene based on the real Álvaro's: white walls, light wood, mustard and mauve armchairs, copper lamps, sunflowers, a TV with football and a window onto the street.
+- Customers walk in, enjoy their order at the counter and walk out; dishes fly from the tray; machines fill up while preparing.
+- **The team**: Blanca is always available. Mari, Andrea and Alejandro unlock with stars, each with a different ability.
+- Regulars album, records, total tips and a share button.
+- English and Spanish, chiptune sound effects and vibration, all generated in code.
 - Progress is saved in the browser (`localStorage`).
 
 ## The team
@@ -33,12 +34,12 @@ Keyboard (desktop): `1`–`6` stations, `Q W E R` customers, `Z X C V` tray slot
 | Character | Unlocks at | Ability |
 | --- | --- | --- |
 | Blanca | From the start | +10% tips. Main character. |
-| Mari | 150 total tips | Coffee and juice are ready much faster. |
-| Andrea | 400 total tips | Customers wait 25% longer. |
-| Alejandro | 800 total tips | Bigger tray: room for 4 items. |
+| Mari | 3 stars | Coffee and juice are ready much faster. |
+| Andrea | 7 stars | Customers wait 25% longer. |
+| Alejandro | 12 stars | Bigger tray: room for 4 items. |
 | Pepe Nacho (the boss) | Event | Doubles tips while he is around. |
 
-The current looks are placeholders. Each character's look is defined in `js/config.js` and can be adjusted to match the real people.
+The looks are placeholders except for Blanca's blonde hair. Each character's look is defined in `js/config.js`.
 
 ## Running locally
 
@@ -85,6 +86,7 @@ docs/               Game design notes
 - **Menu and prices**: `ITEMS`, `STATIONS` and `MENUS` in `js/config.js`.
 - **Staff and their looks**: `STAFF` and `BOSS` in `js/config.js`.
 - **Catchphrases**: `phrases` in `js/i18n.js`, in both languages.
-- **Difficulty**: `DIFFICULTY` and `CUSTOMER_TYPES` in `js/config.js`.
+- **Days of the week and star targets**: `WEEK` in `js/config.js`.
+- **Rush hour difficulty**: `DIFFICULTY` and `CUSTOMER_TYPES` in `js/config.js`.
 
 See [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md) for the design and the roadmap.
