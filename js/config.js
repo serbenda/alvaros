@@ -43,10 +43,10 @@ export const CUSTOMER_TYPES = {
 
 /** Difficulty ramps linearly from start to end values over `rampSeconds`. */
 export const DIFFICULTY = {
-  spawnStart: 4.0,
-  spawnMin: 1.3,
-  patienceMinFactor: 0.7,
-  rampSeconds: 180,
+  spawnStart: 4.5,
+  spawnMin: 1.6,
+  patienceMinFactor: 0.75,
+  rampSeconds: 240,
 };
 
 export const SEATS = 4;
@@ -67,7 +67,7 @@ export const BOSS = {
 
 /**
  * Bar staff. Blanca is the main character and is always available.
- * The rest unlock with the total tips earned across all shifts (`unlock`).
+ * The rest unlock with the total stars earned in the week mode (`unlock`).
  * Looks are placeholders until we have each person's description.
  *
  * Abilities:
@@ -86,12 +86,12 @@ export const STAFF = [
     patienceBonus: 1,
     trayCapacity: 3,
     tipBonus: 1.1,
-    look: { skin: '#f1c27d', hair: '#3b2416', hairStyle: 'long', shirt: '#1f1f1f', apron: '#f4ecd8' },
+    look: { skin: '#f6cfa5', hair: '#e6be5a', hairStyle: 'long', shirt: '#1f1f1f', apron: '#f4ecd8' },
   },
   {
     id: 'mari',
     name: 'Mari',
-    unlock: 150,
+    unlock: 3,
     prepSpeed: 1,
     prepBonus: { coffee: 1.7, juice: 1.7 },
     patienceBonus: 1,
@@ -102,7 +102,7 @@ export const STAFF = [
   {
     id: 'andrea',
     name: 'Andrea',
-    unlock: 400,
+    unlock: 7,
     prepSpeed: 1,
     patienceBonus: 1.25,
     trayCapacity: 3,
@@ -112,7 +112,7 @@ export const STAFF = [
   {
     id: 'alejandro',
     name: 'Alejandro',
-    unlock: 800,
+    unlock: 12,
     prepSpeed: 1,
     patienceBonus: 1,
     trayCapacity: 4,
@@ -130,3 +130,116 @@ export const DAILY_TWISTS = [
   { id: 'critics', criticWeight: 6 },
   { id: 'bossDay', bossEvery: 0.5 },
 ];
+
+/**
+ * Endless rush hour: the original arcade mode with lives and a difficulty ramp.
+ * Used for the competitive modes (rush hour and the daily challenge).
+ */
+export const RUSH_LEVEL = {
+  id: 'rush',
+  stations: STATIONS,
+  strikes: MAX_STRIKES,
+  boss: true,
+  endless: true,
+};
+
+const ALL = STATIONS;
+
+/**
+ * A week at Álvaro's: one level per day, introducing items little by little.
+ * Shifts have a fixed length, customers who get tired just leave without a tip
+ * (no lives), and the score earns 1 to 3 stars (`targets`).
+ *
+ * spawn: seconds between customers at the start and at the end of the shift.
+ * patience: multiplier for customer patience. maxOrder: biggest order size.
+ * guide: show a pointing hand that suggests the next tap.
+ */
+export const WEEK = [
+  {
+    id: 'monday',
+    stations: ['coffee', 'toast'],
+    customers: ['regular', 'kid'],
+    duration: 90,
+    spawn: [7, 5.5],
+    patience: 2.2,
+    maxOrder: 1,
+    startMinutes: 8 * 60,
+    guide: true,
+    targets: [60, 170, 270],
+  },
+  {
+    id: 'tuesday',
+    stations: ['coffee', 'juice', 'toast'],
+    customers: ['regular', 'kid'],
+    duration: 100,
+    spawn: [6.5, 5],
+    patience: 2,
+    maxOrder: 2,
+    startMinutes: 8 * 60,
+    guide: true,
+    targets: [70, 190, 380],
+  },
+  {
+    id: 'wednesday',
+    stations: ['coffee', 'juice', 'toast', 'beer', 'tapa'],
+    customers: ['regular', 'kid', 'hurry'],
+    duration: 110,
+    spawn: [6, 4.5],
+    patience: 1.8,
+    maxOrder: 2,
+    startMinutes: 11 * 60 + 30,
+    targets: [100, 270, 500],
+  },
+  {
+    id: 'thursday',
+    stations: ALL,
+    customers: ['regular', 'kid', 'hurry', 'tourist'],
+    duration: 120,
+    spawn: [5.5, 4],
+    patience: 1.6,
+    maxOrder: 2,
+    startMinutes: 12 * 60 + 30,
+    targets: [130, 320, 800],
+  },
+  {
+    id: 'friday',
+    stations: ALL,
+    customers: ['regular', 'kid', 'hurry', 'tourist'],
+    duration: 120,
+    spawn: [5, 3.5],
+    patience: 1.45,
+    maxOrder: 3,
+    startMinutes: 13 * 60,
+    targets: [100, 260, 800],
+  },
+  {
+    id: 'saturday',
+    stations: ALL,
+    customers: ['regular', 'kid', 'hurry', 'tourist', 'critic'],
+    duration: 120,
+    spawn: [4.8, 3.3],
+    patience: 1.35,
+    maxOrder: 3,
+    startMinutes: 12 * 60,
+    boss: true,
+    targets: [90, 250, 1050],
+  },
+  {
+    id: 'sunday',
+    stations: ALL,
+    customers: ['regular', 'kid', 'hurry', 'tourist', 'critic'],
+    duration: 120,
+    spawn: [4.5, 3],
+    patience: 1.3,
+    maxOrder: 3,
+    startMinutes: 10 * 60,
+    boss: true,
+    targets: [80, 220, 950],
+  },
+];
+
+// Items each day introduces, so the game can announce them.
+WEEK.forEach((day, i) => {
+  const before = new Set(i > 0 ? WEEK[i - 1].stations : []);
+  day.intro = i > 0 ? day.stations.filter((id) => !before.has(id)) : [];
+});
