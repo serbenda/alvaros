@@ -1,0 +1,11 @@
+{
+  "name": "alvaros",
+  "version": "0.1.0",
+  "description": "Rush Hour at Álvaro's: a pixel-art arcade game about serving the regulars at a neighbourhood bar.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "test": "node --test tests/*.test.mjs"
+  }
+}
