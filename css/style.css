@@ -462,11 +462,6 @@ p {
   filter: drop-shadow(0 4px 0 rgba(90, 54, 29, 0.35));
 }
 
-#screen-title {
-  justify-content: flex-start;
-  padding-top: 1.2rem;
-}
-
 #screen-title h1 {
   font-size: clamp(11px, 3.6vw, 15px);
   text-shadow: none;
@@ -485,17 +480,23 @@ p {
 }
 
 .screen.title-screen {
-  justify-content: flex-start;
-  gap: 0.7rem;
+  justify-content: safe center;
+  gap: 0.75rem;
   padding: 0.8rem 0.9rem 1rem;
-  /* Let the living bar show through at the top */
-  background: linear-gradient(
-    to bottom,
-    rgba(253, 249, 241, 0.1) 0%,
-    rgba(253, 249, 241, 0.55) 22%,
-    rgba(253, 249, 241, 0.92) 40%,
-    rgba(253, 249, 241, 0.97) 100%
-  );
+  /* Let the living bar show through at the top, then a warm, sunny backdrop */
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255, 243, 220, 0.05) 0%,
+      rgba(255, 243, 220, 0.6) 24%,
+      rgba(255, 238, 205, 0.93) 42%,
+      rgba(255, 228, 182, 0.97) 100%
+    ),
+    repeating-linear-gradient(
+      45deg,
+      rgba(233, 184, 32, 0.08) 0 14px,
+      rgba(255, 255, 255, 0) 14px 28px
+    );
 }
 
 .title-screen .logo {

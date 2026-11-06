@@ -21,6 +21,8 @@ All notable changes to this project are documented here.
 - Proprietary license (all rights reserved).
 
 ### Changed
+- Brighter mini-game scenery: bunting garland, warm wall, pictures, a plant, varied bricks and floor tiles, wooden tables with planks and knots, and a counter with a brass rail.
+- The title menu is centred on the screen over a warm, striped backdrop.
 - Simpler menu: mini-games and chinos up front, the week, rush hour and the daily challenge folded under "More modes".
 - The penalty mini-game is replaced by flipping the tortilla, which fits the bar better.
 - The bar is now Álvaro's Gastrobar.
