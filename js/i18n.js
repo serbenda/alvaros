@@ -44,7 +44,6 @@ const STRINGS = {
     newItem: 'NEW: {name}!',
     noTip: 'NO TIP',
     goal: 'GOAL!',
-    helperToday: '{name} is working today!',
     teamTitle: "The Álvaro's team",
     music: 'Music',
     stars: 'Stars',
@@ -89,9 +88,9 @@ const STRINGS = {
     },
     staff: {
       blanca: 'You play as Blanca, the heart of the bar.',
-      mari: 'Runs the coffee machine: coffee and juice come out faster.',
+      mari: 'Goes between the coffee machine and the counter: coffee and juice come out faster.',
       andrea: 'Looks after the customers and calms down the ones who wait too long.',
-      alejandro: 'Cooks in the kitchen: toast, tapas and menus come out faster.',
+      alejandro: 'Never without his gold watch. Now and then he takes a dish from your tray to a customer.',
       boss: 'The boss. When he shows up, tips are doubled.',
     },
     twists: {
@@ -152,7 +151,6 @@ const STRINGS = {
     newItem: '¡NUEVO: {name}!',
     noTip: 'SIN PROPINA',
     goal: '¡GOOOL!',
-    helperToday: '¡Hoy trabaja {name}!',
     teamTitle: "El equipo de Álvaro's",
     music: 'Música',
     stars: 'Estrellas',
@@ -197,9 +195,9 @@ const STRINGS = {
     },
     staff: {
       blanca: 'Juegas con Blanca, el alma del bar.',
-      mari: 'Lleva la cafetera: el café y el zumo salen más rápido.',
+      mari: 'Va de la cafetera a la barra: el café y el zumo salen más rápido.',
       andrea: 'Atiende a la clientela y calma a quien lleva rato esperando.',
-      alejandro: 'Cocina en la cocina: tostadas, tapas y menús salen más rápido.',
+      alejandro: 'Nunca sin su reloj de oro. De vez en cuando lleva un plato de tu bandeja a un cliente.',
       boss: 'El jefe. Cuando aparece, las propinas valen el doble.',
     },
     twists: {

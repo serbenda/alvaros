@@ -408,14 +408,11 @@ export function drawPerson(ctx, look, cx, top, opts = {}) {
     fill(5.5, 5, 1, 0.5, OUTLINE);
   }
 
-  if (look.chefHat) {
-    fill(-0.5, -6.5, 13, 6, OUTLINE);
-    fill(0, -6, 12, 5, '#ffffff');
-    fill(1, -8, 4, 3, OUTLINE);
-    fill(1.5, -7.5, 3, 2.5, '#ffffff');
-    fill(7, -8, 4, 3, OUTLINE);
-    fill(7.5, -7.5, 3, 2.5, '#ffffff');
-    fill(0, -2, 12, 1, '#dcdce4');
+  if (look.watch) {
+    // Gold watch on the left wrist
+    fill(-5.5, 21, 5, 2, OUTLINE);
+    fill(-5, 21.25, 4, 1.5, '#f5c542');
+    fill(-4, 21.25, 1.5, 0.75, '#fff6d0');
   }
 
   switch (look.accessory) {

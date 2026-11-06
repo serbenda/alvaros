@@ -58,11 +58,11 @@ export const MAX_STRIKES = 3;
  */
 export const BOSS = {
   name: 'Pepe Nacho',
-  firstAfter: 30,
-  every: [45, 70],
+  firstAfter: 15,
+  every: [20, 35],
   duration: 12,
   tipMult: 2,
-  look: { skin: '#e0ac69', hair: '#4a4a4a', hairStyle: 'bald', shirt: '#ecf0f1', accessory: 'boss' },
+  look: { skin: '#e0ac69', hair: '#151515', hairStyle: 'short', shirt: '#ecf0f1', accessory: 'boss' },
 };
 
 /**
@@ -84,12 +84,13 @@ export const PLAYER = {
 };
 
 /**
- * Blanca's teammates. They are not playable: they work in the bar alongside her
- * and help in their own way. Each day of the week says who is on shift.
- * Looks are placeholders until we have each person's description.
+ * Blanca's teammates. They are not playable: they move around the bar doing
+ * their own things and help in their own way. Looks are placeholders except
+ * for the details we know (Alejandro's gold watch).
  *
- * - Mari runs the coffee machine: coffee and juice are ready faster.
- * - Alejandro cooks in the kitchen: toast, tapas and menus are ready faster.
+ * - Mari goes between the coffee machine and the counter: coffee and juice are ready faster.
+ * - Alejandro strolls around checking his gold watch and now and then takes a
+ *   dish from Blanca's tray to the customer who ordered it.
  * - Andrea looks after the customers: every so often she chats with the one
  *   who has been waiting the longest and gives them back some patience.
  */
@@ -107,8 +108,8 @@ export const HELPERS = {
   },
   alejandro: {
     name: 'Alejandro',
-    prepBonus: { toast: 1.4, tapa: 1.4, menu: 1.4 },
-    look: { skin: '#f1c27d', hair: '#2c1b10', hairStyle: 'short', shirt: '#ffffff', apron: '#f4ecd8', beard: true, chefHat: true },
+    every: [9, 15],
+    look: { skin: '#f1c27d', hair: '#2c1b10', hairStyle: 'short', shirt: '#1f1f1f', apron: '#f4ecd8', beard: true, watch: true },
   },
 };
 
@@ -153,7 +154,7 @@ export const WEEK = [
   {
     id: 'monday',
     boss: true,
-    helpers: ['mari'],
+    helpers: ['mari', 'andrea', 'alejandro'],
     stations: ['coffee', 'toast'],
     customers: ['regular', 'kid'],
     duration: 90,
@@ -167,7 +168,7 @@ export const WEEK = [
   {
     id: 'tuesday',
     boss: true,
-    helpers: ['mari', 'andrea'],
+    helpers: ['mari', 'andrea', 'alejandro'],
     stations: ['coffee', 'juice', 'toast'],
     customers: ['regular', 'kid'],
     duration: 100,
@@ -249,6 +250,5 @@ export const WEEK = [
 WEEK.forEach((day, i) => {
   const before = new Set(i > 0 ? WEEK[i - 1].stations : []);
   day.intro = i > 0 ? day.stations.filter((id) => !before.has(id)) : [];
-  const helpersBefore = new Set(i > 0 ? WEEK[i - 1].helpers : []);
-  day.newHelpers = day.helpers.filter((id) => !helpersBefore.has(id));
+
 });

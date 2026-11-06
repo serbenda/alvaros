@@ -236,8 +236,9 @@ function onEvent(type, data) {
     case 'onfire':
       sfx.play('onfire');
       break;
-    case 'bell':
-      sfx.play('bell');
+    case 'alejandro':
+      sfx.play('serve');
+      vibrate(10);
       break;
     case 'goal':
       sfx.play('goal');

@@ -100,6 +100,18 @@ test('Andrea gives patience back to a waiting customer', () => {
   assert.ok(c.patience > c.maxPatience * 0.5);
 });
 
+test('Alejandro takes a dish from the tray to a waiting customer', () => {
+  const { game, events } = newGame({ level: { ...WEEK[0], helpers: ['alejandro'] } });
+  const c = game.spawn();
+  run(game, ENTER_TIME + 0.05);
+  game.tray = [c.order[0]];
+  game.crew.alejandro.plan = [{ task: 'help' }];
+  game.crew.alejandro.t = 99;
+  run(game, 6);
+  assert.ok(events.some((e) => e.type === 'alejandro'));
+  assert.equal(game.tray.length, 0);
+});
+
 test('a goal on TV cheers up the customers', () => {
   const { game, events } = newGame();
   const c = game.spawn();

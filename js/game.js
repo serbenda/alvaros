@@ -85,14 +85,13 @@ export class Game {
     // Andrea walks over to calm a customer; the TV shows a goal now and then.
     this.andrea = { state: 'off', seat: -1, t: 0, next: this.between(HELPERS.andrea.every) };
     this.tv = { next: this.between(TV_GOALS.every), cheer: 0 };
-    this.bell = 0;
+    // Mari and Alejandro walk around the floor behind the counter doing their things.
+    this.crew = {};
+    if (this.helpers.has('mari')) this.crew.mari = this.makeWalker(-20, 0.5);
+    if (this.helpers.has('alejandro')) this.crew.alejandro = this.makeWalker(W + 20, 3);
 
     this.say(cosmetic(t('phrases.start')));
     if (twist) this.float(W / 2, 122, t(`twists.${twist.id}`), COLORS.gold, 6, 2.4);
-    if (level.newHelpers && level.newHelpers.length) {
-      const names = level.newHelpers.map((id) => HELPERS[id].name).join(', ');
-      this.float(W / 2, 156, t('helperToday', { name: names }), COLORS.orange, 5, 3.2);
-    }
     if (level.intro && level.intro.length) {
       const names = level.intro.map((id) => t(`items.${id}`)).join(', ');
       this.float(W / 2, 140, t('newItem', { name: names }), COLORS.green, 5, 3);
@@ -451,6 +450,98 @@ export class Game {
     }
   }
 
+  makeWalker(x, delay) {
+    return { x, target: x, task: 'away', t: 0, dur: delay, plan: [], carry: null, flip: false };
+  }
+
+  /** Mari's routine: coffee machine, wipe the counter, take a break. */
+  planMari() {
+    return [
+      { walk: 16 },
+      { task: 'coffee', dur: 3 + Math.random() * 3 },
+      { walk: 40 + Math.random() * 90 },
+      { task: 'wipe', dur: 2.5 },
+      { walk: 16 },
+      { task: 'coffee', dur: 2 + Math.random() * 2 },
+      { walk: -20 },
+      { task: 'away', dur: 2 + Math.random() * 4 },
+    ];
+  }
+
+  /** Alejandro's routine: stroll, check his gold watch, lend a hand with a dish. */
+  planAlejandro() {
+    return [
+      { walk: 30 + Math.random() * 120 },
+      { task: 'watch', dur: 1.8 },
+      { task: 'help' },
+      { walk: 30 + Math.random() * 120 },
+      { task: 'watch', dur: 1.4 },
+      { task: 'help' },
+      { walk: Math.random() < 0.5 ? -20 : W + 20 },
+      { task: 'away', dur: 2 + Math.random() * 3 },
+    ];
+  }
+
+  updateCrew(dt) {
+    for (const [name, w] of Object.entries(this.crew)) {
+      w.t += dt;
+      if (w.task === 'walk') {
+        const d = w.target - w.x;
+        const step = dt * 45;
+        if (d !== 0) w.flip = d < 0;
+        if (Math.abs(d) > step) {
+          w.x += Math.sign(d) * step;
+          continue;
+        }
+        w.x = w.target;
+        if (w.onArrive) {
+          w.onArrive();
+          w.onArrive = null;
+        }
+      } else if (w.t < w.dur) {
+        continue;
+      }
+      if (!w.plan.length) w.plan = name === 'mari' ? this.planMari() : this.planAlejandro();
+      const next = w.plan.shift();
+      w.t = 0;
+      if (next.walk !== undefined) {
+        w.task = 'walk';
+        w.target = next.walk;
+      } else if (next.task === 'help') {
+        this.alejandroHelps(w);
+      } else {
+        w.task = next.task;
+        w.dur = next.dur;
+      }
+    }
+  }
+
+  /** Alejandro takes a dish from the tray to a customer who is waiting for it. */
+  alejandroHelps(w) {
+    w.task = 'pause';
+    w.dur = 0.2;
+    const ready = this.seats.filter((c) => this.canServe(c));
+    if (!ready.length) return;
+    const c = ready[0];
+    const k = c.order.findIndex((id, i) => !c.served[i] && this.tray.includes(id));
+    const item = c.order[k];
+    this.tray.splice(this.tray.indexOf(item), 1);
+    w.carry = item;
+    w.task = 'walk';
+    w.target = SEAT_X[c.seat];
+    w.onArrive = () => {
+      w.carry = null;
+      const still = this.seats[c.seat] === c && c.state === 'wait' && !c.served[k];
+      if (!still) return;
+      c.served[k] = true;
+      this.fx.push({ kind: 'deliver', seat: c.seat, items: [item], from: w.x });
+      this.float(SEAT_X[c.seat], 46, HELPERS.alejandro.name, COLORS.green, 5, 1);
+      this.emit('alejandro', {});
+      if (c.served.every(Boolean)) this.completeOrder(c);
+      else c.patience = Math.min(c.maxPatience, c.patience + 2);
+    };
+  }
+
   updateTv(dt) {
     const tv = this.tv;
     tv.cheer = Math.max(0, tv.cheer - dt);
@@ -489,9 +580,7 @@ export class Game {
         s.flash = 0.3;
         this.tray.push(id);
         this.fx.push({ kind: 'pop', station: STATIONS.indexOf(id) });
-        const kitchen = this.helpers.has('alejandro') && HELPERS.alejandro.prepBonus[id];
-        if (kitchen) this.bell = 0.6;
-        this.emit(kitchen ? 'bell' : 'ready', { item: id });
+        this.emit('ready', { item: id });
       }
     }
 
@@ -525,7 +614,7 @@ export class Game {
     this.updateBoss(dt);
     this.updateAndrea(dt);
     this.updateTv(dt);
-    this.bell = Math.max(0, this.bell - dt);
+    this.updateCrew(dt);
     for (const c of this.seats) if (c && c.cheer > 0) c.cheer = Math.max(0, c.cheer - dt);
 
     const p = this.player;

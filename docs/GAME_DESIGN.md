@@ -29,9 +29,9 @@ The main mode teaches the game day by day instead of with instructions:
 
 | Day | Stations | Notes |
 | --- | --- | --- |
-| Monday | Coffee, toast | One item per order, very patient customers, pointing hand. Mari on shift |
-| Tuesday | + Juice | Orders of up to two items, pointing hand. Andrea joins |
-| Wednesday | + Beer, tapa | Lunch time starts. Alejandro opens the kitchen |
+| Monday | Coffee, toast | One item per order, very patient customers, pointing hand. |
+| Tuesday | + Juice | Orders of up to two items, pointing hand. |
+| Wednesday | + Beer, tapa | Lunch time starts. |
 | Thursday | + Menu | All stations |
 | Friday | All | Busier, orders of up to three items |
 | Saturday | All | Critics appear |
@@ -57,10 +57,12 @@ Over the first four minutes, customers arrive more often (from every ~4.5 s to e
 
 Blanca is the only playable character. Her teammates appear in the bar and help, so the real team is recognisable without making the game more complex:
 
-- **Mari** (every day): coffee and juice prepare 60% faster. She works at the coffee machine.
-- **Andrea** (from Tuesday): every 13–20 s she walks over to the customer with the least patience and gives back half of it.
-- **Alejandro** (from Wednesday): toast, tapas and menus prepare 40% faster. He cooks behind the kitchen hatch and rings the bell.
-- **Pepe Nacho**, the boss (every day): appears every minute or so, strolls around with his clipboard and doubles tips while he is there.
+- **Mari**: goes between the coffee machine and the counter. Coffee and juice prepare 60% faster.
+- **Andrea**: every 13–20 s she walks over to the customer with the least patience and gives back half of it.
+- **Alejandro**: strolls around checking his gold watch and, a couple of times per round, takes a dish from the tray to the customer who ordered it.
+- **Pepe Nacho**, the boss: comes in every 20–35 s, strolls around with his clipboard and doubles tips while he is there.
+
+The whole team is in the bar every day.
 
 Goals on the TV every 30–45 s make the waiting customers cheer and recover some patience.
 

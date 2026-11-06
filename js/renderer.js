@@ -318,7 +318,9 @@ function spawnFx(game) {
         const cap = game.trayCapacity;
         const tray = traySlotRect(Math.floor(cap / 2), cap);
         fx.items.forEach((id, i) => {
-          addParticle({ kind: 'item', id, sx: tray.x + 3 + (i - 1) * 8, sy: tray.y + 3, tx: SEAT_X[fx.seat] - 6, ty: COUNTER_Y - 12, delay: i * 0.06, life: 0.45 + i * 0.06 });
+          const sx = fx.from !== undefined ? fx.from - 8 : tray.x + 3 + (i - 1) * 8;
+          const sy = fx.from !== undefined ? STAFF_TOP + 2 : tray.y + 3;
+          addParticle({ kind: 'item', id, sx, sy, tx: SEAT_X[fx.seat] - 6, ty: COUNTER_Y - 12, delay: i * 0.06, life: 0.45 + i * 0.06 });
         });
         break;
       }
@@ -666,15 +668,11 @@ function drawBoss(ctx, game, now) {
   }
 }
 
-/** Mari at the coffee machine, on the left of the bar. */
-function drawMari(ctx, game, now) {
-  if (!game || !game.helpers.has('mari')) return;
+/** The coffee machine on the back bar, on the left. */
+function drawCoffeeMachine(ctx, game, now) {
+  if (!game) return;
   const busy = game.stations.coffee.busy || game.stations.juice.busy;
-  const x = 13;
-  const top = STAFF_TOP - 8 + (busy ? Math.round(Math.sin(now * 14)) * 0.5 : 0);
-  drawPerson(ctx, HELPERS.mari.look, x, top, { mood: busy ? 'happy' : 'neutral', blink: (now + 1) % 3.7 < 0.12 });
-  // Coffee machine in front of her
-  const my = top + 14;
+  const my = STAFF_TOP + 4;
   box(ctx, -1, my - 1, 24, 18, OUTLINE, 1);
   rect(ctx, 0, my, 22, 16, '#c9ced2');
   rect(ctx, 0, my, 22, 1.5, '#eef1f3');
@@ -685,46 +683,53 @@ function drawMari(ctx, game, now) {
   if (busy) {
     rect(ctx, 4, my + 10, 1, 3, '#6f3b1e');
     rect(ctx, 16, my + 10, 1, 3, '#6f3b1e');
+    if (Math.random() < 0.15) addParticle({ kind: 'steam', x: 6 + Math.random() * 10, y: my - 2, vx: 0, vy: -10, life: 0.6, size: 2 });
   }
   rect(ctx, 2, my + 13, 5, 2, '#ffffff');
   rect(ctx, 14, my + 13, 5, 2, '#ffffff');
-  nameTag(ctx, HELPERS.mari.name, x, my + 18, '#8b4a2b');
+  rect(ctx, -1, my + 17, 24, 2, PALETTE.woodDark);
 }
 
-/** Alejandro cooking behind the kitchen hatch, on the right of the bar. */
-function drawAlejandro(ctx, game, now) {
-  if (!game || !game.helpers.has('alejandro')) return;
-  const busy = game.stations.toast.busy || game.stations.tapa.busy || game.stations.menu.busy;
-  const hx = W - 24;
-  const hy = FLOOR_Y + 4;
-  // Wall with the hatch
-  rect(ctx, hx - 2, FLOOR_Y, 26, 46, PALETTE.wall);
-  rect(ctx, hx - 2, FLOOR_Y, 1, 46, PALETTE.wallShade);
-  rect(ctx, hx, hy, 22, 24, '#5a6b73');
-  for (let y = hy; y < hy + 24; y += 4) rect(ctx, hx, y, 22, 0.5, '#4a5a62');
-  const sway = busy ? Math.sin(now * 8) * 1.5 : 0;
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(hx, hy, 22, 24);
-  ctx.clip();
-  drawPerson(ctx, HELPERS.alejandro.look, hx + 11 + sway, hy + 9, { mood: busy ? 'happy' : 'neutral', blink: (now + 2) % 4.1 < 0.12 });
-  ctx.restore();
-  // Frame and sill
-  outline(ctx, hx - 1, hy - 1, 24, 26, PALETTE.wood, 1.5);
-  rect(ctx, hx - 2, hy + 23, 26, 3, PALETTE.wood);
-  rect(ctx, hx - 2, hy + 23, 26, 0.75, PALETTE.woodLight);
-  // Service bell
-  const ring = game.bell > 0 ? Math.sin(now * 60) * 1 : 0;
-  rect(ctx, hx + 2.5 + ring, hy + 19.5, 5, 3.5, OUTLINE);
-  rect(ctx, hx + 3 + ring, hy + 20, 4, 3, '#d4a017');
-  rect(ctx, hx + 4.5 + ring, hy + 18.5, 1, 1.5, OUTLINE);
-  if (game.bell > 0) {
-    text(ctx, '¡DING!', hx + 5, hy - 8 - (0.6 - game.bell) * 6, { size: 4, color: '#f5c542', align: 'center', outline: OUTLINE });
+/** Mari or Alejandro walking around the floor and doing their things. */
+function drawCrewMember(ctx, game, name, now) {
+  const w = game.crew[name];
+  if (!w || w.task === 'away' || w.x < -16 || w.x > W + 16) return;
+  const def = HELPERS[name];
+  const walking = w.task === 'walk';
+  const step = walking ? Math.round(Math.sin(now * 14 + name.length) * 2) : 0;
+  const top = STAFF_TOP - 7 - (walking ? Math.abs(step) * 0.4 : 0);
+  const mood = w.task === 'watch' ? 'neutral' : 'happy';
+  drawShadow(ctx, w.x, top + 34, 14);
+  drawPerson(ctx, def.look, w.x, top, { mood, legs: true, step, blink: (now + name.length) % 3.6 < 0.12 });
+
+  if (w.task === 'wipe') {
+    const sway = Math.sin(now * 12) * 4;
+    rect(ctx, w.x + 4 + sway, top + 19, 6, 4, OUTLINE);
+    rect(ctx, w.x + 4.5 + sway, top + 19.5, 5, 3, '#e8f4f8');
+    if (Math.random() < 0.1) addParticle({ kind: 'star', x: w.x + 6 + sway, y: top + 18, vx: 0, vy: -12, life: 0.4, color: '#ffffff' });
+  } else if (w.task === 'coffee') {
+    rect(ctx, w.x - 9, top + 18, 5, 4, OUTLINE);
+    rect(ctx, w.x - 8.5, top + 18.5, 4, 3, '#ffffff');
+  } else if (w.task === 'watch') {
+    // Checks the gold watch, which sparkles
+    const gx = w.x - 6;
+    const gy = top - 10 + Math.sin(now * 5);
+    box(ctx, gx - 4, gy - 4, 9, 9, OUTLINE, 2);
+    box(ctx, gx - 3.5, gy - 3.5, 8, 8, '#f5c542', 2);
+    box(ctx, gx - 2, gy - 2, 5, 5, '#fff6d0', 1);
+    rect(ctx, gx + 0.25, gy - 1.5, 0.5, 2, OUTLINE);
+    rect(ctx, gx + 0.25, gy + 0.25, 1.5, 0.5, OUTLINE);
+    if (Math.sin(now * 8) > 0.6) {
+      rect(ctx, gx + 4, gy - 5, 0.5, 3, '#ffffff');
+      rect(ctx, gx + 3, gy - 4, 2.5, 0.5, '#ffffff');
+    }
   }
-  if (busy && Math.random() < 0.2) {
-    addParticle({ kind: 'steam', x: hx + 6 + Math.random() * 10, y: hy + 14, vx: 0, vy: -10, life: 0.6, size: 2 });
+  if (w.carry) {
+    rect(ctx, w.x - 7, top + 20, 14, 1.5, OUTLINE);
+    rect(ctx, w.x - 6.5, top + 20.25, 13, 1, '#c8d1d7');
+    drawIcon(ctx, w.carry, w.x - 6, top + 12, 0.75);
   }
-  nameTag(ctx, HELPERS.alejandro.name, hx + 11, hy + 28, '#27ae60');
+  nameTag(ctx, def.name, w.x, top + 36, name === 'mari' ? '#8b4a2b' : '#27ae60');
 }
 
 /** Andrea walks over to a customer, chats with them and walks away. */
@@ -1294,8 +1299,11 @@ export function render(ctx, game, { t, now, dt = 0 }) {
   ctx.drawImage(layer('counter', paintCounter), 0, 0, W, H);
   if (game) drawCounterItems(ctx, game);
   ctx.drawImage(layer('floor', paintFloor), 0, 0, W, H);
-  drawAlejandro(ctx, game, now);
-  drawMari(ctx, game, now);
+  drawCoffeeMachine(ctx, game, now);
+  if (game) {
+    drawCrewMember(ctx, game, 'mari', now);
+    drawCrewMember(ctx, game, 'alejandro', now);
+  }
   drawBoss(ctx, game, now);
   drawPlayer(ctx, game, now);
   drawParticles(ctx, false);

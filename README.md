@@ -38,12 +38,14 @@ You play as **Blanca**, the heart of the bar. The rest of the team works alongsi
 | Character | Role in the game |
 | --- | --- |
 | Blanca | The player. Prepares and serves everything. |
-| Mari | Runs the coffee machine: coffee and juice come out faster. On shift every day. |
-| Andrea | Looks after the customers: now and then she chats with the one who has waited longest and gives them back patience. From Tuesday. |
-| Alejandro | Cooks behind the kitchen hatch and rings the bell: toast, tapas and menus come out faster. From Wednesday. |
-| Pepe Nacho | The boss. He strolls around the bar with his clipboard and, while he is there, tips are doubled. |
+| Mari | Goes between the coffee machine and the counter: coffee and juice come out faster. |
+| Andrea | Looks after the customers: now and then she chats with the one who has waited longest and gives them back patience. |
+| Alejandro | Strolls around checking his gold watch and now and then takes a dish from Blanca's tray to the customer who ordered it. |
+| Pepe Nacho | The boss. He comes in often, strolls around with his clipboard and, while he is there, tips are doubled. |
 
-The looks are placeholders except for Blanca's blonde hair. They are defined in `js/config.js` (`PLAYER`, `HELPERS` and `BOSS`).
+Everyone is in the bar every day, moving around and doing their things.
+
+The looks are placeholders except for what we know: Blanca is blonde, Alejandro wears a gold watch and Pepe Nacho has black hair. They are defined in `js/config.js` (`PLAYER`, `HELPERS` and `BOSS`).
 
 ## Running locally
 
