@@ -82,10 +82,17 @@ export function clamp(v, lo, hi) {
 export const easeInOut = (k) => (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
 
 /** A soft radial light. */
+/** The same colour with zero alpha, so gradients fade out without turning grey. */
+function transparent(color) {
+  if (/^#[0-9a-f]{6}$/i.test(color)) return `${color}00`;
+  const m = color.match(/^rgba?\(([^,]+),([^,]+),([^,)]+)/);
+  return m ? `rgba(${m[1]},${m[2]},${m[3]},0)` : 'rgba(255,255,255,0)';
+}
+
 export function glow(ctx, x, y, radius, color, alpha) {
   const g = ctx.createRadialGradient(x, y, 0, x, y, radius);
   g.addColorStop(0, color);
-  g.addColorStop(1, 'rgba(0,0,0,0)');
+  g.addColorStop(1, transparent(color));
   ctx.globalAlpha = alpha;
   ctx.fillStyle = g;
   ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);

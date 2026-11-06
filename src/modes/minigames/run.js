@@ -21,15 +21,31 @@ export const INTRO_TIME = 1.2;
 export const RESULT_TIME = 0.9;
 export const SPEEDUP_TIME = 1.2;
 const WINS_PER_SPEEDUP = 4;
+/** Slowest speed: after a few misses the game eases off, so nobody gets stuck. */
+export const MIN_SPEED = 0.75;
+/** Easy mini-games used to open a beginner's first run. */
+const EASY_FIRST = ['calm', 'order', 'coffee', 'fly'];
+/** How many mini-games show their instruction during play in a beginner's run. */
+const GUIDED_GAMES = 3;
 
 export class MiniRun {
-  constructor({ t, onEvent = () => {}, only = null }) {
+  /**
+   * @param {object} opts
+   * @param {Function} opts.t          Translation function.
+   * @param {Function} [opts.onEvent]  Receives (type, data).
+   * @param {string} [opts.only]       Play only this mini-game (for testing or showing one).
+   * @param {boolean} [opts.beginner]  First runs: easier start and instructions on screen.
+   */
+  constructor({ t, onEvent = () => {}, only = null, beginner = false }) {
     this.t = t;
     this.emit = onEvent;
     this.only = only;
+    this.beginner = beginner;
+    this.played = 0;
     this.lives = LIVES;
     this.score = 0;
-    this.speed = 1;
+    this.speed = beginner ? 0.85 : 1;
+    this.topSpeed = this.speed;
     this.over = false;
     this.overTime = 0;
     this.time = 0;
@@ -46,7 +62,12 @@ export class MiniRun {
   }
 
   next() {
-    const pool = GAMES.filter((g) => (this.only ? g.id === this.only : g.id !== this.last));
+    let pool = GAMES.filter((g) => (this.only ? g.id === this.only : g.id !== this.last));
+    if (this.beginner && !this.only && this.played < 2) {
+      const easy = pool.filter((g) => EASY_FIRST.includes(g.id));
+      if (easy.length) pool = easy;
+    }
+    this.played++;
     const def = pool[Math.floor(Math.random() * pool.length)];
     this.last = def.id;
     this.def = def;
@@ -59,7 +80,12 @@ export class MiniRun {
   }
 
   introTime() {
-    return INTRO_TIME / Math.sqrt(this.speed);
+    return (INTRO_TIME * (this.guided() ? 1.5 : 1)) / Math.sqrt(this.speed);
+  }
+
+  /** True while the instruction should stay on screen during play. */
+  guided() {
+    return this.beginner && this.played <= GUIDED_GAMES;
   }
 
   /** Fraction of time left in the current mini-game, from 1 to 0. */
@@ -113,6 +139,7 @@ export class MiniRun {
           this.emit('gameover', this.summary());
         } else if (this.result === 'win' && this.score % WINS_PER_SPEEDUP === 0) {
           this.speed = Math.round((this.speed + 0.15) * 100) / 100;
+          this.topSpeed = Math.max(this.topSpeed, this.speed);
           this.phase = 'speedup';
           this.pt = 0;
           this.emit('speedup', { speed: this.speed });
@@ -146,12 +173,18 @@ export class MiniRun {
           color: ['#e74c3c', '#f5c542', '#2ecc71', '#3498db', '#ff9f43', '#e84393'][i % 6],
         });
       }
-      this.emit('miniWin', { score: this.score });
+      this.emit('miniWin', { score: this.score, id: this.def.id, streak: this.streak, closeCall: this.closeCall });
     } else {
       this.lives--;
       this.streak = 0;
       this.shake = 0.35;
-      this.emit('miniLose', { lives: this.lives });
+      // Ease off a little after a miss, so slower players can keep going
+      const eased = Math.max(MIN_SPEED, Math.round((this.speed - 0.1) * 100) / 100);
+      if (eased !== this.speed) {
+        this.speed = eased;
+        this.emit('speed', { speed: this.speed });
+      }
+      this.emit('miniLose', { lives: this.lives, id: this.def.id });
     }
   }
 
@@ -176,7 +209,7 @@ export class MiniRun {
   }
 
   summary() {
-    return { score: this.score, served: this.score, bestCombo: 0, speed: this.speed, stars: null };
+    return { score: this.score, served: this.score, bestCombo: 0, speed: this.topSpeed, stars: null };
   }
 }
 

@@ -99,6 +99,18 @@ function drawSpeedup(ctx, run, t, now) {
   text(ctx, `x${run.speed.toFixed(2)}`, W / 2, 230, { size: 8, color: '#7a4a10', align: 'center' });
 }
 
+/** Keeps the instruction on screen during a beginner's first mini-games. */
+function drawGuide(ctx, run, t, now) {
+  const lines = wrap(ctx, t(`mini.${run.def.id}.sub`), 164, 6);
+  const h = lines.length * 9 + 8;
+  const y = H - h - 4 + Math.sin(now * 3) * 1;
+  ctx.globalAlpha = 0.9;
+  box(ctx, 6, y, W - 12, h, OUTLINE, 3);
+  box(ctx, 7, y + 1, W - 14, h - 2, '#e8c21c', 3);
+  ctx.globalAlpha = 1;
+  lines.forEach((line, i) => text(ctx, line, W / 2, y + 5 + i * 9, { size: 6, color: '#3a2416', align: 'center' }));
+}
+
 /** Draws one frame of a mini-games run. */
 export function renderMini(ctx, run, { t, now }) {
   ctx.save();
@@ -108,6 +120,7 @@ export function renderMini(ctx, run, { t, now }) {
   } else {
     run.game.draw(ctx, now, run, t);
     vignette(ctx);
+    if (run.phase === 'play' && run.guided()) drawGuide(ctx, run, t, now);
     if (run.phase === 'intro') drawIntro(ctx, run, t);
     if (run.phase === 'result') drawResult(ctx, run, t);
   }

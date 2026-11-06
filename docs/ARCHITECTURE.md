@@ -63,3 +63,19 @@ docs/                   Design notes, architecture and screenshots
 3. Add `mini.<id>.title` and `mini.<id>.sub` to both locale files.
 4. Run `npm test`: the tests check that every mini-game ends without input and has text in both languages.
 5. Try it with `?mini=<id>` in the URL.
+
+## Player progression
+
+- **Beginner runs**: `MiniRun` takes `beginner: true` for a player's first two mini-game runs. It starts slower and picks from the easiest games first (`EASY_FIRST` in `run.js`); during the first three challenges `render.js` shows the instruction as a banner.
+- **Adaptive pace**: every lost challenge lowers the run speed by 0.1, down to `MIN_SPEED`, and emits a `speed` event so the music follows.
+- **Stickers**: `src/ui/stickers.js` lists each sticker with a rule `when(event, state)`. `main.js` calls `checkStickers` on `miniWin`, `speedup`, `chinosWon` and `weekStars`; new stickers are saved in `state.stickers`, shown as a toast and listed on the end screen. To add one, add an entry and its `stickers.<id>.name` and `.desc` to both locale files.
+
+## Offline, analytics and the poster
+
+- `sw.js` is a network-first service worker: online players always get the latest version, and the cached copy is used without a connection. It is registered at the end of `main.js` on HTTPS and localhost.
+- `src/ui/analytics.js` sends GoatCounter events (`partida/alvaros`, `partida/alvaros/<mode>`, `compartir/alvaros/<mode>`). The page view itself is counted by the snippet in `index.html`. If the script is blocked, the calls do nothing.
+- `poster.html` reuses the logo and the team sprites and draws a QR code with qrcode-generator from cdnjs; without it, the address is still printed.
+
+## Prize codes
+
+`src/core/prize.js` makes and reads codes like `M16-2BP-9WV`: the mode letter and score, the day (days since 1 January 2026, base 32) and a 3-character check made from a hash of the rest. `verify.html` uses the same module, so it works offline. The rules are public, so the codes stop casual edits, not a determined cheat; a shared ranking would need a server.

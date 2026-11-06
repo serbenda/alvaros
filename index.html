@@ -99,6 +99,10 @@
 
       <section id="screen-album" class="screen hidden">
         <h2 data-i18n="album"></h2>
+        <p class="album-section" data-i18n="stickersTitle"></p>
+        <p id="sticker-count" class="subtitle"></p>
+        <div id="sticker-grid" class="stickers"></div>
+        <p class="album-section" data-i18n="regularsTitle"></p>
         <p id="album-count" class="subtitle"></p>
         <div id="album-grid" class="album"></div>
         <button class="btn" type="button" data-back data-i18n="back"></button>
@@ -119,6 +123,13 @@
         <p id="over-score" class="big-score"></p>
         <p id="over-hint" class="subtitle hidden"></p>
         <p id="over-record" class="record hidden" data-i18n="newRecord"></p>
+        <p id="over-line" class="over-line"></p>
+        <p id="over-stickers" class="over-stickers hidden"></p>
+        <div id="over-prize" class="prize hidden">
+          <span class="prize-label" data-i18n="prizeLabel"></span>
+          <strong id="prize-code" class="prize-code"></strong>
+          <span class="prize-hint" data-i18n="prizeHint"></span>
+        </div>
         <dl class="stats">
           <dt id="over-served-label" data-i18n="served"></dt><dd id="over-served"></dd>
           <dt id="over-combo-label" data-i18n="bestCombo"></dt><dd id="over-combo"></dd>
@@ -138,5 +149,8 @@
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
     </main>
     <script type="module" src="src/main.js"></script>
+    <!-- Visit counter (GoatCounter), the same as the other games on bendi.dev -->
+    <script>window.goatcounter = { path: '/alvaros/' };</script>
+    <script data-goatcounter="https://serbenda.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
   </body>
 </html>
