@@ -446,3 +446,11 @@ p {
     opacity: 1;
   }
 }
+
+.row-contents {
+  display: contents;
+}
+
+.row-contents.hidden {
+  display: none !important;
+}

@@ -4,6 +4,8 @@ import { PLAYER, HELPERS, BOSS, STATIONS, DAILY_TWISTS, CUSTOMER_TYPES, WEEK, RU
 import { W, H } from './layout.js';
 import { Game } from './game.js';
 import { render, setRenderScale } from './renderer.js';
+import { MiniRun, renderMini, MINIGAME_IDS } from './minigames.js';
+import { ChinosGame, renderChinos } from './chinos.js';
 import { Sfx } from './audio.js';
 import { t, setLang, getLang, detectLang, money } from './i18n.js';
 import { load, save } from './storage.js';
@@ -186,6 +188,7 @@ function renderTeam() {
 
 function renderTitle() {
   $('title-best').textContent = money(state.best);
+  $('title-mini').textContent = String(state.miniBest || 0);
   $('title-total').textContent = `${totalStars()} / ${WEEK.length * 3} ★`;
   $('daily-twist').textContent = t(`twists.${dailyTwist().id}`);
   renderTeam();
@@ -300,6 +303,22 @@ function onEvent(type, data) {
     case 'andrea':
       sfx.play('andrea');
       break;
+    case 'miniWin':
+      sfx.play('complete');
+      vibrate(25);
+      break;
+    case 'miniLose':
+      sfx.play('angry');
+      vibrate([60, 40, 60]);
+      break;
+    case 'speedup':
+      sfx.play('combo');
+      vibrate([20, 30, 20]);
+      break;
+    case 'miniIntro':
+    case 'chinosCall':
+      sfx.play('ready');
+      break;
     case 'missed':
       sfx.play('discard');
       break;
@@ -336,6 +355,18 @@ function startGame(newMode, dayIndex = day) {
   autoFullscreen();
   mode = newMode;
   day = dayIndex;
+  paused = false;
+  hideScreens();
+  state.plays++;
+  save(state);
+  if (mode === 'mini' || mode === 'chinos') {
+    // ?mini=<id> in the URL plays a single mini-game, handy to show or test one.
+    const only = new URLSearchParams(location.search).get('mini');
+    game = mode === 'mini' ? new MiniRun({ t, onEvent, only: MINIGAME_IDS.includes(only) ? only : null }) : new ChinosGame({ t, onEvent });
+    sfx.play('start');
+    sfx.startMusic();
+    return;
+  }
   let rng = Math.random;
   let twist = null;
   const level = mode === 'week' ? WEEK[day] : RUSH_LEVEL;
@@ -352,16 +383,16 @@ function startGame(newMode, dayIndex = day) {
     isNewType: (type) => !state.album[type],
     onEvent,
   });
-  paused = false;
-  state.plays++;
-  save(state);
-  hideScreens();
   sfx.play('start');
   sfx.startMusic();
 }
 
 function finishGame(summary) {
   lastScore = summary.score;
+  if (mode === 'mini' || mode === 'chinos') {
+    finishExtraMode(summary);
+    return;
+  }
   state.totalTips += summary.score;
 
   let isRecord = false;
@@ -406,6 +437,9 @@ function finishGame(summary) {
     hint.classList.toggle('hidden', !week);
 
     $('over-record').classList.toggle('hidden', !isRecord || summary.score === 0);
+    $('over-served-label').textContent = t('served');
+    $('over-combo-label').textContent = t('bestCombo');
+    $('over-total-row').classList.remove('hidden');
     $('over-served').textContent = String(summary.served);
     $('over-combo').textContent = String(summary.bestCombo);
     $('over-best-label').textContent = week ? t('totalStars') : mode === 'daily' ? t('dailyBest') : t('best');
@@ -418,6 +452,39 @@ function finishGame(summary) {
 
     show('over');
   }, 1200);
+}
+
+/** End screen for the mini-games and the chinos. */
+function finishExtraMode(summary) {
+  const mini = mode === 'mini';
+  let isRecord = false;
+  if (mini && summary.score > (state.miniBest || 0)) {
+    state.miniBest = summary.score;
+    isRecord = true;
+  }
+  if (!mini && summary.won) {
+    state.chinosWins = (state.chinosWins || 0) + 1;
+    isRecord = true;
+  }
+  save(state);
+  setTimeout(() => {
+    $('over-title').textContent = mini ? t('miniOver') : summary.won ? t('chinosWon') : t('chinosLost');
+    $('over-mode').textContent = mini ? t('minigames') : t('chinosMode');
+    $('over-score').textContent = mini ? String(summary.score) : `${summary.score} - ${summary.bestCombo}`;
+    $('over-stars').classList.add('hidden');
+    $('over-hint').classList.add('hidden');
+    $('over-record').classList.toggle('hidden', !isRecord || (mini && summary.score === 0));
+    $('over-served-label').textContent = mini ? t('miniScore') : t('chinosScore');
+    $('over-served').textContent = String(summary.served);
+    $('over-combo-label').textContent = mini ? t('miniSpeed') : t('chinosHer');
+    $('over-combo').textContent = mini ? `x${summary.speed.toFixed(2)}` : String(summary.bestCombo);
+    $('over-best-label').textContent = mini ? t('best') : t('chinosWins');
+    $('over-best').textContent = String(mini ? state.miniBest || 0 : state.chinosWins || 0);
+    $('over-total-row').classList.add('hidden');
+    $('btn-next').classList.add('hidden');
+    $('btn-retry').classList.add('primary');
+    show('over');
+  }, 1300);
 }
 
 function pauseGame() {
@@ -448,7 +515,9 @@ function quitToTitle() {
 }
 
 async function share() {
-  const text = t('shareText', { score: money(lastScore) });
+  let text = t('shareText', { score: money(lastScore) });
+  if (mode === 'mini') text = t('shareMini', { score: lastScore });
+  if (mode === 'chinos') text = t('shareChinos');
   const url = location.href.split('#')[0].split('?')[0];
   try {
     if (navigator.share) {
@@ -471,8 +540,18 @@ canvas.addEventListener('pointerdown', (event) => {
   const r = canvas.getBoundingClientRect();
   const x = ((event.clientX - r.left) / r.width) * W;
   const y = ((event.clientY - r.top) / r.height) * H;
-  game.tap(x, y);
+  if (game.down) game.down(x, y);
+  else game.tap(x, y);
 });
+
+function pointerUp(event) {
+  if (!game || paused || !game.up) return;
+  const r = canvas.getBoundingClientRect();
+  game.up(((event.clientX - r.left) / r.width) * W, ((event.clientY - r.top) / r.height) * H);
+}
+canvas.addEventListener('pointerup', pointerUp);
+canvas.addEventListener('pointercancel', pointerUp);
+canvas.addEventListener('pointerleave', pointerUp);
 
 const SEAT_KEYS = ['q', 'w', 'e', 'r'];
 const TRAY_KEYS = ['z', 'x', 'c', 'v'];
@@ -486,10 +565,19 @@ window.addEventListener('keydown', (event) => {
     return;
   }
   if (paused) return;
+  if (!game.tapStation) {
+    // Mini-games: the space bar works as a tap in the middle of the screen
+    if (key === ' ' && game.down && !event.repeat) game.down(W / 2, H / 2);
+    return;
+  }
   const station = Number(key) - 1;
   if (station >= 0 && station < STATIONS.length) game.tapStation(station);
   else if (SEAT_KEYS.includes(key)) game.tapSeat(SEAT_KEYS.indexOf(key));
   else if (TRAY_KEYS.includes(key)) game.tapTray(TRAY_KEYS.indexOf(key));
+});
+
+window.addEventListener('keyup', (event) => {
+  if (game && game.up && event.key === ' ') game.up(W / 2, H / 2);
 });
 
 document.addEventListener('visibilitychange', () => {
@@ -501,6 +589,8 @@ $('btn-play').addEventListener('click', () => {
   show('week');
 });
 $('btn-rush').addEventListener('click', () => startGame('rush'));
+$('btn-mini').addEventListener('click', () => startGame('mini'));
+$('btn-chinos').addEventListener('click', () => startGame('chinos'));
 $('btn-next').addEventListener('click', () => startGame('week', day + 1));
 $('btn-daily').addEventListener('click', () => startGame('daily'));
 $('btn-retry').addEventListener('click', () => startGame(mode));
@@ -556,7 +646,10 @@ function frame(now) {
   if (game && !paused) game.update(dt);
   ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
   ctx.imageSmoothingEnabled = false;
-  render(ctx, game, { t, now: now / 1000, dt: paused ? 0 : dt });
+  const opts = { t, now: now / 1000, dt: paused ? 0 : dt };
+  if (game && mode === 'mini') renderMini(ctx, game, opts);
+  else if (game && mode === 'chinos') renderChinos(ctx, game, opts);
+  else render(ctx, game && game.seats ? game : null, opts);
   requestAnimationFrame(frame);
 }
 
