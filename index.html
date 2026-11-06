@@ -25,10 +25,12 @@
       <canvas id="game" aria-label="Game"></canvas>
 
       <section id="screen-title" class="screen">
+        <canvas id="logo" class="logo" width="720" height="240" aria-hidden="true"></canvas>
         <h1 data-i18n="title"></h1>
         <p class="subtitle" data-i18n="subtitle"></p>
         <p class="scores">
           <span data-i18n="totalStars"></span>: <strong id="title-total"></strong>
+          · <span data-i18n="minigames"></span>: <strong id="title-mini"></strong>
           · <span data-i18n="rush"></span>: <strong id="title-best"></strong>
         </p>
         <div class="team">
@@ -37,18 +39,27 @@
           <p id="team-desc" class="team-desc"></p>
         </div>
         <div class="buttons">
-          <button id="btn-play" class="btn primary" type="button">
-            <span data-i18n="play"></span>
-            <small class="light" data-i18n="week"></small>
+          <button id="btn-mini" class="btn primary" type="button">
+            <span data-i18n="minigames"></span>
+            <small class="light" data-i18n="minigamesDesc"></small>
           </button>
-          <button id="btn-rush" class="btn" type="button">
-            <span data-i18n="rush"></span>
-            <small data-i18n="rushDesc"></small>
+          <button id="btn-chinos" class="btn" type="button">
+            <span data-i18n="chinosMode"></span>
+            <small data-i18n="chinosDesc"></small>
           </button>
-          <button id="btn-daily" class="btn" type="button">
-            <span data-i18n="daily"></span>
-            <small id="daily-twist"></small>
+          <button id="btn-play" class="btn" type="button">
+            <span data-i18n="week"></span>
+            <small data-i18n="chooseDay"></small>
           </button>
+          <div class="row">
+            <button id="btn-rush" class="btn" type="button">
+              <span data-i18n="rush"></span>
+            </button>
+            <button id="btn-daily" class="btn" type="button">
+              <span data-i18n="daily"></span>
+              <small id="daily-twist"></small>
+            </button>
+          </div>
           <div class="row">
             <button id="btn-album" class="btn" type="button" data-i18n="album"></button>
             <button id="btn-howto" class="btn" type="button" data-i18n="howTo"></button>
@@ -98,10 +109,10 @@
         <p id="over-hint" class="subtitle hidden"></p>
         <p id="over-record" class="record hidden" data-i18n="newRecord"></p>
         <dl class="stats">
-          <dt data-i18n="served"></dt><dd id="over-served"></dd>
-          <dt data-i18n="bestCombo"></dt><dd id="over-combo"></dd>
+          <dt id="over-served-label" data-i18n="served"></dt><dd id="over-served"></dd>
+          <dt id="over-combo-label" data-i18n="bestCombo"></dt><dd id="over-combo"></dd>
           <dt id="over-best-label"></dt><dd id="over-best"></dd>
-          <dt data-i18n="totalTips"></dt><dd id="over-total"></dd>
+          <div id="over-total-row" class="row-contents"><dt data-i18n="totalTips"></dt><dd id="over-total"></dd></div>
         </dl>
         <div class="buttons">
           <button id="btn-next" class="btn primary hidden" type="button" data-i18n="nextDay"></button>

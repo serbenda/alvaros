@@ -246,114 +246,146 @@ export function drawPerson(ctx, look, cx, top, opts = {}) {
   const shirtDark = shade(shirt, -0.25);
   const shirtLight = shade(shirt, 0.18);
 
+  // Rounded rectangle: a rectangle with its corners cut, the pixel-art way.
+  const rfill = (dx, dy, w, h, color, r = 0) => {
+    if (r <= 0) return fill(dx, dy, w, h, color);
+    const k = Math.min(r, w / 2, h / 2);
+    fill(dx + k, dy, w - k * 2, h, color);
+    fill(dx, dy + k, w, h - k * 2, color);
+    fill(dx + k * 0.3, dy + k * 0.3, w - k * 0.6, h - k * 0.6, color);
+  };
+
   // Silhouette shapes, outlined first so the outline sits behind everything.
   const body = [];
-  if (look.hairStyle === 'long') body.push([-1, 2, 14, 15, hair]);
-  if (look.hairStyle === 'ponytail') body.push([10, 2, 4, 10, hair]);
+  if (look.hairStyle === 'long') body.push([-1.5, 1, 15, 16, hair, 3]);
+  if (look.hairStyle === 'ponytail') body.push([10, 1, 4.5, 11, hair, 2]);
   if (opts.legs) {
     const s = opts.step || 0;
-    body.push([1, 25 + Math.max(0, s), 4, 8 - Math.max(0, s), '#2b2f3a']);
-    body.push([7, 25 + Math.max(0, -s), 4, 8 - Math.max(0, -s), '#2b2f3a']);
-    body.push([0, 32, 5, 2, '#141414']);
-    body.push([7, 32, 5, 2, '#141414']);
+    body.push([1, 25 + Math.max(0, s), 4, 8 - Math.max(0, s), '#2b2f3a', 1]);
+    body.push([7, 25 + Math.max(0, -s), 4, 8 - Math.max(0, -s), '#2b2f3a', 1]);
+    body.push([-0.5, 31.5, 6, 2.5, '#141414', 1]);
+    body.push([6.5, 31.5, 6, 2.5, '#141414', 1]);
   }
-  body.push([-5, 13, 4, 11, shirt]);
-  body.push([13, 13, 4, 11, shirt]);
-  body.push([-3, 11, 18, 15, shirt]);
-  body.push([0, 0, 12, 11, skin]);
-  body.push([-1, 4, 1, 3, skin]);
-  body.push([12, 4, 1, 3, skin]);
+  body.push([-5, 13, 4, 11, shirt, 1.5]);
+  body.push([13, 13, 4, 11, shirt, 1.5]);
+  body.push([-3, 11, 18, 15, shirt, 3]);
+  body.push([-5.5, 22.5, 5, 3, skin, 1.2]);
+  body.push([12.5, 22.5, 5, 3, skin, 1.2]);
+  body.push([-1.5, 4, 2, 3.5, skin, 0.8]);
+  body.push([11.5, 4, 2, 3.5, skin, 0.8]);
+  body.push([-0.5, -0.5, 13, 12, skin, 3.5]);
 
-  for (const [dx, dy, w, h] of body) fill(dx - 1, dy - 1, w + 2, h + 2, OUTLINE);
-  for (const [dx, dy, w, h, c] of body) fill(dx, dy, w, h, c);
+  for (const [dx, dy, w, h, , r] of body) rfill(dx - 1, dy - 1, w + 2, h + 2, OUTLINE, r + 0.5);
+  for (const [dx, dy, w, h, c, r] of body) rfill(dx, dy, w, h, c, r);
   if (sil) return;
 
   // Torso shading and details
-  fill(11, 12, 4, 14, shirtDark);
-  fill(-3, 11, 18, 1, shirtLight);
-  fill(-5, 13, 1, 11, shirtLight);
-  fill(14, 13, 3, 11, shirtDark);
-  fill(-5, 23, 4, 2, skin);
-  fill(13, 23, 4, 2, skin);
-  fill(4, 10, 4, 2, skinDark);
-  fill(3, 11, 6, 1, shirtDark);
-  fill(4, 11, 4, 2, skinDark);
+  fill(11, 13, 3.5, 12, shirtDark);
+  fill(-1, 11, 14, 1, shirtLight);
+  fill(-4.5, 14, 1, 9, shirtLight);
+  fill(14.5, 14, 2, 9, shirtDark);
+  fill(-5.5, 21.5, 4.5, 1, shirtDark);
+  fill(12.5, 21.5, 4.5, 1, shirtDark);
+  fill(-4.5, 23, 1.5, 1, shade(skin, 0.25));
+  // Neck and collar
+  fill(4, 10.5, 4, 2, skinDark);
+  fill(4.5, 11.5, 3, 1.5, skin);
+  fill(3, 11, 1.5, 2, shirtLight);
+  fill(7.5, 11, 1.5, 2, shirtLight);
 
   if (look.apron) {
     const apronDark = shade(look.apron, -0.12);
-    fill(0, 15, 12, 11, look.apron);
-    fill(9, 15, 3, 11, apronDark);
-    fill(1, 11, 1, 4, look.apron);
-    fill(10, 11, 1, 4, look.apron);
-    fill(3, 19, 6, 3, apronDark);
+    rfill(0, 15, 12, 11, look.apron, 1.5);
+    fill(9.5, 15.5, 2.5, 10, apronDark);
+    fill(1, 11.5, 1, 4, look.apron);
+    fill(10, 11.5, 1, 4, look.apron);
+    fill(-3, 15.5, 3, 1, look.apron);
+    fill(12, 15.5, 3, 1, look.apron);
+    rfill(3.5, 19, 5, 3, apronDark, 0.6);
+    fill(3.5, 19, 5, 0.6, shade(look.apron, -0.25));
   }
 
-  // Head shading
-  fill(0, 9, 12, 2, skinDark);
-  fill(10, 1, 2, 9, skinDark);
+  // Head shading: soft shadow on the right and under the chin
+  fill(9.5, 1.5, 2.5, 8.5, skinDark);
+  fill(1.5, 9.5, 9.5, 1.5, skinDark);
+  fill(1, 1.5, 1, 3, shade(skin, 0.18));
 
   // Hair
   switch (look.hairStyle) {
     case 'short':
-      fill(-0.5, -1.5, 13, 3.5, hair);
-      fill(-0.5, 2, 2, 3, hair);
-      fill(10.5, 2, 2, 2, hair);
-      fill(3, -1, 4, 1, hairLight);
+      rfill(-1, -2, 14, 5, hair, 2.5);
+      fill(-0.8, 2, 2.3, 3, hair);
+      fill(10, 2, 2.5, 2.2, hair);
+      fill(1.5, 2.5, 4.5, 1.3, hair);
+      fill(3, -1.2, 5, 0.8, hairLight);
+      fill(2, -0.4, 1, 0.8, hairLight);
       break;
     case 'long':
-      fill(-0.5, -1.5, 13, 3.5, hair);
-      fill(-1, 1, 3, 10, hair);
-      fill(10, 1, 3, 10, hair);
-      fill(2, -1, 5, 1, hairLight);
-      fill(-0.5, 3, 1, 6, hairLight);
+      rfill(-1, -2, 14, 5, hair, 2.5);
+      rfill(-1.5, 1, 3.5, 12, hair, 1.5);
+      rfill(10, 1, 3.5, 12, hair, 1.5);
+      fill(0.5, 2.5, 5.5, 1.4, hair);
+      fill(2, -1.2, 4.5, 0.8, hairLight);
+      fill(-0.9, 4, 0.8, 7, hairLight);
+      fill(1, -0.3, 1, 0.8, hairLight);
       break;
     case 'ponytail':
-      fill(-0.5, -1.5, 13, 3.5, hair);
-      fill(-0.5, 2, 1.5, 3, hair);
-      fill(11, 0, 3, 4, hair);
-      fill(3, -1, 4, 1, hairLight);
+      rfill(-1, -2, 14, 5, hair, 2.5);
+      fill(-0.8, 2, 2, 3, hair);
+      fill(1.5, 2.5, 4, 1.3, hair);
+      fill(11, 0.5, 2, 1.5, '#c0392b');
+      fill(3, -1.2, 5, 0.8, hairLight);
       break;
     case 'bun':
-      fill(3, -5, 6, 4, OUTLINE);
-      fill(3.5, -4.5, 5, 3.5, hair);
-      fill(-0.5, -1.5, 13, 3.5, hair);
-      fill(-0.5, 2, 1.5, 2, hair);
-      fill(11, 2, 1.5, 2, hair);
-      fill(4.5, -4, 2, 1, hairLight);
+      rfill(2.5, -6, 7, 5, OUTLINE, 2);
+      rfill(3, -5.5, 6, 4, hair, 1.5);
+      rfill(-1, -2, 14, 5, hair, 2.5);
+      fill(-0.8, 2, 2, 2.5, hair);
+      fill(10.8, 2, 2, 2.5, hair);
+      fill(4, -4.8, 2.5, 0.8, hairLight);
+      fill(3, -1.2, 5, 0.8, hairLight);
       break;
     case 'curly':
-      fill(-1.5, -2.5, 15, 4.5, hair);
-      fill(-1.5, 2, 3, 5, hair);
-      fill(10.5, 2, 3, 5, hair);
-      fill(0, -3.5, 2, 1, hair);
-      fill(4, -3.5, 2, 1, hair);
-      fill(8, -3.5, 2, 1, hair);
-      fill(2, -1.5, 1, 1, hairLight);
-      fill(6, -1.5, 1, 1, hairLight);
+      for (const [bx, by] of [[-2, -2], [2, -3.5], [6, -3.5], [10, -2], [-2.5, 2], [10.5, 2]]) rfill(bx - 0.5, by - 0.5, 5, 5, OUTLINE, 2);
+      for (const [bx, by] of [[-2, -2], [2, -3.5], [6, -3.5], [10, -2], [-2.5, 2], [10.5, 2]]) rfill(bx, by, 4, 4, hair, 1.8);
+      rfill(-1, -1, 14, 3.5, hair, 1.5);
+      fill(3, -2.8, 1, 0.8, hairLight);
+      fill(7, -2.8, 1, 0.8, hairLight);
+      fill(-1.2, 3, 0.8, 1.5, hairLight);
       break;
     case 'bald':
-      fill(-0.5, 3, 1.5, 4, hair);
-      fill(11, 3, 1.5, 4, hair);
-      fill(3, 0.5, 3, 1, shade(skin, 0.3));
+      fill(-0.8, 3, 1.8, 4, hair);
+      fill(11, 3, 1.8, 4, hair);
+      rfill(3, 0.3, 3.5, 1.2, shade(skin, 0.35), 0.5);
       break;
     default:
       break;
   }
 
-  // Eyes
+  // Eyebrows (moods below can override them)
+  const brow = shade(hair === undefined ? '#2b1d14' : hair, -0.15);
+  if (mood === 'neutral' || mood === 'happy') {
+    fill(2.2, 3.3, 3, 0.7, brow);
+    fill(6.8, 3.3, 3, 0.7, brow);
+  }
+
+  // Eyes: white, coloured iris and a catch-light
   if (opts.blink) {
-    fill(2.5, 5.5, 2.5, 0.75, OUTLINE);
-    fill(7, 5.5, 2.5, 0.75, OUTLINE);
+    fill(2.4, 5.6, 2.8, 0.8, OUTLINE);
+    fill(6.8, 5.6, 2.8, 0.8, OUTLINE);
   } else {
-    fill(2.5, 4.5, 2.5, 2.5, '#ffffff');
-    fill(7, 4.5, 2.5, 2.5, '#ffffff');
-    fill(3.25, 5, 1.75, 2, OUTLINE);
-    fill(7.75, 5, 1.75, 2, OUTLINE);
-    fill(3.5, 5.25, 0.6, 0.6, '#ffffff');
-    fill(8, 5.25, 0.6, 0.6, '#ffffff');
+    rfill(2.2, 4.2, 3, 3, '#ffffff', 0.8);
+    rfill(6.8, 4.2, 3, 3, '#ffffff', 0.8);
+    rfill(3, 4.6, 2.1, 2.6, look.eyes || '#4a3020', 0.5);
+    rfill(7.6, 4.6, 2.1, 2.6, look.eyes || '#4a3020', 0.5);
+    fill(3.5, 5.3, 1.2, 1.5, OUTLINE);
+    fill(8.1, 5.3, 1.2, 1.5, OUTLINE);
+    fill(3.3, 4.9, 0.7, 0.7, '#ffffff');
+    fill(7.9, 4.9, 0.7, 0.7, '#ffffff');
   }
   // Nose
-  fill(5.5, 6.5, 1, 1.5, skinDark);
+  fill(5.6, 6.8, 0.9, 1.2, skinDark);
+  fill(5.4, 7.7, 1.3, 0.5, skinDark);
 
   if (look.beard) {
     fill(-0.5, 6, 1.5, 4, hair);
@@ -364,12 +396,14 @@ export function drawPerson(ctx, look, cx, top, opts = {}) {
 
   switch (mood) {
     case 'happy':
-      fill(4, 8.5, 4, 1.25, OUTLINE);
-      fill(3.25, 8, 1, 1, OUTLINE);
-      fill(7.75, 8, 1, 1, OUTLINE);
-      fill(4.5, 9, 3, 0.75, '#e8706a');
-      fill(1.5, 7.5, 1.5, 1, '#f08c80');
-      fill(9, 7.5, 1.5, 1, '#f08c80');
+      rfill(3.9, 8.3, 4.2, 2, OUTLINE, 0.7);
+      rfill(4.3, 8.6, 3.4, 1.4, '#9b2f2f', 0.5);
+      fill(4.5, 8.6, 3, 0.5, '#ffffff');
+      fill(5, 9.4, 2, 0.6, '#e8706a');
+      fill(3.3, 7.9, 0.9, 0.9, OUTLINE);
+      fill(7.8, 7.9, 0.9, 0.9, OUTLINE);
+      rfill(0.8, 7.2, 2.2, 1.3, '#f4a29a', 0.5);
+      rfill(9, 7.2, 2.2, 1.3, '#f4a29a', 0.5);
       break;
     case 'worried':
       fill(2.5, 3.5, 2.5, 0.75, OUTLINE);
@@ -392,7 +426,9 @@ export function drawPerson(ctx, look, cx, top, opts = {}) {
       ctx.globalAlpha /= 0.4;
       break;
     default:
-      fill(4.5, 8.5, 3, 1, OUTLINE);
+      fill(4.5, 8.8, 3, 0.8, OUTLINE);
+      fill(4, 8.4, 0.7, 0.6, OUTLINE);
+      fill(7.3, 8.4, 0.7, 0.6, OUTLINE);
       break;
   }
 
@@ -424,7 +460,6 @@ export function drawPerson(ctx, look, cx, top, opts = {}) {
     case 'boss':
       fill(3, 11, 6, 1, '#ffffff');
       fill(5, 12, 2, 9, '#2c3e50');
-      fill(2.5, 7.5, 7, 1.25, hair);
       fill(-3, 18, 18, 2, '#3a2a20');
       fill(5, 18, 2, 2, '#d4a017');
       break;

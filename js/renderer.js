@@ -109,101 +109,215 @@ function layer(name, paint) {
   return layers[name];
 }
 
-// Colours taken from the real bar: white walls, light wood, mustard and mauve chairs.
+// Colours taken from the real bar: warm white walls, light wood beams, mustard
+// and mauve armchairs, grey brick, terracotta floor, copper lamps.
 const PALETTE = {
-  wall: '#fbf8f2',
-  wallShade: '#efe9de',
-  wood: '#d9a868',
-  woodLight: '#ecc48d',
-  woodDark: '#a8743e',
-  panel: '#7d5a45',
-  panelDark: '#664633',
-  mustard: '#e8c21c',
-  mustardDark: '#c29a0e',
-  mauve: '#8f777d',
-  mauveDark: '#6f5a60',
+  wall: '#fdf9f1',
+  wallShade: '#f1e8d8',
+  wood: '#dcae74',
+  woodLight: '#f0cc94',
+  woodDark: '#a8713a',
+  woodDeep: '#7d4f26',
+  panel: '#7a523b',
+  panelDark: '#5e3d2a',
+  panelLight: '#94684c',
+  mustard: '#e9b820',
+  mustardLight: '#f8d75a',
+  mustardDark: '#b88a0e',
+  mauve: '#8c7279',
+  mauveLight: '#ab929a',
+  mauveDark: '#6a5359',
   copper: '#c8794a',
-  tile: '#d39a6a',
-  tileDark: '#bd8456',
-  brick: '#9a948c',
+  copperLight: '#f0a874',
+  tile: '#cf8e5c',
+  tileDark: '#b8754a',
+  brick: '#aaa49b',
+  mortar: '#8b857c',
 };
 
-const SEAT_CHAIRS = [PALETTE.mustard, PALETTE.mauve, PALETTE.mustard, PALETTE.mauve];
+const SEAT_CHAIRS = ['mustard', 'mauve', 'mustard', 'mauve'];
+const DOWNLIGHTS = [24, 68, 112, 156];
+
+/** Deterministic pseudo-random value in [0, 1) for texture variation. */
+function noise(a, b) {
+  const v = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453;
+  return v - Math.floor(v);
+}
 
 function paintWall(ctx) {
-  // White plaster wall
-  rect(ctx, 0, 0, W, COUNTER_Y, PALETTE.wall);
-  for (let x = 0; x < W; x += 30) rect(ctx, x, HUD_H, 0.5, COUNTER_Y - HUD_H, PALETTE.wallShade);
+  // Warm white plaster with soft vertical light
+  const g = ctx.createLinearGradient(0, HUD_H, 0, COUNTER_Y);
+  g.addColorStop(0, '#f3eadb');
+  g.addColorStop(0.35, PALETTE.wall);
+  g.addColorStop(1, '#f4ecde');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, COUNTER_Y);
 
-  // Wooden beam frame along the top, like the bar's ceiling
-  rect(ctx, 0, HUD_H, W, 3, PALETTE.wood);
-  rect(ctx, 0, HUD_H, W, 0.75, PALETTE.woodLight);
-  rect(ctx, 0, HUD_H + 2.5, W, 0.5, PALETTE.woodDark);
+  // Ceiling: light wood beams with white panels, like the bar's ceiling
+  rect(ctx, 0, HUD_H, W, 7, PALETTE.wood);
+  rect(ctx, 0, HUD_H, W, 1, PALETTE.woodLight);
+  rect(ctx, 0, HUD_H + 6, W, 1, PALETTE.woodDark);
+  for (let x = 8; x < W; x += 44) {
+    rect(ctx, x, HUD_H, 3, 7, PALETTE.woodDark);
+    rect(ctx, x + 0.5, HUD_H, 1, 7, PALETTE.woodLight);
+    rect(ctx, x - 0.5, HUD_H + 2, 4, 3, PALETTE.woodLight);
+    rect(ctx, x + 0.5, HUD_H + 2.5, 2, 2, '#c4935a');
+  }
+  // Recessed downlights with a warm cone of light
+  for (const x of DOWNLIGHTS) {
+    rect(ctx, x - 2.5, HUD_H + 7, 5, 1.5, '#9a8f80');
+    rect(ctx, x - 2, HUD_H + 7, 4, 1, '#fffbe8');
+    const cone = ctx.createLinearGradient(0, HUD_H + 8, 0, 70);
+    cone.addColorStop(0, 'rgba(255,236,190,0.45)');
+    cone.addColorStop(1, 'rgba(255,236,190,0)');
+    ctx.fillStyle = cone;
+    ctx.beginPath();
+    ctx.moveTo(x - 2, HUD_H + 8);
+    ctx.lineTo(x + 2, HUD_H + 8);
+    ctx.lineTo(x + 16, 70);
+    ctx.lineTo(x - 16, 70);
+    ctx.closePath();
+    ctx.fill();
+  }
 
-  // Grey brick strip behind the customers
+  // Grey brick strip behind the customers, each brick slightly different
   const by = 56;
-  rect(ctx, 0, by, W, COUNTER_Y - by, '#b3ada4');
+  rect(ctx, 0, by, W, COUNTER_Y - by, PALETTE.mortar);
   for (let row = 0; by + row * 4 < COUNTER_Y; row++) {
     const y = by + row * 4;
-    rect(ctx, 0, y, W, 0.5, '#8f8981');
-    const offset = row % 2 ? 4 : 0;
-    for (let x = offset; x < W; x += 8) rect(ctx, x, y, 0.5, 4, '#8f8981');
+    for (let x = row % 2 ? -4 : 0; x < W; x += 8) {
+      const v = noise(x, row);
+      const color = v > 0.66 ? '#b6b0a7' : v > 0.33 ? PALETTE.brick : '#9f988e';
+      rect(ctx, x + 0.5, y + 0.5, 7, 3, color);
+      rect(ctx, x + 0.5, y + 0.5, 7, 0.6, 'rgba(255,255,255,0.18)');
+    }
   }
-  for (let x = 0; x < W; x += 16) rect(ctx, x + 1, by + 1, 6, 1, '#c4beb6');
-  rect(ctx, 0, by - 1.5, W, 1.5, PALETTE.wood);
-  rect(ctx, 0, by - 1.5, W, 0.5, PALETTE.woodLight);
+  rect(ctx, 0, by - 2, W, 2, PALETTE.wood);
+  rect(ctx, 0, by - 2, W, 0.6, PALETTE.woodLight);
+  rect(ctx, 0, by - 0.5, W, 0.5, PALETTE.woodDark);
 
-  // Light wood shelf with cups, jars and bottles under the sign
-  rect(ctx, 50, 46, 80, 2.5, PALETTE.wood);
-  rect(ctx, 50, 46, 80, 0.75, PALETTE.woodLight);
-  rect(ctx, 50, 48.5, 80, 0.5, PALETTE.woodDark);
-  const things = ['cup', 'cup', 'jar', 'bottle', 'cup', 'jar', 'bottle', 'cup', 'cup', 'jar'];
-  things.forEach((kind, i) => {
-    const x = 53 + i * 7.6;
+  // Shelf with cups, jars and boxes under the sign
+  rect(ctx, 52, 47, 76, 2.5, PALETTE.wood);
+  rect(ctx, 52, 47, 76, 0.75, PALETTE.woodLight);
+  rect(ctx, 52, 49.5, 76, 0.75, PALETTE.woodDeep);
+  const shelf = ['cup', 'cup', 'jar', 'box', 'bottle', 'cup', 'jar', 'box', 'cup', 'bottle', 'jar'];
+  const jarLids = ['#c0392b', '#27ae60', '#e67e22'];
+  const boxes = ['#2f7dc1', '#e9b820', '#c0392b'];
+  shelf.forEach((kind, i) => {
+    const x = 54 + i * 6.8;
     if (kind === 'cup') {
-      rect(ctx, x - 0.5, 41.5, 5, 4.5, OUTLINE);
-      rect(ctx, x, 42, 4, 4, '#ffffff');
-      rect(ctx, x + 3, 42, 1, 4, '#dcdce4');
+      rect(ctx, x - 0.5, 42.5, 5, 4.5, OUTLINE);
+      rect(ctx, x, 43, 4, 4, '#ffffff');
+      rect(ctx, x + 3, 43, 1, 4, '#dcdce4');
+      rect(ctx, x + 4.5, 44, 1, 2, OUTLINE);
     } else if (kind === 'jar') {
-      rect(ctx, x - 0.5, 39.5, 5, 6.5, OUTLINE);
-      rect(ctx, x, 40, 4, 6, '#f4d7a1');
-      rect(ctx, x, 40, 4, 1.5, '#c0392b');
+      rect(ctx, x - 0.5, 40.5, 5, 6.5, OUTLINE);
+      rect(ctx, x, 41, 4, 6, '#f4d7a1');
+      rect(ctx, x, 43, 4, 3.5, '#d9a066');
+      rect(ctx, x, 41, 4, 1.5, jarLids[i % 3]);
+      rect(ctx, x + 0.5, 42.5, 0.75, 4, 'rgba(255,255,255,0.5)');
+    } else if (kind === 'box') {
+      const c = boxes[i % 3];
+      rect(ctx, x - 0.5, 38.5, 5.5, 8.5, OUTLINE);
+      rect(ctx, x, 39, 4.5, 8, c);
+      rect(ctx, x, 41, 4.5, 2.5, '#fffaf0');
+      rect(ctx, x + 3.5, 39, 1, 8, shade(c, -0.25));
     } else {
-      rect(ctx, x + 0.5, 37.5, 3, 8.5, OUTLINE);
-      rect(ctx, x + 1, 38, 2, 8, '#7a1f2b');
-      rect(ctx, x + 1, 41, 2, 2, '#f3ead3');
+      rect(ctx, x + 0.5, 37.5, 3, 9.5, OUTLINE);
+      rect(ctx, x + 1, 38, 2, 9, '#6b1d2a');
+      rect(ctx, x + 1, 41.5, 2, 2.5, '#f3ead3');
+      rect(ctx, x + 1.2, 38, 0.6, 3, 'rgba(255,255,255,0.35)');
     }
   });
 
   // Sign board in light wood
-  rect(ctx, 56, 22, 68, 15, OUTLINE);
-  rect(ctx, 57, 23, 66, 13, PALETTE.wood);
-  rect(ctx, 58, 24, 64, 11, '#fffaf0');
-  rect(ctx, 57, 23, 66, 0.75, PALETTE.woodLight);
+  rect(ctx, 56, 26, 68, 13, OUTLINE);
+  rect(ctx, 57, 27, 66, 11, PALETTE.wood);
+  rect(ctx, 58, 28, 64, 9, '#fffaf0');
+  rect(ctx, 57, 27, 66, 0.75, PALETTE.woodLight);
+
+  // Framed picture: a sunny street
+  rect(ctx, 133, 27, 22, 18, OUTLINE);
+  rect(ctx, 134, 28, 20, 16, PALETTE.woodDark);
+  rect(ctx, 135.5, 29.5, 17, 13, '#8cc4ee');
+  rect(ctx, 135.5, 37, 17, 5.5, '#d9a066');
+  rect(ctx, 137, 33, 4, 4, '#e8d4b0');
+  rect(ctx, 142, 31, 5, 6, '#c7785a');
+  rect(ctx, 148, 34, 3.5, 3, '#e8d4b0');
+  rect(ctx, 149, 30.5, 2, 2, '#f8d75a');
+
+  // Colourful straw hat on the wall, like the one in the bar
+  const hx = 166;
+  const hy = 34;
+  box(ctx, hx - 11, hy + 2, 22, 6, OUTLINE, 3);
+  box(ctx, hx - 10, hy + 2.5, 20, 5, '#e84393', 2.5);
+  rect(ctx, hx - 9, hy + 3.5, 18, 1, '#f8d75a');
+  rect(ctx, hx - 7, hy + 5.5, 14, 1, '#27ae60');
+  box(ctx, hx - 5, hy - 5, 10, 9, OUTLINE, 3);
+  box(ctx, hx - 4, hy - 4.5, 8, 8, '#f0cc94', 2.5);
+  rect(ctx, hx - 4, hy - 0.5, 8, 1.2, '#e84393');
+  rect(ctx, hx - 4, hy + 1, 8, 1, '#27ae60');
+
+  // Wine display fridge on the right, behind the last seat
+  const fx = 158;
+  const fy = 50;
+  rect(ctx, fx - 1, fy - 1, W - fx + 1, COUNTER_Y - fy + 1, OUTLINE);
+  rect(ctx, fx, fy, W - fx, COUNTER_Y - fy, '#c9ced2');
+  rect(ctx, fx + 2, fy + 2, W - fx - 2, COUNTER_Y - fy - 2, '#2a2f35');
+  const wines = ['#6b1d2a', '#2e5a2e', '#6b1d2a', '#d9c27a', '#6b1d2a', '#2e5a2e'];
+  for (let row = 0; row < 3; row++) {
+    const y = fy + 4 + row * 10;
+    rect(ctx, fx + 2, y + 8, W - fx - 2, 1, '#9aa3a8');
+    for (let i = 0; i < 6; i++) {
+      const x = fx + 3.5 + i * 3.6;
+      const c = wines[(i + row) % wines.length];
+      rect(ctx, x, y + 2, 2.6, 6, c);
+      rect(ctx, x + 0.6, y, 1.4, 2, c);
+      rect(ctx, x, y + 4, 2.6, 1.5, '#f3ead3');
+    }
+  }
+  ctx.globalAlpha = 0.15;
+  rect(ctx, fx + 4, fy + 2, 3, COUNTER_Y - fy - 2, '#ffffff');
+  ctx.globalAlpha = 1;
+  rect(ctx, fx + 1, fy + 14, 1, 6, '#eef1f3');
 }
 
 function paintCounter(ctx) {
   const y = COUNTER_Y;
-  rect(ctx, 0, y - 1, W, 1, 'rgba(0,0,0,0.15)');
-  // Light wood counter top
-  rect(ctx, 0, y, W, 4, PALETTE.wood);
-  rect(ctx, 0, y, W, 1, PALETTE.woodLight);
-  rect(ctx, 0, y + 3.5, W, 0.75, PALETTE.woodDark);
-  // Front: brown panels framed with light wood
-  rect(ctx, 0, y + 4, W, COUNTER_H - 4, PALETTE.wood);
-  for (let x = 2; x < W; x += 30) {
-    rect(ctx, x, y + 6, 26, COUNTER_H - 9, PALETTE.panel);
-    rect(ctx, x, y + 6, 26, 0.75, PALETTE.panelDark);
-    for (let k = 0; k < 4; k++) rect(ctx, x + 1, y + 8 + k * 3, 24, 0.5, PALETTE.panelDark);
-  }
-  rect(ctx, 0, y + COUNTER_H - 2, W, 2, PALETTE.woodDark);
+  rect(ctx, 0, y - 1.5, W, 1.5, 'rgba(60,30,10,0.2)');
+  // Thick light wood counter top with a glossy edge
+  const top = ctx.createLinearGradient(0, y, 0, y + 5);
+  top.addColorStop(0, PALETTE.woodLight);
+  top.addColorStop(1, PALETTE.wood);
+  ctx.fillStyle = top;
+  ctx.fillRect(0, y, W, 5);
+  rect(ctx, 0, y + 0.5, W, 0.6, '#fbe2b8');
+  rect(ctx, 0, y + 4.5, W, 1, PALETTE.woodDeep);
+  for (let x = 6; x < W; x += 23) rect(ctx, x, y + 2, 9, 0.4, '#c4935a');
 
-  // Little things on the counter between seats: napkins, sugar, sunflowers
+  // Front: dark brown plank panels framed with light wood posts
+  rect(ctx, 0, y + 5.5, W, COUNTER_H - 5.5, PALETTE.wood);
+  for (let x = 3; x < W; x += 30) {
+    rect(ctx, x, y + 7, 25, COUNTER_H - 10, PALETTE.panelDark);
+    rect(ctx, x + 0.5, y + 7.5, 24, COUNTER_H - 11, PALETTE.panel);
+    for (let k = 0; k < 4; k++) {
+      const py = y + 8 + k * 2.6;
+      rect(ctx, x + 0.5, py + 2, 24, 0.5, PALETTE.panelDark);
+      for (let b = (k % 2) * 4; b < 24; b += 8) rect(ctx, x + 0.5 + b, py, 0.5, 2, PALETTE.panelDark);
+      rect(ctx, x + 1 + noise(x, k) * 12, py + 0.4, 6, 0.4, PALETTE.panelLight);
+    }
+    rect(ctx, x - 2.5, y + 5.5, 2.5, COUNTER_H - 5.5, PALETTE.woodLight);
+    rect(ctx, x - 0.5, y + 5.5, 0.5, COUNTER_H - 5.5, PALETTE.woodDark);
+  }
+  rect(ctx, 0, y + COUNTER_H - 2.5, W, 2.5, PALETTE.woodDeep);
+
+  // Little things on the counter between seats: sunflowers, napkins, sugar
   const napkins = (cx) => {
     rect(ctx, cx - 3.5, y - 5.5, 7, 6, OUTLINE);
     rect(ctx, cx - 3, y - 5, 6, 5, '#c0392b');
     rect(ctx, cx - 2, y - 7, 4, 2.5, '#ffffff');
     rect(ctx, cx - 3, y - 3, 6, 1, '#ffffff');
+    rect(ctx, cx + 1.5, y - 5, 1.5, 5, '#9b2c20');
   };
   const sugar = (cx) => {
     rect(ctx, cx - 2, y - 5.5, 4, 6, OUTLINE);
@@ -211,15 +325,19 @@ function paintCounter(ctx) {
     rect(ctx, cx - 1.5, y - 6.5, 3, 1.5, '#9aa3a8');
   };
   const sunflowers = (cx) => {
-    rect(ctx, cx - 2.5, y - 6.5, 5, 7, OUTLINE);
-    rect(ctx, cx - 2, y - 6, 4, 6, '#e8f4f8');
-    rect(ctx, cx - 0.25, y - 13, 0.75, 7, '#2e7d32');
-    rect(ctx, cx - 3.5, y - 12, 0.75, 6, '#2e7d32');
-    for (const [fx, fy] of [[cx, y - 15], [cx - 4, y - 13], [cx + 3, y - 12]]) {
-      rect(ctx, fx - 2, fy - 0.5, 4, 1, PALETTE.mustard);
-      rect(ctx, fx - 0.5, fy - 2, 1, 4, PALETTE.mustard);
-      rect(ctx, fx - 1.5, fy - 1.5, 3, 3, PALETTE.mustard);
-      rect(ctx, fx - 0.75, fy - 0.75, 1.5, 1.5, '#6b3f1d');
+    rect(ctx, cx - 2.5, y - 7.5, 5, 8, OUTLINE);
+    rect(ctx, cx - 2, y - 7, 4, 7, '#d8eef5');
+    rect(ctx, cx - 1.2, y - 6.5, 0.8, 6, 'rgba(255,255,255,0.7)');
+    rect(ctx, cx - 0.25, y - 15, 0.75, 8, '#2e7d32');
+    rect(ctx, cx - 3.5, y - 13, 0.75, 6, '#2e7d32');
+    rect(ctx, cx + 2.5, y - 12, 0.75, 5, '#2e7d32');
+    rect(ctx, cx - 2.5, y - 10, 2, 1, '#43a047');
+    for (const [fx, fy] of [[cx, y - 16.5], [cx - 4, y - 14], [cx + 3.5, y - 13]]) {
+      for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2], [-1.4, -1.4], [1.4, 1.4], [-1.4, 1.4], [1.4, -1.4]]) {
+        rect(ctx, fx + dx - 0.9, fy + dy - 0.9, 1.8, 1.8, PALETTE.mustard);
+      }
+      rect(ctx, fx - 1.2, fy - 1.2, 2.4, 2.4, '#6b3f1d');
+      rect(ctx, fx - 0.6, fy - 0.9, 0.8, 0.6, '#9a6233');
     }
   };
   sunflowers(46);
@@ -231,23 +349,36 @@ function paintCounter(ctx) {
 function paintFloor(ctx) {
   const top = FLOOR_Y;
   const bottom = STATION_PANEL_Y;
-  // Warm terracotta tiles with slight variation, like the bar's floor
+  // Warm terracotta tiles with natural variation, like the bar's floor
   const T = 12;
+  const tones = ['#d3925f', PALETTE.tile, '#c58552', PALETTE.tileDark, '#d99b68'];
   for (let ty = top; ty < bottom; ty += T) {
     for (let tx = ((ty - top) / T) % 2 ? -6 : 0; tx < W; tx += T) {
-      const v = (Math.sin(tx * 12.9 + ty * 78.2) * 43758.5) % 1;
-      const color = v > 0.3 ? PALETTE.tile : v > -0.3 ? '#cb8f5f' : PALETTE.tileDark;
-      rect(ctx, tx, ty, T, T, color);
-      rect(ctx, tx, ty, T, 0.75, '#e2b48a');
-      rect(ctx, tx, ty, 0.75, T, '#a86f45');
-      rect(ctx, tx + 3, ty + 4, 2, 1, 'rgba(255,255,255,0.12)');
+      const v = noise(tx, ty);
+      rect(ctx, tx, ty, T, T, tones[Math.floor(v * tones.length)]);
+      // Mottled spots
+      for (let k = 0; k < 3; k++) {
+        const sx = tx + 1 + noise(tx + k, ty) * 9;
+        const sy = ty + 1 + noise(ty + k, tx) * 9;
+        rect(ctx, sx, sy, 1.5, 1, k % 2 ? 'rgba(120,60,20,0.18)' : 'rgba(255,230,200,0.18)');
+      }
+      rect(ctx, tx, ty, T, 0.7, '#e7b88e');
+      rect(ctx, tx, ty, 0.7, T, '#9e6640');
     }
   }
-  const g = ctx.createLinearGradient(0, top, 0, top + 14);
+  const g = ctx.createLinearGradient(0, top, 0, top + 16);
   g.addColorStop(0, 'rgba(60,30,10,0.35)');
   g.addColorStop(1, 'rgba(60,30,10,0)');
   ctx.fillStyle = g;
-  ctx.fillRect(0, top, W, 14);
+  ctx.fillRect(0, top, W, 16);
+  // Soft reflection of the lights on the floor
+  for (const x of DOWNLIGHTS) {
+    const r = ctx.createRadialGradient(x, top + 40, 0, x, top + 40, 26);
+    r.addColorStop(0, 'rgba(255,240,210,0.22)');
+    r.addColorStop(1, 'rgba(255,240,210,0)');
+    ctx.fillStyle = r;
+    ctx.fillRect(x - 26, top + 14, 52, 52);
+  }
 }
 
 function paintPanel(ctx) {
@@ -256,32 +387,62 @@ function paintPanel(ctx) {
   g.addColorStop(1, PALETTE.wood);
   ctx.fillStyle = g;
   ctx.fillRect(0, STATION_PANEL_Y, W, H - STATION_PANEL_Y);
-  rect(ctx, 0, STATION_PANEL_Y, W, 2, PALETTE.woodDark);
-  rect(ctx, 0, STATION_PANEL_Y + 2, W, 1, '#f6dcb2');
-  for (let x = 0; x < W; x += 22) rect(ctx, x, STATION_PANEL_Y + 3, 0.5, H, 'rgba(120,70,30,0.15)');
+  rect(ctx, 0, STATION_PANEL_Y, W, 2, PALETTE.woodDeep);
+  rect(ctx, 0, STATION_PANEL_Y + 2, W, 1, '#fbe2b8');
+  for (let x = 0; x < W; x += 22) {
+    rect(ctx, x, STATION_PANEL_Y + 3, 0.5, H, 'rgba(120,70,30,0.18)');
+    rect(ctx, x + 6, STATION_PANEL_Y + 20 + noise(x, 1) * 80, 8, 0.4, 'rgba(120,70,30,0.15)');
+  }
 }
 
-/** Mustard and mauve armchair backs behind each seat, like the real bar. */
+/** Upholstered mustard and mauve armchairs behind each seat, like the real bar. */
 function drawChairs(ctx) {
   SEAT_X.forEach((x, i) => {
-    const color = SEAT_CHAIRS[i];
-    const dark = color === PALETTE.mustard ? PALETTE.mustardDark : PALETTE.mauveDark;
-    box(ctx, x - 12, 66, 24, 20, OUTLINE, 4);
-    box(ctx, x - 11, 67, 22, 18, color, 4);
-    rect(ctx, x - 9, 68, 18, 1, 'rgba(255,255,255,0.3)');
-    rect(ctx, x + 6, 69, 4, 15, dark);
+    const kind = SEAT_CHAIRS[i];
+    const base = PALETTE[kind];
+    const light = PALETTE[`${kind}Light`];
+    const dark = PALETTE[`${kind}Dark`];
+    box(ctx, x - 13, 63, 26, 23, OUTLINE, 6);
+    const g = ctx.createLinearGradient(0, 64, 0, 86);
+    g.addColorStop(0, light);
+    g.addColorStop(0.5, base);
+    g.addColorStop(1, dark);
+    ctx.fillStyle = g;
+    ctx.fillRect(x - 12 + 5, 64, 24 - 10, 21);
+    ctx.fillRect(x - 12, 64 + 5, 24, 21 - 5);
+    ctx.fillRect(x - 12 + 2, 64 + 1.5, 24 - 4, 21);
+    // Piping and tufting
+    box(ctx, x - 9, 67, 18, 16, 'rgba(0,0,0,0.12)', 4);
+    box(ctx, x - 8.5, 67.5, 17, 15, base, 4);
+    rect(ctx, x - 7, 68, 14, 1, 'rgba(255,255,255,0.35)');
+    for (const [tx, ty] of [[-4, 72], [4, 72], [0, 77]]) {
+      rect(ctx, x + tx - 0.6, ty - 0.6, 1.2, 1.2, dark);
+      rect(ctx, x + tx - 0.6, ty - 1.2, 1.2, 0.6, light);
+    }
+    rect(ctx, x + 8, 69, 2.5, 15, dark);
   });
 }
 
-/** Copper pendant lamps hanging from the beam. */
+/** A cluster of copper pendant lamps hanging from the beam, as in the bar. */
 function drawLamps(ctx, now) {
-  for (const lx of [50, 130]) {
-    rect(ctx, lx - 0.25, HUD_H + 3, 0.5, 5, '#5a4030');
-    rect(ctx, lx - 3.5, HUD_H + 7.5, 7, 4, OUTLINE);
-    rect(ctx, lx - 3, HUD_H + 8, 6, 3, PALETTE.copper);
-    rect(ctx, lx - 3, HUD_H + 8, 6, 0.75, '#e8a57a');
-    rect(ctx, lx - 1, HUD_H + 11, 2, 1, '#fff6c0');
-    glow(ctx, lx, HUD_H + 16, 26, '#ffe2a8', 0.3 + Math.sin(now * 3 + lx) * 0.02);
+  const lamps = [
+    [44, 6],
+    [49.5, 10],
+    [55, 4],
+  ];
+  for (const [lx, drop] of lamps) {
+    const ly = HUD_H + 7 + drop;
+    rect(ctx, lx - 0.25, HUD_H + 7, 0.5, drop, '#5a4030');
+    box(ctx, lx - 3.5, ly, 7, 5, OUTLINE, 1.5);
+    const g = ctx.createLinearGradient(lx - 3, 0, lx + 3, 0);
+    g.addColorStop(0, PALETTE.copperLight);
+    g.addColorStop(0.5, PALETTE.copper);
+    g.addColorStop(1, '#8f4f2a');
+    ctx.fillStyle = g;
+    ctx.fillRect(lx - 3, ly + 0.5, 6, 4);
+    rect(ctx, lx - 2, ly + 0.5, 1, 3, '#f8c9a4');
+    rect(ctx, lx - 1.5, ly + 4.5, 3, 1, '#fff6c0');
+    glow(ctx, lx, ly + 10, 22, '#ffe2a8', 0.28 + Math.sin(now * 3 + lx) * 0.02);
   }
 }
 
@@ -962,7 +1123,7 @@ function drawHud(ctx, game, now, dt) {
     const pulse = 1 + Math.max(0, Math.sin(now * 8)) * (game.multiplier >= 4 ? 0.15 : 0.05);
     const label = `x${game.multiplier}`;
     ctx.save();
-    ctx.translate(game.stars() !== null ? 47 : 14, 26);
+    ctx.translate(game.stars() !== null ? W - 47 : W - 14, 26);
     ctx.scale(pulse, pulse);
     box(ctx, -12, -5, 24, 11, OUTLINE, 2);
     box(ctx, -11, -4, 22, 9, game.multiplier >= 4 ? '#e74c3c' : '#ff9f43', 2);
@@ -982,8 +1143,8 @@ function drawHud(ctx, game, now, dt) {
   }
   const stars = game.stars();
   if (stars !== null) {
-    box(ctx, 2, 20, 31, 10, 'rgba(0,0,0,0.45)', 2);
-    for (let i = 0; i < 3; i++) drawStar(ctx, 4 + i * 9.5, 21.5, i < stars, 1);
+    box(ctx, W - 33, 20, 31, 10, 'rgba(0,0,0,0.45)', 2);
+    for (let i = 0; i < 3; i++) drawStar(ctx, W - 31 + i * 9.5, 21.5, i < stars, 1);
   }
 }
 
@@ -1092,7 +1253,7 @@ function drawFloats(ctx, game) {
 // ---- Window to the street and TV ---------------------------------------------------
 
 const WINDOW = { x: 3, y: 20, w: 41, h: 26 };
-const TV = { x: 138, y: 21, w: 39, h: 24 };
+const TV = { x: 4, y: 27, w: 38, h: 22 };
 
 function skyColors(game) {
   if (!game) return ['#7fb6e0', '#cfe6f5'];
@@ -1299,7 +1460,6 @@ export function render(ctx, game, { t, now, dt = 0 }) {
 
   ctx.drawImage(layer('wall', paintWall), 0, 0, W, H);
   drawSign(ctx, now, game);
-  drawWindow(ctx, game, now);
   drawTv(ctx, game, now);
   drawLamps(ctx, now);
   drawChairs(ctx);

@@ -15,7 +15,9 @@ Keyboard (desktop): `1`–`6` stations, `Q W E R` customers, `Z X C V` tray slot
 
 ## Game modes
 
-- **A week at Álvaro's** (main mode, for everyone): one shift per day, from Monday to Sunday. Monday only has coffee and toast and a pointing hand shows what to tap; each day adds new items and a bit more pace. Shifts always end (90–120 seconds), customers who get tired just leave without a tip, and each day earns 1 to 3 stars. One star opens the next day.
+- **Mini-games** (main mode): quick one-gesture challenges with the whole team, faster and faster, with 4 lives. Pour the beer, find Alejandro's gold watch, hide from Pepe Nacho, calm Blanca down, catch the toast, wipe the counter, pour the coffee, score a penalty on the bar's TV, count the drinks and serve the right order. Add `?mini=<id>` to the URL to play a single one (`pour`, `watch`, `hide`, `calm`, `toast`, `wipe`, `coffee`, `penalty`, `count`, `order`).
+- **Chinos with Blanca**: the classic bar coin game. Hide 0 to 3 coins, call the total of both hands without repeating Blanca's call, and be the first to guess right 3 times.
+- **A week at Álvaro's** (for everyone): one shift per day, from Monday to Sunday. Monday only has coffee and toast and a pointing hand shows what to tap; each day adds new items and a bit more pace. Shifts always end (90–120 seconds), customers who get tired just leave without a tip, and each day earns 1 to 3 stars. One star opens the next day.
 - **Rush hour** (competitive): endless, with 3 lives and a growing pace. Pepe Nacho, the boss, shows up and doubles the tips for a while.
 - **Daily challenge**: rush hour with the same customers and the same twist for every player on a given day.
 
@@ -46,7 +48,7 @@ You play as **Blanca**, the heart of the bar. The rest of the team works alongsi
 
 Everyone is in the bar every day, moving around and doing their things.
 
-The looks are placeholders except for what we know: Blanca is blonde, Alejandro wears a gold watch and Pepe Nacho has black hair. They are defined in `js/config.js` (`PLAYER`, `HELPERS` and `BOSS`).
+The looks follow what we know: Blanca is blonde, the waiters (Mari, Andrea and Alejandro) and Pepe Nacho have black hair, nobody has a beard or a moustache, and Alejandro wears a gold watch. They are defined in `js/config.js` (`PLAYER`, `HELPERS` and `BOSS`).
 
 ## Running locally
 
@@ -84,6 +86,8 @@ js/i18n.js          English and Spanish text
 js/audio.js         Sound effects with the Web Audio API
 js/storage.js       Saved progress in localStorage
 js/rng.js           Seeded random numbers for the daily challenge
+js/minigames.js     Mini-games mode: the run engine and the ten mini-games
+js/chinos.js        Chinos against Blanca
 tests/              Unit tests for the game rules
 docs/               Game design notes
 ```
