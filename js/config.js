@@ -86,7 +86,7 @@ export const STAFF = [
     patienceBonus: 1,
     trayCapacity: 3,
     tipBonus: 1.1,
-    look: { skin: '#f1c27d', hair: '#3b2416', hairStyle: 'long', shirt: '#1f1f1f', apron: '#f4ecd8' },
+    look: { skin: '#f6cfa5', hair: '#e6be5a', hairStyle: 'long', shirt: '#1f1f1f', apron: '#f4ecd8' },
   },
   {
     id: 'mari',
