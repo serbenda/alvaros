@@ -1,0 +1,49 @@
+name: Bug report
+description: Something does not work or looks wrong in the game.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect to happen?
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Game mode
+      options:
+        - Mini-games
+        - Chinos with Blanca
+        - A week at Álvaro's
+        - Rush hour
+        - Daily challenge
+        - Menus
+    validations:
+      required: true
+  - type: input
+    id: minigame
+    attributes:
+      label: Mini-game (if any)
+      placeholder: e.g. tortilla, watch, pour
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: e.g. iPhone 13, Safari / Android tablet, Chrome
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the game
+        2. Tap Mini-games
+        3. ...
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or video
+      description: Drag images here if you have them.

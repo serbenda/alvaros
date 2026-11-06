@@ -8,7 +8,7 @@ import calm from './calm.js';
 import toast from './toast.js';
 import wipe from './wipe.js';
 import coffee from './coffee.js';
-import penalty from './penalty.js';
+import tortilla from './tortilla.js';
 import count from './count.js';
 import order from './order.js';
 import stack from './stack.js';
@@ -17,6 +17,6 @@ import channel from './channel.js';
 import tips from './tips.js';
 import shutter from './shutter.js';
 
-export const GAMES = [pour, watch, hide, calm, toast, wipe, coffee, penalty, count, order, stack, fly, channel, tips, shutter];
+export const GAMES = [pour, watch, hide, calm, toast, wipe, coffee, tortilla, count, order, stack, fly, channel, tips, shutter];
 
 export const MINIGAME_IDS = GAMES.map((g) => g.id);

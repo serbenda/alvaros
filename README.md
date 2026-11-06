@@ -29,7 +29,7 @@ Fifteen one-gesture challenges, one after another, faster every four wins. Four 
 | 🍞 | Catch the toast | — | Tap it while it flies |
 | 🧽 | Wipe the counter | Mari | Tap every stain |
 | ☕ | Pour the coffee | Mari | Tap when the cup is under the machine |
-| ⚽ | Score a goal | The bar's TV | Shoot where the keeper is not |
+| 🍳 | Flip the tortilla | Blanca | Tap when it is golden, before it burns |
 | 🔢 | How many? | Andrea | Count the drinks |
 | 🧾 | What did they order? | Andrea | Serve the right item |
 | 🥛 | Stack the cups | Mari | Drop each cup on the pile |
@@ -38,7 +38,7 @@ Fifteen one-gesture challenges, one after another, faster every four wins. Four 
 | 🫙 | Catch the tips | Blanca | Move the jar with your finger |
 | 🚪 | Open the bar | Blanca | Tap fast to pull the shutter up |
 
-Add `?mini=<id>` to the URL to play a single one: `pour`, `watch`, `hide`, `calm`, `toast`, `wipe`, `coffee`, `penalty`, `count`, `order`, `stack`, `fly`, `channel`, `tips`, `shutter`.
+Add `?mini=<id>` to the URL to play a single one: `pour`, `watch`, `hide`, `calm`, `toast`, `wipe`, `coffee`, `tortilla`, `count`, `order`, `stack`, `fly`, `channel`, `tips`, `shutter`.
 
 <img src="docs/screenshots/minigame-pour.png" alt="Pour the beer" width="200" />
 <img src="docs/screenshots/minigame-watch.png" alt="The gold watch" width="200" />
@@ -127,7 +127,17 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how it fits together and ho
 
 ### Deployment
 
-GitHub Pages publishes the `main` branch from the repository root. Changes go to `development` and reach `main` through a pull request; CI runs the checks and tests on both. See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md).
+GitHub Pages publishes the `main` branch from the repository root. Changes go to `development` and reach `main` through a pull request; CI runs the checks and tests on both. See [CHANGELOG.md](CHANGELOG.md).
+
+## Contributing
+
+Ideas, bug reports, lines for the team and new mini-games are welcome:
+
+- 🐛 [Report a bug](https://github.com/serbenda/alvaros/issues/new?template=bug_report.yml)
+- 💡 [Suggest an idea or a mini-game](https://github.com/serbenda/alvaros/issues/new?template=idea.yml)
+- 🛠️ Send a pull request to `development` — read [CONTRIBUTING.md](CONTRIBUTING.md) first
+
+Please follow the [code of conduct](CODE_OF_CONDUCT.md). Security issues: see [SECURITY.md](SECURITY.md).
 
 ## Roadmap
 

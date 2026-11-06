@@ -10,8 +10,10 @@ All notable changes to this project are documented here.
 - Curtain transitions, "just in time" and streak messages, bouncing score, ticking clock and music that speeds up.
 - Shareable score card image.
 - CI workflow, editor config, architecture notes and locale tests.
+- Community files: contributing guide, issue templates (bug, idea or new mini-game), pull request template, code of conduct and security policy.
 
 ### Changed
+- The penalty mini-game is replaced by flipping the tortilla, which fits the bar better.
 - The bar is now Álvaro's Gastrobar.
 - Code reorganised into `src/` by responsibility, with one file per mini-game and shared drawing helpers.
 - Bar redesigned after a photo of the real bar.
