@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { Game } from '../js/game.js';
+import { Game, ENTER_TIME } from '../js/game.js';
 import { STAFF, STATIONS, ITEMS, MAX_STRIKES, BOSS } from '../js/config.js';
 import { t } from '../js/i18n.js';
 import { mulberry32 } from '../js/rng.js';
@@ -48,10 +48,10 @@ test('the tray cannot hold more than its capacity', () => {
 test('serving a full order pays a tip and builds the combo', () => {
   const { game, events } = newGame();
   const c = game.spawn();
-  run(game, 0.4);
+  run(game, ENTER_TIME + 0.05);
   game.tray = [...c.order];
   game.tapSeat(c.seat);
-  assert.equal(c.state, 'leave');
+  assert.equal(c.state, 'enjoy');
   assert.ok(game.score > 0);
   assert.equal(game.combo, 1);
   assert.ok(events.some((e) => e.type === 'complete'));
@@ -60,7 +60,7 @@ test('serving a full order pays a tip and builds the combo', () => {
 test('a customer who runs out of patience costs a strike', () => {
   const { game } = newGame();
   const c = game.spawn();
-  run(game, c.maxPatience + 1);
+  run(game, ENTER_TIME + c.maxPatience + 1);
   assert.ok(game.strikes >= 1);
   assert.equal(game.combo, 0);
 });

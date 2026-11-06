@@ -18,6 +18,11 @@ const lerp = (a, b, k) => a + (b - a) * k;
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 const cosmetic = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
+/** Seconds a customer spends walking in, enjoying their order and walking out. */
+export const ENTER_TIME = 0.9;
+export const ENJOY_TIME = 1.1;
+export const LEAVE_TIME = 1.0;
+
 export const COLORS = {
   gold: '#f5c542',
   orange: '#ff9f43',
@@ -52,6 +57,7 @@ export class Game {
     this.strikes = 0;
     this.served = 0;
     this.over = false;
+    this.overTime = 0;
 
     this.seats = new Array(SEATS).fill(null);
     this.stations = {};
@@ -218,7 +224,7 @@ export class Game {
     this.score += tip;
     this.served++;
 
-    c.state = 'leave';
+    c.state = 'enjoy';
     c.st = 0;
     c.mood = 'happy';
     this.float(SEAT_X[c.seat], 60, `+${tip}`, COLORS.gold, 7);
@@ -269,7 +275,10 @@ export class Game {
 
   update(dt) {
     this.updateFloats(dt);
-    if (this.over) return;
+    if (this.over) {
+      this.overTime += dt;
+      return;
+    }
     this.time += dt;
 
     for (const id of STATIONS) {
@@ -299,13 +308,16 @@ export class Game {
       const c = this.seats[i];
       if (!c) continue;
       c.st += dt;
-      if (c.state === 'enter' && c.st >= 0.35) {
+      if (c.state === 'enter' && c.st >= ENTER_TIME) {
         c.state = 'wait';
+        c.st = 0;
+      } else if (c.state === 'enjoy' && c.st >= ENJOY_TIME) {
+        c.state = 'leave';
         c.st = 0;
       } else if (c.state === 'wait') {
         c.patience -= dt;
         if (c.patience <= 0) this.loseCustomer(c);
-      } else if (c.state === 'leave' && c.st >= 0.7) {
+      } else if (c.state === 'leave' && c.st >= LEAVE_TIME) {
         this.seats[i] = null;
       }
     }
@@ -403,6 +415,7 @@ export class Game {
     const c = this.seats[index];
     if (!c || c.state !== 'wait') return;
     let matched = 0;
+    const delivered = [];
     for (let k = 0; k < c.order.length; k++) {
       if (c.served[k]) continue;
       const at = this.tray.indexOf(c.order[k]);
@@ -410,6 +423,7 @@ export class Game {
         this.tray.splice(at, 1);
         c.served[k] = true;
         matched++;
+        delivered.push(c.order[k]);
       }
     }
     if (!matched) {
@@ -417,6 +431,7 @@ export class Game {
       this.emit('nope', {});
       return;
     }
+    this.fx.push({ kind: 'deliver', seat: index, items: delivered });
     if (c.served.every(Boolean)) {
       this.completeOrder(c);
     } else {

@@ -22,11 +22,11 @@ import {
 } from './layout.js';
 import { STATIONS, MAX_STRIKES, STAFF, BOSS, CLOCK } from './config.js';
 import { drawIcon, drawPerson, drawHeart, drawCoin, shade, OUTLINE } from './sprites.js';
+import { ENTER_TIME, ENJOY_TIME, LEAVE_TIME } from './game.js';
 
 export const FONT = '"Press Start 2P", ui-monospace, monospace';
 const LAYER_SCALE = 4;
 
-const LAMPS = [36, 144];
 const STATION_ACCENTS = {
   coffee: '#8b5a2b',
   juice: '#e67e22',
@@ -67,6 +67,8 @@ function text(ctx, str, x, y, { size = 6, color = '#fff', align = 'left', outlin
   ctx.fillStyle = color;
   ctx.fillText(str, x, y);
 }
+
+const easeInOut = (k) => (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
 
 function clamp(v, lo, hi) {
   return Math.max(lo, Math.min(hi, v));
@@ -137,28 +139,27 @@ function paintWall(ctx) {
 
   // Shelf with bottles
   const bottles = ['#2e7d32', '#6a1b9a', '#b71c1c', '#c99a1c', '#00796b', '#5d6d7e', '#d35400', '#1b4f72'];
-  for (let i = 0; i < 16; i++) {
-    const bx = 3 + i * 11;
-    if (bx > 46 && bx < 128) continue;
+  for (let i = 0; i < 7; i++) {
+    const bx = 53 + i * 11;
     const color = bottles[i % bottles.length];
-    const h = 9 + ((i * 5) % 4);
+    const h = 6 + ((i * 5) % 3);
     const by = 46 - h;
     rect(ctx, bx - 0.5, by - 0.5, 5, h + 1, OUTLINE);
     rect(ctx, bx, by, 4, h, color);
     rect(ctx, bx + 0.5, by + 1, 1, h - 2, shade(color, 0.35));
     rect(ctx, bx + 3, by, 1, h, shade(color, -0.3));
     rect(ctx, bx, by + h / 2 - 1, 4, 2.5, '#f3ead3');
-    rect(ctx, bx + 1, by - 3.5, 2, 3.5, color);
-    rect(ctx, bx + 1, by - 4.5, 2, 1, '#d4a017');
+    rect(ctx, bx + 1, by - 2, 2, 2, color);
+    rect(ctx, bx + 1, by - 2.5, 2, 0.75, '#d4a017');
   }
   rect(ctx, 0, 46, W, 3, '#7a4a28');
   rect(ctx, 0, 46, W, 0.75, '#b07a48');
   rect(ctx, 0, 48.5, W, 0.5, '#4a2c16');
 
   // Sign board
-  rect(ctx, 48, 20, 84, 17, OUTLINE);
-  rect(ctx, 49, 21, 82, 15, '#5a361d');
-  rect(ctx, 50, 22, 80, 13, '#2f1d12');
+  rect(ctx, 48, 20, 84, 16, OUTLINE);
+  rect(ctx, 49, 21, 82, 14, '#5a361d');
+  rect(ctx, 50, 22, 80, 12, '#2f1d12');
   rect(ctx, 50, 22, 80, 1, '#4a2e1c');
   rect(ctx, 89.5, HUD_H, 1, 2, '#3a2a20');
 }
@@ -270,6 +271,14 @@ function spawnFx(game) {
         }
         break;
       }
+      case 'deliver': {
+        const cap = game.trayCapacity;
+        const tray = traySlotRect(Math.floor(cap / 2), cap);
+        fx.items.forEach((id, i) => {
+          addParticle({ kind: 'item', id, sx: tray.x + 3 + (i - 1) * 8, sy: tray.y + 3, tx: SEAT_X[fx.seat] - 6, ty: COUNTER_Y - 12, delay: i * 0.06, life: 0.45 + i * 0.06 });
+        });
+        break;
+      }
       case 'confetti':
         for (let i = 0; i < 40; i++) {
           addParticle({
@@ -335,7 +344,7 @@ function updateParticles(dt) {
 function drawParticles(ctx, front) {
   for (const p of particles) {
     const k = p.t / p.life;
-    const isFront = p.kind === 'coin' || p.kind === 'confetti';
+    const isFront = p.kind === 'coin' || p.kind === 'confetti' || p.kind === 'item';
     if (isFront !== front) continue;
     switch (p.kind) {
       case 'star': {
@@ -353,6 +362,19 @@ function drawParticles(ctx, front) {
         const y = p.sy + (8 - p.sy) * e - Math.sin(local * Math.PI) * p.arc;
         ctx.globalAlpha = 1;
         drawCoin(ctx, x - 2.5, y - 2.5, 0.7);
+        break;
+      }
+      case 'item': {
+        const local = clamp((p.t - p.delay) / (p.life - p.delay), 0, 1);
+        if (local <= 0) break;
+        const e = easeInOut(local);
+        const x = p.sx + (p.tx - p.sx) * e;
+        const y = p.sy + (p.ty - p.sy) * e - Math.sin(local * Math.PI) * 30;
+        const sc = 1 - local * 0.35;
+        ctx.globalAlpha = 0.3;
+        box(ctx, x + 2, p.sy + (p.ty - p.sy) * e + 14, 12 * sc, 2, '#000', 0.5);
+        ctx.globalAlpha = 1;
+        drawIcon(ctx, p.id, x, y, sc);
         break;
       }
       case 'smoke':
@@ -385,12 +407,12 @@ function drawParticles(ctx, front) {
 // ---- Scene pieces ----------------------------------------------------------------
 
 function drawSign(ctx, now, game) {
-  text(ctx, "ÁLVARO'S", W / 2, 25, { size: 7, color: '#f5c542', align: 'center', shadow: '#7a3a12' });
+  text(ctx, "ÁLVARO'S", W / 2, 24.5, { size: 7, color: '#f5c542', align: 'center', shadow: '#7a3a12' });
   // Marquee bulbs around the sign
   const bulbs = [];
   for (let x = 51; x <= 129; x += 4) {
     bulbs.push([x, 21.5]);
-    bulbs.push([x, 34.5]);
+    bulbs.push([x, 33.5]);
   }
   const speed = game && game.multiplier >= 3 ? 10 : 4;
   const phase = Math.floor(now * speed);
@@ -400,58 +422,100 @@ function drawSign(ctx, now, game) {
   });
 }
 
-function drawLamps(ctx, now) {
-  for (const lx of LAMPS) {
-    rect(ctx, lx - 0.25, HUD_H, 0.5, 6, '#2b2b2b');
-    rect(ctx, lx - 4.5, HUD_H + 5.5, 9, 4, OUTLINE);
-    rect(ctx, lx - 4, HUD_H + 6, 8, 3, '#2f6b4f');
-    rect(ctx, lx - 4, HUD_H + 6, 8, 0.75, '#4f9b77');
-    rect(ctx, lx - 1.5, HUD_H + 9, 3, 1.5, '#fff6c0');
-    const flicker = 0.32 + Math.sin(now * 3 + lx) * 0.02;
-    glow(ctx, lx, HUD_H + 14, 34, '#ffd27a', flicker);
+/** Where a customer stands right now: walking in, sitting, or walking out. */
+function customerPose(c, now) {
+  const seatX = SEAT_X[c.seat];
+  const door = c.seat < 2 ? -16 : W + 16;
+  let x = seatX;
+  let top = CUSTOMER_TOP + (c.look.offset || 0);
+  let mood = c.mood;
+  let walking = false;
+  if (c.state === 'enter') {
+    const k = Math.min(1, c.st / ENTER_TIME);
+    x = door + (seatX - door) * easeInOut(k);
+    walking = k < 0.95;
+    mood = 'neutral';
+  } else if (c.state === 'leave') {
+    const k = Math.min(1, c.st / LEAVE_TIME);
+    const speed = c.mood === 'angry' ? 1.4 : 1;
+    x = seatX + (door - seatX) * Math.min(1, easeInOut(k) * speed);
+    walking = true;
+  } else if (c.state === 'wait') {
+    top += Math.round(Math.sin(now * 3 + c.seat * 1.7) * 0.6);
+    const f = c.patience / c.maxPatience;
+    if (f < 0.35) mood = 'worried';
+    if (f < 0.15) {
+      mood = 'angry';
+      x += Math.sin(now * 40) * 0.7;
+    }
+  } else if (c.state === 'enjoy') {
+    top += Math.round(Math.sin(c.st * 10) * 0.5);
+  }
+  if (walking) top -= Math.abs(Math.sin(now * 14 + c.id)) * 1.5;
+  return { x, top, mood };
+}
+
+function drawEmote(ctx, kind, x, y, now) {
+  const bob = Math.sin(now * 6) * 0.75;
+  if (kind === 'heart') {
+    drawHeart(ctx, x - 3.5, y + bob, true);
+  } else if (kind === 'anger') {
+    const c = '#e74c3c';
+    rect(ctx, x - 3, y - 3 + bob, 2, 2, c);
+    rect(ctx, x + 1, y - 3 + bob, 2, 2, c);
+    rect(ctx, x - 3, y + 1 + bob, 2, 2, c);
+    rect(ctx, x + 1, y + 1 + bob, 2, 2, c);
+  } else if (kind === 'note') {
+    rect(ctx, x, y - 4 + bob, 0.75, 5, OUTLINE);
+    rect(ctx, x - 2, y + bob, 2.5, 2, OUTLINE);
+    rect(ctx, x, y - 4 + bob, 2.5, 1, OUTLINE);
   }
 }
 
 function drawCustomers(ctx, game, now) {
-  for (const c of game.seats) {
-    if (!c) continue;
-    let top = CUSTOMER_TOP + (c.look.offset || 0);
-    let alpha = 1;
-    let dx = 0;
-    let mood = c.mood;
-    if (c.state === 'enter') {
-      const k = Math.min(1, c.st / 0.35);
-      top += (1 - k) * 14;
-      alpha = k;
-    } else if (c.state === 'leave') {
-      const k = Math.min(1, c.st / 0.7);
-      if (c.mood === 'happy') top -= Math.sin(k * Math.PI) * 4;
-      else dx = (c.seat < 2 ? -1 : 1) * k * 12;
-      alpha = 1 - k * k;
-    } else {
-      top += Math.round(Math.sin(now * 3 + c.seat * 1.7) * 0.6);
-      const f = c.patience / c.maxPatience;
-      if (f < 0.35) mood = 'worried';
-      if (f < 0.15) {
-        mood = 'angry';
-        dx = Math.sin(now * 40) * 0.7;
-      }
-    }
+  // Sitting customers first, walking ones on top so they pass in front.
+  const list = game.seats.filter(Boolean).sort((a, b) => (a.state === 'wait' || a.state === 'enjoy' ? 0 : 1) - (b.state === 'wait' || b.state === 'enjoy' ? 0 : 1));
+  for (const c of list) {
+    const pose = customerPose(c, now);
     const blink = (now + c.id * 0.7) % 3.5 < 0.12;
-    ctx.globalAlpha = alpha;
-    drawPerson(ctx, c.look, SEAT_X[c.seat] + dx, top, { mood, blink });
-    ctx.globalAlpha = 1;
+    drawPerson(ctx, c.look, pose.x, pose.top, { mood: pose.mood, blink });
+    if (c.state === 'enjoy') {
+      // Lift the first item to the mouth now and then
+      const sip = Math.max(0, Math.sin(c.st * 5));
+      if (sip > 0.2) drawIcon(ctx, c.order[0], pose.x - 5 + 6, pose.top + 12 - sip * 4, 0.6);
+      drawEmote(ctx, 'heart', pose.x + 9, pose.top - 6, now);
+    } else if (c.state === 'leave' && c.mood === 'angry') {
+      drawEmote(ctx, 'anger', pose.x + 8, pose.top - 4, now);
+    } else if (c.state === 'leave' && c.mood === 'happy') {
+      drawEmote(ctx, 'note', pose.x + 8, pose.top - 3, now);
+    }
+  }
+}
+
+/** Plates and glasses left on the counter while a customer enjoys their order. */
+function drawCounterItems(ctx, game) {
+  for (const c of game.seats) {
+    if (!c || c.state !== 'enjoy') continue;
+    const n = c.order.length;
+    const start = SEAT_X[c.seat] - (n * 11) / 2;
+    c.order.forEach((id, k) => {
+      if (k === 0 && Math.sin(c.st * 5) > 0.2) return;
+      ctx.globalAlpha = 0.3;
+      box(ctx, start + k * 11 + 1, COUNTER_Y + 1, 10, 1.5, '#000', 0.5);
+      ctx.globalAlpha = 1;
+      drawIcon(ctx, id, start + k * 11, COUNTER_Y - 10, 0.75);
+    });
   }
 }
 
 function drawBubbles(ctx, game, now) {
   for (const c of game.seats) {
-    if (!c || c.state === 'leave') continue;
+    if (!c || c.state !== 'wait') continue;
     const sx = SEAT_X[c.seat];
     const n = c.order.length;
     const bw = n * 13 + 3;
     const bx = clamp(Math.round(sx - bw / 2), 1, W - bw - 1);
-    const pop = c.state === 'enter' ? Math.min(1, c.st / 0.35) : 1;
+    const pop = Math.min(1, c.st / 0.2);
     const by = BUBBLE_Y + (1 - pop) * 4;
     ctx.globalAlpha = pop;
     box(ctx, bx - 1, by - 1, bw + 2, 18, OUTLINE, 2);
@@ -597,7 +661,24 @@ function drawStations(ctx, game, t, now) {
     box(ctx, r.x + r.w / 2 - 10, r.y + 29, 20, 2.5, '#000', 1);
     ctx.globalAlpha = 1;
     const bob = busy ? Math.sin(now * 12) * 0.75 : 0;
-    drawIcon(ctx, id, r.x + r.w / 2 - 12, r.y + 6 + bob, 1.5);
+    const ix = r.x + r.w / 2 - 12;
+    const iy = r.y + 6 + bob;
+    if (busy) {
+      // The item builds up from the bottom as it is prepared
+      const f = Math.min(1, s.t / s.dur);
+      ctx.globalAlpha = 0.25;
+      drawIcon(ctx, id, ix, iy, 1.5);
+      ctx.globalAlpha = 1;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(ix - 1, iy + 24 - 24 * f, 26, 24 * f + 1);
+      ctx.clip();
+      drawIcon(ctx, id, ix, iy, 1.5);
+      ctx.restore();
+      rect(ctx, ix, iy + 24 - 24 * f, 24, 0.5, 'rgba(255,255,255,0.7)');
+    } else {
+      drawIcon(ctx, id, ix, iy, 1.5);
+    }
 
     // Label plate
     box(ctx, r.x + 4, r.y + r.h - 11, r.w - 8, 8, 'rgba(0,0,0,0.35)', 1);
@@ -667,7 +748,7 @@ function drawHud(ctx, game, now, dt) {
     text(ctx, label, 0, -3, { size: 7, color: '#fff6c0', align: 'center' });
     ctx.restore();
   }
-  for (let i = 0; i < MAX_STRIKES; i++) drawHeart(ctx, W - 10 - i * 9, 22, i < MAX_STRIKES - game.strikes);
+  for (let i = 0; i < MAX_STRIKES; i++) drawHeart(ctx, 102 + i * 9, 5.5, i < MAX_STRIKES - game.strikes);
 }
 
 function drawFloats(ctx, game) {
@@ -686,6 +767,176 @@ function drawFloats(ctx, game) {
     ctx.restore();
     ctx.globalAlpha = 1;
   }
+}
+
+
+// ---- Window to the street and TV ---------------------------------------------------
+
+const WINDOW = { x: 3, y: 20, w: 41, h: 26 };
+const TV = { x: 138, y: 21, w: 39, h: 24 };
+
+function skyColors(game) {
+  if (!game) return ['#7fb6e0', '#cfe6f5'];
+  const m = CLOCK.startMinutes + game.time * CLOCK.minutesPerSecond;
+  if (m < 10 * 60) return ['#8cc4ee', '#f8d9b0'];
+  if (m < CLOCK.afternoonAt) return ['#5aa6e6', '#bfe1f7'];
+  if (m < 19 * 60) return ['#e8885a', '#f8c77a'];
+  return ['#2c3e6b', '#7a5a8a'];
+}
+
+function drawWindow(ctx, game, now) {
+  const { x, y, w, h } = WINDOW;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  const [skyTop, skyBottom] = skyColors(game);
+  const g = ctx.createLinearGradient(0, y, 0, y + h);
+  g.addColorStop(0, skyTop);
+  g.addColorStop(1, skyBottom);
+  ctx.fillStyle = g;
+  ctx.fillRect(x, y, w, h);
+  // Buildings across the street
+  const fronts = [['#d9a066', 12], ['#c7785a', 16], ['#e3c08a', 10], ['#b5866a', 14]];
+  let bx = x - 4;
+  for (const [color, bh] of fronts) {
+    rect(ctx, bx, y + h - 10 - bh, 13, bh + 10, color);
+    for (let wy = y + h - 8 - bh; wy < y + h - 12; wy += 5) {
+      rect(ctx, bx + 2, wy, 3, 3, '#5d7a8c');
+      rect(ctx, bx + 8, wy, 3, 3, '#5d7a8c');
+    }
+    bx += 13;
+  }
+  // Cloud
+  const cx = x + ((now * 3) % (w + 30)) - 15;
+  box(ctx, cx, y + 3, 10, 3, 'rgba(255,255,255,0.85)', 1);
+  box(ctx, cx + 3, y + 1.5, 5, 2, 'rgba(255,255,255,0.85)', 1);
+  // Pavement and road
+  rect(ctx, x, y + h - 8, w, 3, '#b8b0a0');
+  rect(ctx, x, y + h - 5, w, 5, '#55585e');
+  rect(ctx, x, y + h - 2.75, w, 0.5, '#e8e2c8');
+  // Passers-by walking on the pavement
+  const walkers = [
+    [0, 9, '#c0392b'],
+    [17, 7, '#2f7dc1'],
+    [31, 11, '#2e9e5b'],
+  ];
+  for (const [offset, speed, color] of walkers) {
+    const px = x + ((now * speed + offset * 3) % (w + 10)) - 5;
+    const step = Math.sin(now * 10 + offset) > 0 ? 0.5 : 0;
+    rect(ctx, px, y + h - 13, 2.5, 2.5, '#e0ac69');
+    rect(ctx, px - 0.5, y + h - 10.5, 3.5, 3.5, color);
+    rect(ctx, px, y + h - 7 + step, 1, 1.5, '#2b2f3a');
+    rect(ctx, px + 1.5, y + h - 7 + (0.5 - step), 1, 1.5, '#2b2f3a');
+  }
+  // A car every few seconds
+  const carT = now % 7;
+  if (carT < 2) {
+    const carX = x + w + 6 - (carT / 2) * (w + 22);
+    rect(ctx, carX, y + h - 5.5, 14, 3, '#f1c40f');
+    rect(ctx, carX + 3, y + h - 7.5, 7, 2.5, '#f1c40f');
+    rect(ctx, carX + 4, y + h - 7, 2, 1.5, '#bfe1f7');
+    rect(ctx, carX + 7, y + h - 7, 2, 1.5, '#bfe1f7');
+    rect(ctx, carX + 2, y + h - 2.5, 2.5, 2.5, '#151515');
+    rect(ctx, carX + 10, y + h - 2.5, 2.5, 2.5, '#151515');
+  }
+  // Reflection on the glass
+  ctx.globalAlpha = 0.18;
+  rect(ctx, x + 4, y, 3, h, '#ffffff');
+  rect(ctx, x + 9, y, 1.5, h, '#ffffff');
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  // Frame
+  rect(ctx, x - 1.5, y - 1.5, w + 3, 1.5, '#5a361d');
+  rect(ctx, x - 1.5, y + h, w + 3, 2, '#5a361d');
+  rect(ctx, x - 1.5, y - 1.5, 1.5, h + 3, '#5a361d');
+  rect(ctx, x + w, y - 1.5, 1.5, h + 3, '#5a361d');
+  rect(ctx, x + w / 2 - 0.5, y, 1, h, '#5a361d');
+  rect(ctx, x, y + h / 2 - 3, w, 1, '#5a361d');
+  rect(ctx, x - 2, y + h + 1.5, w + 4, 1, '#8b5a33');
+  // Daylight on the wall
+  glow(ctx, x + w / 2, y + h / 2 + 8, 34, '#fff1c8', 0.22);
+}
+
+function drawTv(ctx, game, now) {
+  const { x, y, w, h } = TV;
+  rect(ctx, x + w / 2 - 3, HUD_H, 1, y - HUD_H, '#3a3a3a');
+  rect(ctx, x + w / 2 + 2, HUD_H, 1, y - HUD_H, '#3a3a3a');
+  box(ctx, x - 2, y - 2, w + 4, h + 4, '#151515', 1);
+  rect(ctx, x - 1, y - 1, w + 2, 0.75, '#3a3a3a');
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  // Football pitch
+  rect(ctx, x, y, w, h, '#2e8b3e');
+  for (let i = 0; i < w; i += 6) rect(ctx, x + i, y, 3, h, '#339945');
+  rect(ctx, x + w / 2 - 0.25, y, 0.5, h, '#d8f0d8');
+  box(ctx, x + w / 2 - 4, y + h / 2 - 4, 8, 8, '#d8f0d8', 2);
+  box(ctx, x + w / 2 - 3.5, y + h / 2 - 3.5, 7, 7, '#2e8b3e', 2);
+  rect(ctx, x, y + h / 2 - 5, 3, 10, 'rgba(216,240,216,0.8)');
+  rect(ctx, x + w - 3, y + h / 2 - 5, 3, 10, 'rgba(216,240,216,0.8)');
+  // Players chasing the ball
+  const bx = x + w / 2 + Math.sin(now * 0.9) * (w / 2 - 6) + Math.sin(now * 2.3) * 3;
+  const by = y + h / 2 + Math.sin(now * 1.4) * (h / 2 - 4);
+  const players = [
+    [-6, -3, '#e74c3c'], [5, 4, '#e74c3c'], [-3, 6, '#ffffff'], [7, -5, '#ffffff'],
+  ];
+  for (const [dx, dy, color] of players) {
+    const px = bx + dx * (1 + Math.sin(now + dx) * 0.3);
+    const py = by + dy;
+    rect(ctx, px - 1, py - 1.5, 2, 3, color);
+    rect(ctx, px - 0.5, py - 2.5, 1, 1, '#e0ac69');
+  }
+  rect(ctx, bx - 0.75, by - 0.75, 1.5, 1.5, '#ffffff');
+  // Scoreboard
+  rect(ctx, x + 1, y + 1, 15, 4, 'rgba(0,0,0,0.6)');
+  const goals = game ? Math.floor(game.time / 40) % 4 : 1;
+  ctx.font = `3px ${FONT}`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(`${goals}-${Math.max(0, goals - 1)}`, x + 3, y + 1.6);
+  // Screen sheen and scanlines
+  ctx.globalAlpha = 0.12;
+  for (let i = 0; i < h; i += 1.5) rect(ctx, x, y + i, w, 0.5, '#000');
+  ctx.globalAlpha = 0.1;
+  rect(ctx, x, y, w, h / 3, '#ffffff');
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  glow(ctx, x + w / 2, y + h / 2, 30, '#9fe0a8', 0.12 + Math.sin(now * 7) * 0.02);
+}
+
+// ---- Metal shutter (persiana) ---------------------------------------------------------
+
+function drawShutter(ctx, game) {
+  let closed = 1;
+  if (game) {
+    if (game.over) closed = Math.min(1, Math.max(0, (game.overTime - 0.2) / 0.6));
+    else closed = Math.max(0, 1 - game.time / 0.8);
+  }
+  if (closed <= 0) return;
+  const top = HUD_H;
+  const fullH = STATION_PANEL_Y - HUD_H;
+  const h = fullH * easeInOut(closed);
+  const y0 = top + fullH - h;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, top, W, h);
+  ctx.clip();
+  for (let y = y0 - fullH; y < top + h; y += 6) {
+    rect(ctx, 0, y, W, 6, '#9aa3a8');
+    rect(ctx, 0, y, W, 1, '#d5dbde');
+    rect(ctx, 0, y + 1, W, 1, '#b8c0c4');
+    rect(ctx, 0, y + 4.5, W, 1.5, '#6e777c');
+  }
+  const ty = top + h - fullH / 2 - 12;
+  text(ctx, "ÁLVARO'S", W / 2, ty, { size: 12, color: '#c0392b', align: 'center', shadow: '#5a1a12' });
+  text(ctx, 'BAR · CAFETERÍA', W / 2, ty + 17, { size: 5, color: '#2b1d14', align: 'center' });
+  ctx.restore();
+  rect(ctx, 0, top + h - 4, W, 4, '#4a5155');
+  rect(ctx, 0, top + h - 4, W, 1, '#8a9398');
+  box(ctx, W / 2 - 10, top + h - 7, 20, 3, '#3a3f42', 1);
 }
 
 /** Warm or cool tint over the whole scene depending on the time of day. */
@@ -724,9 +975,11 @@ export function render(ctx, game, { t, now, dt = 0 }) {
 
   ctx.drawImage(layer('wall', paintWall), 0, 0, W, H);
   drawSign(ctx, now, game);
-  drawLamps(ctx, now);
+  drawWindow(ctx, game, now);
+  drawTv(ctx, game, now);
   if (game) drawCustomers(ctx, game, now);
   ctx.drawImage(layer('counter', paintCounter), 0, 0, W, H);
+  if (game) drawCounterItems(ctx, game);
   ctx.drawImage(layer('floor', paintFloor), 0, 0, W, H);
   drawBoss(ctx, game, now);
   drawPlayer(ctx, game, now);
@@ -734,11 +987,12 @@ export function render(ctx, game, { t, now, dt = 0 }) {
   drawTray(ctx, game);
   drawLighting(ctx, game);
   if (game) drawBubbles(ctx, game, now);
+  drawShutter(ctx, game);
   ctx.drawImage(layer('panel', paintPanel), 0, 0, W, H);
   drawStations(ctx, game, t, now);
   if (game) {
     drawHud(ctx, game, now, dt);
-    drawSpeech(ctx, game);
+    if (!game.over) drawSpeech(ctx, game);
     drawFloats(ctx, game);
   }
   drawParticles(ctx, true);
