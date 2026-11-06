@@ -25,6 +25,7 @@
       <canvas id="game" aria-label="Game"></canvas>
 
       <section id="screen-title" class="screen">
+        <canvas id="logo" class="logo" width="720" height="240" aria-hidden="true"></canvas>
         <h1 data-i18n="title"></h1>
         <p class="subtitle" data-i18n="subtitle"></p>
         <p class="scores">
@@ -50,14 +51,15 @@
             <span data-i18n="week"></span>
             <small data-i18n="chooseDay"></small>
           </button>
-          <button id="btn-rush" class="btn" type="button">
-            <span data-i18n="rush"></span>
-            <small data-i18n="rushDesc"></small>
-          </button>
-          <button id="btn-daily" class="btn" type="button">
-            <span data-i18n="daily"></span>
-            <small id="daily-twist"></small>
-          </button>
+          <div class="row">
+            <button id="btn-rush" class="btn" type="button">
+              <span data-i18n="rush"></span>
+            </button>
+            <button id="btn-daily" class="btn" type="button">
+              <span data-i18n="daily"></span>
+              <small id="daily-twist"></small>
+            </button>
+          </div>
           <div class="row">
             <button id="btn-album" class="btn" type="button" data-i18n="album"></button>
             <button id="btn-howto" class="btn" type="button" data-i18n="howTo"></button>

@@ -6,7 +6,7 @@
 
 import { W, H } from './layout.js';
 import { OUTLINE, shade } from './sprites.js';
-import { rect, box, text, bubble, person, bgTable, fitSize, LOOKS } from './minigames.js';
+import { rect, box, text, bubble, person, bgTable, fitSize, LOOKS, vignette } from './minigames.js';
 
 export const MAX_COINS = 3;
 export const POINTS_TO_WIN = 3;
@@ -180,27 +180,47 @@ export class ChinosGame {
 // ---- Drawing ----------------------------------------------------------------------
 
 function coin(ctx, x, y, s = 1) {
-  box(ctx, x - 4 * s, y - 4 * s, 8 * s, 8 * s, OUTLINE, 2 * s);
-  box(ctx, x - 3.25 * s, y - 3.25 * s, 6.5 * s, 6.5 * s, '#f5c542', 2 * s);
-  rect(ctx, x - 1.5 * s, y - 2 * s, 1 * s, 3.5 * s, '#fff1a8');
-  rect(ctx, x + 1 * s, y - 1 * s, 1 * s, 2.5 * s, '#b7791f');
+  box(ctx, x - 4.5 * s, y - 4.5 * s, 9 * s, 9 * s, OUTLINE, 3 * s);
+  box(ctx, x - 3.75 * s, y - 3.75 * s, 7.5 * s, 7.5 * s, '#d4a017', 2.5 * s);
+  box(ctx, x - 2.75 * s, y - 2.75 * s, 5.5 * s, 5.5 * s, '#f5c542', 2 * s);
+  rect(ctx, x - 1.75 * s, y - 2 * s, 1 * s, 2 * s, '#fff1a8');
+  rect(ctx, x - 0.5 * s, y - 1.5 * s, 1 * s, 3 * s, '#b7791f');
 }
 
-/** A fist on the table, closed or open showing its coins. */
+/** A fist on the table, closed (knuckles and thumb) or open showing its coins. */
 function hand(ctx, x, y, skin, coins, open, flip) {
   const dark = shade(skin, -0.2);
+  const light = shade(skin, 0.15);
+  const dir = flip ? -1 : 1;
   if (!open) {
-    box(ctx, x - 15, y - 10, 30, 22, OUTLINE, 6);
-    box(ctx, x - 14, y - 9, 28, 20, skin, 6);
-    for (let i = 0; i < 4; i++) rect(ctx, x - 11 + i * 6.5, y + (flip ? -8 : 4), 0.75, 5, dark);
-    rect(ctx, x - 14, y + (flip ? 6 : -6), 28, 2, dark);
+    box(ctx, x - 17, y - 12, 34, 25, OUTLINE, 7);
+    box(ctx, x - 16, y - 11, 32, 23, skin, 7);
+    // Knuckles facing the other player
+    const ky = flip ? y + 5 : y - 9;
+    for (let i = 0; i < 4; i++) {
+      box(ctx, x - 13 + i * 7, ky, 6, 5, light, 2);
+      rect(ctx, x - 7.5 + i * 7, ky + 1, 0.75, 4, dark);
+    }
+    // Thumb across the fist
+    box(ctx, x - 10, y - 2 * dir - 2, 18, 5, OUTLINE, 2);
+    box(ctx, x - 9.5, y - 2 * dir - 1.5, 17, 4, skin, 2);
+    rect(ctx, x + 5, y - 2 * dir - 1, 2, 3, light);
+    // Sleeve
+    box(ctx, x - 12, y + 12 * dir - (flip ? 6 : 0), 24, 6, OUTLINE, 1);
+    box(ctx, x - 11, y + 12 * dir - (flip ? 5 : -1), 22, 4, flip ? '#1f1f1f' : '#2f7dc1', 1);
     return;
   }
-  // Open palm with the coins
-  box(ctx, x - 20, y - 12, 40, 26, OUTLINE, 8);
-  box(ctx, x - 19, y - 11, 38, 24, skin, 8);
-  box(ctx, x - 14, y - 6, 28, 14, dark, 5);
-  for (let i = 0; i < coins; i++) coin(ctx, x - 9 + i * 9, y + 1, 1);
+  // Open palm with fingers and the coins
+  box(ctx, x - 22, y - 13, 44, 28, OUTLINE, 9);
+  box(ctx, x - 21, y - 12, 42, 26, skin, 9);
+  for (let i = 0; i < 4; i++) {
+    const fx = x - 15 + i * 8.5;
+    const fy = flip ? y + 12 : y - 18;
+    box(ctx, fx - 3.5, fy - 1, 7, 9, OUTLINE, 3);
+    box(ctx, fx - 2.5, fy, 5, 8, skin, 2.5);
+  }
+  box(ctx, x - 15, y - 7, 30, 16, dark, 6);
+  for (let i = 0; i < coins; i++) coin(ctx, x - 9.5 + i * 9.5, y + 1, 1.05);
   if (coins === 0) text(ctx, '0', x, y - 3, { size: 7, color: OUTLINE, align: 'center' });
 }
 
@@ -258,7 +278,7 @@ export function renderChinos(ctx, game, { t, now }) {
     box(ctx, b.x + 1, b.y + 1, b.w - 2, b.h - 3, '#fffaf0', 3);
     rect(ctx, b.x + 1, b.y + b.h - 4, b.w - 2, 2, '#e8dcc4');
     if (game.phase === 'pick') {
-      for (let i = 0; i < b.value; i++) coin(ctx, b.x + b.w / 2 - (b.value - 1) * 4.5 + i * 9, b.y + 16, 1);
+      for (let i = 0; i < b.value; i++) coin(ctx, b.x + b.w / 2 - (b.value - 1) * 4.5 + i * 9, b.y + 15, 1);
       if (b.value === 0) rect(ctx, b.x + b.w / 2 - 6, b.y + 15, 12, 1.5, '#9aa3a8');
       text(ctx, String(b.value), b.x + b.w / 2, b.y + 28, { size: 9, color: '#3a2518', align: 'center' });
     } else {
@@ -267,6 +287,7 @@ export function renderChinos(ctx, game, { t, now }) {
     ctx.globalAlpha = 1;
   }
 
+  vignette(ctx);
   if (game.line) bubble(ctx, game.line.text, 90, 22);
 
   // Scoreboard
@@ -279,7 +300,7 @@ export function renderChinos(ctx, game, { t, now }) {
   text(ctx, `${t('chinos.you')} ${game.player}`, 6, 6, { size: 6, color: '#ffffff' });
   text(ctx, `${game.blanca} Blanca`, 160, 6, { size: 6, color: '#ffffff', align: 'right' });
   for (let i = 0; i < POINTS_TO_WIN; i++) {
-    coin(ctx, 72 + i * 6, 9, 0.55);
+    coin(ctx, 78 + i * 12, 9, 0.75);
   }
   rect(ctx, 165, 5.5, 3, 7, '#f5e6c8');
   rect(ctx, 170, 5.5, 3, 7, '#f5e6c8');

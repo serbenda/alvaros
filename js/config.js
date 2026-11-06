@@ -98,18 +98,18 @@ export const HELPERS = {
   mari: {
     name: 'Mari',
     prepBonus: { coffee: 1.6, juice: 1.6 },
-    look: { skin: '#ffdbac', hair: '#8b4513', hairStyle: 'bun', shirt: '#1f1f1f', apron: '#f4ecd8' },
+    look: { skin: '#ffdbac', hair: '#151515', hairStyle: 'bun', shirt: '#1f1f1f', apron: '#f4ecd8' },
   },
   andrea: {
     name: 'Andrea',
     every: [13, 20],
     patienceBoost: 0.5,
-    look: { skin: '#e0ac69', hair: '#1a1a1a', hairStyle: 'ponytail', shirt: '#1f1f1f', apron: '#f4ecd8' },
+    look: { skin: '#e0ac69', hair: '#151515', hairStyle: 'ponytail', shirt: '#1f1f1f', apron: '#f4ecd8' },
   },
   alejandro: {
     name: 'Alejandro',
     every: [9, 15],
-    look: { skin: '#f1c27d', hair: '#2c1b10', hairStyle: 'short', shirt: '#1f1f1f', apron: '#f4ecd8', beard: true, watch: true },
+    look: { skin: '#f1c27d', hair: '#151515', hairStyle: 'short', shirt: '#1f1f1f', apron: '#f4ecd8', watch: true },
   },
 };
 

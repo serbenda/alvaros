@@ -114,12 +114,46 @@ export function sparkle(ctx, x, y, size, color = '#ffffff') {
   rect(ctx, x - 0.4, y - size, 0.8, size * 2, color);
 }
 
-/** White wall, wooden skirting and a terracotta floor from `floorY` down. */
-function bgRoom(ctx, floorY) {
+/** Warm glow, like the copper lamps of the bar. */
+function glow(ctx, x, y, radius, color, alpha) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, radius);
+  g.addColorStop(0, color);
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = g;
+  ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+  ctx.globalAlpha = 1;
+}
+
+function lamp(ctx, x) {
+  rect(ctx, x - 0.25, 18, 0.5, 9, '#5a4030');
+  box(ctx, x - 6, 26, 12, 6, OUTLINE, 1);
+  box(ctx, x - 5, 27, 10, 4, '#c8794a', 1);
+  rect(ctx, x - 5, 27, 10, 1, '#e8a57a');
+  rect(ctx, x - 2, 31, 4, 1.5, '#fff6c0');
+  glow(ctx, x, 38, 50, '#ffe2a8', 0.35);
+}
+
+/** White wall with a wooden beam, copper lamps, a grey brick strip and a terracotta floor. */
+export function bgRoom(ctx, floorY) {
   rect(ctx, 0, 0, W, H, '#fbf8f2');
   for (let x = 0; x < W; x += 30) rect(ctx, x, 0, 0.5, floorY, '#efe9de');
+  // Beam
+  rect(ctx, 0, 18, W, 6, '#d9a868');
+  rect(ctx, 0, 18, W, 1, '#ecc48d');
+  rect(ctx, 0, 23, W, 1, '#a8743e');
+  // Brick strip above the floor
+  const by = floorY - 34;
+  rect(ctx, 0, by, W, 31, '#b3ada4');
+  for (let row = 0; row < 8; row++) {
+    const y = by + row * 4;
+    rect(ctx, 0, y, W, 0.5, '#8f8981');
+    for (let x = row % 2 ? 4 : 0; x < W; x += 8) rect(ctx, x, y, 0.5, 4, '#8f8981');
+  }
+  rect(ctx, 0, by - 1.5, W, 1.5, '#d9a868');
   rect(ctx, 0, floorY - 3, W, 3, '#d9a868');
   rect(ctx, 0, floorY - 3, W, 0.75, '#ecc48d');
+  // Floor
   for (let y = floorY; y < H; y += 12) {
     for (let x = ((y - floorY) / 12) % 2 ? -6 : 0; x < W; x += 12) {
       rect(ctx, x, y, 12, 12, (x + y) % 24 ? '#d39a6a' : '#c88d5c');
@@ -127,18 +161,29 @@ function bgRoom(ctx, floorY) {
       rect(ctx, x, y, 0.75, 12, '#a86f45');
     }
   }
+  const shadow = ctx.createLinearGradient(0, floorY, 0, floorY + 16);
+  shadow.addColorStop(0, 'rgba(60,30,10,0.3)');
+  shadow.addColorStop(1, 'rgba(60,30,10,0)');
+  ctx.fillStyle = shadow;
+  ctx.fillRect(0, floorY, W, 16);
+  lamp(ctx, 34);
+  lamp(ctx, 146);
 }
 
-/** A wooden table top seen from above, filling the area below `top`. */
+/** A wooden table top seen from above, under a warm lamp, filling the area below `top`. */
 export function bgTable(ctx, top) {
   rect(ctx, 0, 0, W, top, '#fbf8f2');
+  rect(ctx, 0, 18, W, 6, '#d9a868');
+  rect(ctx, 0, 18, W, 1, '#ecc48d');
   rect(ctx, 0, top, W, H - top, '#c98d55');
   for (let y = top + 6; y < H; y += 9) {
     rect(ctx, 0, y, W, 0.5, '#b07a45');
     rect(ctx, (y * 37) % W, y + 3, 20, 0.5, '#d9a066');
+    rect(ctx, (y * 71 + 60) % W, y + 5, 12, 0.5, '#b88350');
   }
   rect(ctx, 0, top, W, 3, '#a8743e');
   rect(ctx, 0, top, W, 1, '#e8b37c');
+  glow(ctx, W / 2, top + (H - top) / 2, 120, '#ffe9c0', 0.35);
 }
 
 function counter(ctx, y) {
@@ -930,6 +975,14 @@ function drawSpeedup(ctx, run, t, now) {
   text(ctx, `x${run.speed.toFixed(2)}`, W / 2, 230, { size: 8, color: '#7a4a10', align: 'center' });
 }
 
+export function vignette(ctx) {
+  const v = ctx.createRadialGradient(W / 2, H / 2, 90, W / 2, H / 2, 210);
+  v.addColorStop(0, 'rgba(0,0,0,0)');
+  v.addColorStop(1, 'rgba(60,30,10,0.28)');
+  ctx.fillStyle = v;
+  ctx.fillRect(0, 0, W, H);
+}
+
 /** Draws one frame of a mini-games run. */
 export function renderMini(ctx, run, { t, now }) {
   ctx.save();
@@ -938,6 +991,7 @@ export function renderMini(ctx, run, { t, now }) {
     drawSpeedup(ctx, run, t, now);
   } else {
     run.game.draw(ctx, now, run, t);
+    vignette(ctx);
     if (run.phase === 'intro') drawIntro(ctx, run, t);
     if (run.phase === 'result') drawResult(ctx, run, t);
   }

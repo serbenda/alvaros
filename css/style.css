@@ -454,3 +454,21 @@ p {
 .row-contents.hidden {
   display: none !important;
 }
+
+.logo {
+  width: min(78%, 300px);
+  height: auto;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 4px 0 rgba(90, 54, 29, 0.35));
+}
+
+#screen-title {
+  justify-content: flex-start;
+  padding-top: 1.2rem;
+}
+
+#screen-title h1 {
+  font-size: clamp(11px, 3.6vw, 15px);
+  text-shadow: none;
+  color: #8a5a32;
+}

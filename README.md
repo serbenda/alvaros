@@ -48,7 +48,7 @@ You play as **Blanca**, the heart of the bar. The rest of the team works alongsi
 
 Everyone is in the bar every day, moving around and doing their things.
 
-The looks are placeholders except for what we know: Blanca is blonde, Alejandro wears a gold watch and Pepe Nacho has black hair. They are defined in `js/config.js` (`PLAYER`, `HELPERS` and `BOSS`).
+The looks follow what we know: Blanca is blonde, the waiters (Mari, Andrea and Alejandro) and Pepe Nacho have black hair, nobody has a beard or a moustache, and Alejandro wears a gold watch. They are defined in `js/config.js` (`PLAYER`, `HELPERS` and `BOSS`).
 
 ## Running locally
 
