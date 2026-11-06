@@ -11,7 +11,7 @@ Everyone who goes to the bar: children, grandparents and the competitive regular
 ## Design pillars
 
 1. **Short sessions.** A shift lasts one to three minutes. Losing is fast and starting again is one tap.
-2. **Always one more go.** Every day gives stars, which open the next day and unlock teammates. Records, the daily challenge and the album give reasons to come back.
+2. **Always one more go.** Every day gives stars, which open the next day. Records, the daily challenge and the album give reasons to come back.
 3. **Recognisable.** The bar, the menu, the staff and their catchphrases are the real ones.
 4. **Easy to learn.** One-finger controls: tap a station, tap a customer.
 
@@ -29,12 +29,12 @@ The main mode teaches the game day by day instead of with instructions:
 
 | Day | Stations | Notes |
 | --- | --- | --- |
-| Monday | Coffee, toast | One item per order, very patient customers, pointing hand |
-| Tuesday | + Juice | Orders of up to two items, pointing hand |
-| Wednesday | + Beer, tapa | Lunch time starts |
+| Monday | Coffee, toast | One item per order, very patient customers, pointing hand. |
+| Tuesday | + Juice | Orders of up to two items, pointing hand. |
+| Wednesday | + Beer, tapa | Lunch time starts. |
 | Thursday | + Menu | All stations |
 | Friday | All | Busier, orders of up to three items |
-| Saturday | All | The boss shows up, critics appear |
+| Saturday | All | Critics appear |
 | Sunday | All | The busiest day |
 
 Shifts last 90–120 seconds and always end. A customer who runs out of patience leaves without a tip but costs no life. Star targets were set by simulating players who take 0.8 s, 1.4 s and 2.2 s per tap: a slow player gets at least one star on every weekday.
@@ -55,14 +55,16 @@ Over the first four minutes, customers arrive more often (from every ~4.5 s to e
 
 ## Staff
 
-Blanca is the main character and is always available. Her teammates unlock with stars from the week mode and change how the game plays, so each one suits a different strategy:
+Blanca is the only playable character. Her teammates appear in the bar and help, so the real team is recognisable without making the game more complex:
 
-- **Blanca**: +10% tips.
-- **Mari**: coffee and juice prepare much faster.
-- **Andrea**: customers are more patient.
-- **Alejandro**: carries a tray with four slots.
+- **Mari**: goes between the coffee machine and the counter. Coffee and juice prepare 60% faster.
+- **Andrea**: every 13–20 s she walks over to the customer with the least patience and gives back half of it.
+- **Alejandro**: strolls around checking his gold watch and, a couple of times per round, takes a dish from the tray to the customer who ordered it.
+- **Pepe Nacho**, the boss: comes in every 20–35 s, strolls around with his clipboard and doubles tips while he is there.
 
-**Pepe Nacho**, the boss, appears as an event every minute or so. While he is around, tips are doubled. A daily twist can make him show up more often.
+The whole team is in the bar every day.
+
+Goals on the TV every 30–45 s make the waiting customers cheer and recover some patience.
 
 ## Daily challenge
 
@@ -77,7 +79,5 @@ Uses a random seed based on the date and one twist per day, so every player gets
 - [ ] Prize codes: reach a score to get a code to show at the till.
 - [ ] QR poster for the bar.
 - [ ] Bar upgrades bought with tips (faster coffee machine, more seats, terrace).
-- [ ] Teammates as in-game helpers during rush hour.
 - [ ] Random events: a bus of tourists, a football match on TV, the coffee machine breaks.
-- [ ] Background music.
 - [ ] Installable as an app (web manifest and offline support).

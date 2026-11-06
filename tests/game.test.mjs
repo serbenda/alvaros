@@ -3,14 +3,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { Game, ENTER_TIME } from '../js/game.js';
-import { STAFF, STATIONS, ITEMS, MAX_STRIKES, BOSS, WEEK } from '../js/config.js';
+import { PLAYER, HELPERS, STATIONS, ITEMS, MAX_STRIKES, BOSS, WEEK, RUSH_LEVEL } from '../js/config.js';
 import { t } from '../js/i18n.js';
 import { mulberry32 } from '../js/rng.js';
 
 function newGame(overrides = {}) {
   const events = [];
   const game = new Game({
-    staff: STAFF[0],
+    staff: PLAYER,
     t,
     rng: mulberry32(42),
     onEvent: (type, data) => events.push({ type, data }),
@@ -41,7 +41,7 @@ test('the tray cannot hold more than its capacity', () => {
   const { game, events } = newGame();
   for (let i = 0; i < STATIONS.length; i++) game.tapStation(i);
   const busy = STATIONS.filter((id) => game.stations[id].busy).length;
-  assert.equal(busy, STAFF[0].trayCapacity);
+  assert.equal(busy, PLAYER.trayCapacity);
   assert.ok(events.some((e) => e.type === 'nope'));
 });
 
@@ -82,12 +82,45 @@ test('the boss doubles tips while he is around', () => {
   assert.equal(game.tipFactor(), normal * BOSS.tipMult);
 });
 
-test('Alejandro carries a bigger tray', () => {
-  const alejandro = STAFF.find((s) => s.id === 'alejandro');
-  const { game } = newGame({ staff: alejandro });
-  for (let i = 0; i < STATIONS.length; i++) game.tapStation(i);
-  const busy = STATIONS.filter((id) => game.stations[id].busy).length;
-  assert.equal(busy, 4);
+test('Mari makes coffee faster when she is on shift', () => {
+  const withMari = newGame({ level: WEEK[0] }).game;
+  const without = newGame({ level: { ...WEEK[0], helpers: [] } }).game;
+  assert.equal(withMari.prepRate('coffee'), HELPERS.mari.prepBonus.coffee);
+  assert.equal(without.prepRate('coffee'), 1);
+});
+
+test('Andrea gives patience back to a waiting customer', () => {
+  const { game, events } = newGame({ level: RUSH_LEVEL });
+  const c = game.spawn();
+  run(game, ENTER_TIME + 0.05);
+  c.patience = c.maxPatience * 0.2;
+  game.andrea.next = 0;
+  run(game, 1.2);
+  assert.ok(events.some((e) => e.type === 'andrea'));
+  assert.ok(c.patience > c.maxPatience * 0.5);
+});
+
+test('Alejandro takes a dish from the tray to a waiting customer', () => {
+  const { game, events } = newGame({ level: { ...WEEK[0], helpers: ['alejandro'] } });
+  const c = game.spawn();
+  run(game, ENTER_TIME + 0.05);
+  game.tray = [c.order[0]];
+  game.crew.alejandro.plan = [{ task: 'help' }];
+  game.crew.alejandro.t = 99;
+  run(game, 6);
+  assert.ok(events.some((e) => e.type === 'alejandro'));
+  assert.equal(game.tray.length, 0);
+});
+
+test('a goal on TV cheers up the customers', () => {
+  const { game, events } = newGame();
+  const c = game.spawn();
+  run(game, ENTER_TIME + 0.05);
+  const before = c.patience;
+  game.tv.next = 0;
+  game.update(0.05);
+  assert.ok(events.some((e) => e.type === 'goal'));
+  assert.ok(c.patience > before);
 });
 
 test('the daily challenge is the same for everyone', () => {
@@ -114,8 +147,7 @@ test('Monday only uses coffee and toast, and other stations are locked', () => {
 
 test('on relaxed days a tired customer costs no life', () => {
   const { game, events } = newGame({ level: WEEK[0] });
-  const c = game.spawn();
-  run(game, ENTER_TIME + c.maxPatience + 1);
+  run(game, 80);
   assert.equal(game.strikes, 0);
   assert.equal(game.over, false);
   assert.ok(events.some((e) => e.type === 'missed'));

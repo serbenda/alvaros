@@ -10,6 +10,8 @@ import {
   SEATS,
   BOSS,
   RUSH_LEVEL,
+  HELPERS,
+  TV_GOALS,
 } from './config.js';
 import { W, HUD_H, SEAT_X, TRAY, BOSS_X, stationRect, traySlotRect, inside, seatAt } from './layout.js';
 import { makeLook } from './sprites.js';
@@ -34,7 +36,7 @@ export const COLORS = {
 export class Game {
   /**
    * @param {object} opts
-   * @param {object} opts.staff     Entry from STAFF.
+   * @param {object} opts.staff     The player (PLAYER).
    * @param {Function} opts.t       Translation function.
    * @param {Function} [opts.rng]   Random function (seeded for the daily challenge).
    * @param {object} [opts.twist]   Daily twist from DAILY_TWISTS.
@@ -45,6 +47,7 @@ export class Game {
   constructor({ staff, t, rng = Math.random, twist = null, level = RUSH_LEVEL, isNewType = () => false, onEvent = () => {} }) {
     this.level = level;
     this.available = new Set(level.stations || STATIONS);
+    this.helpers = new Set(level.helpers || []);
     this.staff = staff;
     this.t = t;
     this.rng = rng;
@@ -79,6 +82,15 @@ export class Game {
     this.player = { x: W / 2, target: W / 2 };
     this.boss = { active: false, t: 0, next: BOSS.firstAfter * this.bossFactor(), x: -14 };
     this.currentPhase = this.phase();
+    // Andrea walks over to calm a customer; the TV shows a goal now and then.
+    this.andrea = { state: 'off', seat: -1, t: 0, next: this.between(HELPERS.andrea.every) };
+    this.tv = { next: this.between(TV_GOALS.every), cheer: 0 };
+    // Mari and Alejandro walk around the floor behind the counter doing their things.
+    this.stressT = 6;
+    this.npcTalk = 2;
+    this.crew = {};
+    if (this.helpers.has('mari')) this.crew.mari = this.makeWalker(-20, 0.5);
+    if (this.helpers.has('alejandro')) this.crew.alejandro = this.makeWalker(W + 20, 3);
 
     this.say(cosmetic(t('phrases.start')));
     if (twist) this.float(W / 2, 122, t(`twists.${twist.id}`), COLORS.gold, 6, 2.4);
@@ -198,6 +210,22 @@ export class Game {
   }
 
   // ---- Helpers ------------------------------------------------------------
+
+  between([min, max]) {
+    return min + this.rng() * (max - min);
+  }
+
+  /** Combined preparation speed for a station, including teammates on shift. */
+  prepRate(id) {
+    let rate = this.staff.prepSpeed;
+    const own = this.staff.prepBonus && this.staff.prepBonus[id];
+    if (own) rate *= own;
+    for (const name of this.helpers) {
+      const bonus = HELPERS[name].prepBonus && HELPERS[name].prepBonus[id];
+      if (bonus) rate *= bonus;
+    }
+    return rate;
+  }
 
   randInt(min, max) {
     return min + Math.floor(this.rng() * (max - min + 1));
@@ -339,7 +367,25 @@ export class Game {
     if (!this.level.boss) return;
     if (b.active) {
       b.t -= dt;
-      b.x = Math.min(BOSS_X, b.x + dt * 60);
+      // Pepe Nacho strolls around keeping an eye on things
+      if (b.target === undefined) b.target = BOSS_X + 30;
+      const d = b.target - b.x;
+      const step = dt * 25;
+      if (Math.abs(d) <= step) {
+        b.x = b.target;
+        b.wait = (b.wait || 0) - dt;
+        if (b.wait <= 0) {
+          b.target = BOSS_X + Math.random() * 60;
+          b.wait = 1 + Math.random() * 1.5;
+        }
+      } else {
+        b.x += Math.sign(d) * step;
+      }
+      b.sayT = (b.sayT || 0) - dt;
+      if (b.sayT <= 0) {
+        b.speech = cosmetic(this.t('phrases.boss'));
+        b.sayT = 3.5;
+      }
       if (b.t <= 0) {
         b.active = false;
         b.next = (BOSS.every[0] + this.rng() * (BOSS.every[1] - BOSS.every[0])) * this.bossFactor();
@@ -347,7 +393,9 @@ export class Game {
         this.emit('bossLeaves', {});
       }
     } else {
-      b.x = Math.max(-14, b.x - dt * 60);
+      b.x = Math.max(-14, b.x - dt * 40);
+      b.speech = null;
+      b.target = undefined;
       b.next -= dt;
       if (b.next <= 0) {
         b.active = true;
@@ -357,6 +405,182 @@ export class Game {
         this.emit('bossArrives', {});
       }
     }
+  }
+
+  // ---- Teammates and TV -----------------------------------------------------
+
+  updateAndrea(dt) {
+    if (!this.helpers.has('andrea')) return;
+    const a = this.andrea;
+    const def = HELPERS.andrea;
+    a.t += dt;
+    if (a.speech) {
+      a.speech.t -= dt;
+      if (a.speech.t <= 0 || a.state === 'off') a.speech = null;
+    }
+    if (a.state === 'off') {
+      a.next -= dt;
+      if (a.next > 0) return;
+      // Go to the waiting customer with the least patience left
+      let target = null;
+      for (const c of this.seats) {
+        if (!c || c.state !== 'wait') continue;
+        if (c.patience / c.maxPatience > 0.75) continue;
+        if (!target || c.patience / c.maxPatience < target.patience / target.maxPatience) target = c;
+      }
+      if (!target) {
+        a.next = 2;
+        return;
+      }
+      a.state = 'walk';
+      a.seat = target.seat;
+      a.from = target.seat < 2 ? -16 : W + 16;
+      a.t = 0;
+    } else if (a.state === 'walk' && a.t >= 1) {
+      a.state = 'chat';
+      a.t = 0;
+      this.npcTalk = 0;
+      this.npcSay('andrea', a);
+      const c = this.seats[a.seat];
+      if (c && c.state === 'wait') {
+        c.patience = Math.min(c.maxPatience, c.patience + c.maxPatience * def.patienceBoost);
+        c.cheer = 1;
+        this.float(SEAT_X[a.seat], 46, '+', COLORS.green, 8, 0.9);
+        this.fx.push({ kind: 'hearts', x: SEAT_X[a.seat], y: 66 });
+        this.emit('andrea', {});
+      }
+    } else if (a.state === 'chat' && a.t >= 1.2) {
+      a.state = 'leave';
+      a.t = 0;
+    } else if (a.state === 'leave' && a.t >= 1) {
+      a.state = 'off';
+      a.next = this.between(def.every);
+    }
+  }
+
+  /** A teammate says one of their lines, if nobody else on the team is talking. */
+  npcSay(who, target) {
+    if (this.npcTalk > 0) return;
+    target.speech = { text: cosmetic(this.t(`phrases.${who}`)), t: 2.2 };
+    this.npcTalk = 3.5;
+  }
+
+  makeWalker(x, delay) {
+    return { x, target: x, task: 'away', t: 0, dur: delay, plan: [], carry: null, flip: false };
+  }
+
+  /** Mari's routine: coffee machine, wipe the counter, take a break. */
+  planMari() {
+    return [
+      { walk: 16 },
+      { task: 'coffee', dur: 3 + Math.random() * 3 },
+      { walk: 40 + Math.random() * 90 },
+      { task: 'wipe', dur: 2.5 },
+      { walk: 16 },
+      { task: 'coffee', dur: 2 + Math.random() * 2 },
+      { walk: -20 },
+      { task: 'away', dur: 2 + Math.random() * 4 },
+    ];
+  }
+
+  /** Alejandro's routine: stroll, check his gold watch, lend a hand with a dish. */
+  planAlejandro() {
+    return [
+      { walk: 30 + Math.random() * 120 },
+      { task: 'watch', dur: 1.8 },
+      { task: 'help' },
+      { walk: 30 + Math.random() * 120 },
+      { task: 'watch', dur: 1.4 },
+      { task: 'help' },
+      { walk: Math.random() < 0.5 ? -20 : W + 20 },
+      { task: 'away', dur: 2 + Math.random() * 3 },
+    ];
+  }
+
+  updateCrew(dt) {
+    this.npcTalk = Math.max(0, this.npcTalk - dt);
+    for (const [name, w] of Object.entries(this.crew)) {
+      w.t += dt;
+      if (w.speech) {
+        w.speech.t -= dt;
+        if (w.speech.t <= 0 || w.task === 'away') w.speech = null;
+      }
+      if (w.task === 'walk') {
+        const d = w.target - w.x;
+        const step = dt * 45;
+        if (d !== 0) w.flip = d < 0;
+        if (Math.abs(d) > step) {
+          w.x += Math.sign(d) * step;
+          continue;
+        }
+        w.x = w.target;
+        if (w.onArrive) {
+          w.onArrive();
+          w.onArrive = null;
+        }
+      } else if (w.t < w.dur) {
+        continue;
+      }
+      if (!w.plan.length) w.plan = name === 'mari' ? this.planMari() : this.planAlejandro();
+      const next = w.plan.shift();
+      w.t = 0;
+      if (next.walk !== undefined) {
+        w.task = 'walk';
+        w.target = next.walk;
+      } else if (next.task === 'help') {
+        this.alejandroHelps(w);
+      } else {
+        w.task = next.task;
+        w.dur = next.dur;
+        if (w.task !== 'away' && Math.random() < 0.6) this.npcSay(name, w);
+      }
+    }
+  }
+
+  /** Alejandro takes a dish from the tray to a customer who is waiting for it. */
+  alejandroHelps(w) {
+    w.task = 'pause';
+    w.dur = 0.2;
+    const ready = this.seats.filter((c) => this.canServe(c));
+    if (!ready.length) return;
+    const c = ready[0];
+    const k = c.order.findIndex((id, i) => !c.served[i] && this.tray.includes(id));
+    const item = c.order[k];
+    this.tray.splice(this.tray.indexOf(item), 1);
+    w.carry = item;
+    this.npcTalk = 0;
+    this.npcSay('alejandro', w);
+    w.task = 'walk';
+    w.target = SEAT_X[c.seat];
+    w.onArrive = () => {
+      w.carry = null;
+      const still = this.seats[c.seat] === c && c.state === 'wait' && !c.served[k];
+      if (!still) return;
+      c.served[k] = true;
+      this.fx.push({ kind: 'deliver', seat: c.seat, items: [item], from: w.x });
+      this.float(SEAT_X[c.seat], 46, HELPERS.alejandro.name, COLORS.green, 5, 1);
+      this.emit('alejandro', {});
+      if (c.served.every(Boolean)) this.completeOrder(c);
+      else c.patience = Math.min(c.maxPatience, c.patience + 2);
+    };
+  }
+
+  updateTv(dt) {
+    const tv = this.tv;
+    tv.cheer = Math.max(0, tv.cheer - dt);
+    tv.next -= dt;
+    if (tv.next > 0) return;
+    tv.next = this.between(TV_GOALS.every);
+    tv.cheer = 2;
+    tv.goals = (tv.goals || 0) + 1;
+    for (const c of this.seats) {
+      if (!c || c.state !== 'wait') continue;
+      c.patience = Math.min(c.maxPatience, c.patience + c.maxPatience * TV_GOALS.patienceBoost);
+      c.cheer = 1.5;
+    }
+    this.float(W / 2, 96, this.t('goal'), COLORS.gold, 8, 1.6);
+    this.fx.push({ kind: 'confetti' });
+    this.emit('goal', {});
   }
 
   // ---- Main update --------------------------------------------------------
@@ -373,8 +597,7 @@ export class Game {
       const s = this.stations[id];
       if (s.flash > 0) s.flash = Math.max(0, s.flash - dt);
       if (!s.busy) continue;
-      const bonus = (this.staff.prepBonus && this.staff.prepBonus[id]) || 1;
-      s.t += dt * this.staff.prepSpeed * bonus;
+      s.t += dt * this.prepRate(id);
       if (s.t >= s.dur) {
         s.busy = false;
         s.flash = 0.3;
@@ -412,6 +635,10 @@ export class Game {
     }
 
     this.updateBoss(dt);
+    this.updateAndrea(dt);
+    this.updateTv(dt);
+    this.updateCrew(dt);
+    for (const c of this.seats) if (c && c.cheer > 0) c.cheer = Math.max(0, c.cheer - dt);
 
     const p = this.player;
     const step = dt * 170;
@@ -421,6 +648,17 @@ export class Game {
     if (this.speech) {
       this.speech.t -= dt;
       if (this.speech.t <= 0) this.speech = null;
+    }
+    // When the bar fills up, Blanca lets everyone know how she feels
+    this.stressT -= dt;
+    if (this.stressT <= 0) {
+      const waiting = this.seats.filter((c) => c && c.state === 'wait').length;
+      if (waiting >= 1 && !this.speech && (waiting >= 3 || Math.random() < 0.5)) {
+        this.say(cosmetic(this.t('phrases.stress')), 2);
+        this.stressT = 5 + Math.random() * 4;
+      } else {
+        this.stressT = 1.5;
+      }
     }
     this.shake = Math.max(0, this.shake - dt);
 
@@ -489,6 +727,7 @@ export class Game {
     }
     if (this.reservedSlots() >= this.trayCapacity) {
       this.float(W / 2, TRAY.y - 6, this.t('trayFull'), COLORS.red, 5);
+      if (!this.speech && Math.random() < 0.4) this.say(cosmetic(this.t('phrases.stress')), 2);
       this.emit('nope', {});
       return;
     }
