@@ -11,7 +11,7 @@ Everyone who goes to the bar: children, grandparents and the competitive regular
 ## Design pillars
 
 1. **Short sessions.** A shift lasts one to three minutes. Losing is fast and starting again is one tap.
-2. **Always one more go.** Every shift adds to the total tips, which unlock teammates. Records, the daily challenge and the album give reasons to come back.
+2. **Always one more go.** Every day gives stars, which open the next day and unlock teammates. Records, the daily challenge and the album give reasons to come back.
 3. **Recognisable.** The bar, the menu, the staff and their catchphrases are the real ones.
 4. **Easy to learn.** One-finger controls: tap a station, tap a customer.
 
@@ -21,7 +21,7 @@ Everyone who goes to the bar: children, grandparents and the competitive regular
 2. The player prepares items at the stations. Each one takes a short time and needs a free slot on the tray.
 3. The player taps the customer to hand over the matching items.
 4. A full order pays a tip that depends on the items, the customer type, how fast it was served, the combo multiplier and active bonuses.
-5. If a customer's patience runs out they leave angry: one strike and the combo is lost. Three strikes end the shift.
+5. If a customer's patience runs out they leave and the combo is lost. In the week mode that only costs the tip; in rush hour it costs one of three lives.
 
 ## A week at Álvaro's
 
@@ -74,7 +74,6 @@ Uses a random seed based on the date and one twist per day, so every player gets
 - [ ] Shared weekly ranking with Supabase, tournaments and points per staff member.
 - [ ] Score card image to share on WhatsApp and Instagram.
 - [ ] Real menu items and names from the bar.
-- [ ] Shared weekly ranking (needs a small backend or a hosted database).
 - [ ] Prize codes: reach a score to get a code to show at the till.
 - [ ] QR poster for the bar.
 - [ ] Bar upgrades bought with tips (faster coffee machine, more seats, terrace).
