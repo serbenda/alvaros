@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <title>Rush Hour at Álvaro's</title>
+    <meta name="description" content="A pixel-art arcade game about serving the regulars at Álvaro's bar before they lose their patience." />
+    <meta name="theme-color" content="#1d1410" />
+    <meta property="og:title" content="Rush Hour at Álvaro's" />
+    <meta property="og:description" content="Serve the regulars before they lose their patience. Can you beat my score?" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main id="stage">
+      <canvas id="game" aria-label="Game"></canvas>
+
+      <section id="screen-title" class="screen">
+        <h1 data-i18n="title"></h1>
+        <p class="subtitle" data-i18n="subtitle"></p>
+        <p class="scores">
+          <span data-i18n="best"></span>: <strong id="title-best"></strong>
+          · <span data-i18n="totalTips"></span>: <strong id="title-total"></strong>
+        </p>
+        <div class="team">
+          <p class="team-title" data-i18n="team"></p>
+          <div id="team-list" class="team-list"></div>
+          <p id="team-desc" class="team-desc"></p>
+        </div>
+        <div class="buttons">
+          <button id="btn-play" class="btn primary" type="button" data-i18n="play"></button>
+          <button id="btn-daily" class="btn" type="button">
+            <span data-i18n="daily"></span>
+            <small id="daily-twist"></small>
+          </button>
+          <div class="row">
+            <button id="btn-album" class="btn" type="button" data-i18n="album"></button>
+            <button id="btn-howto" class="btn" type="button" data-i18n="howTo"></button>
+          </div>
+        </div>
+        <div class="toggles">
+          <button id="btn-lang" class="chip" type="button"></button>
+          <button id="btn-sound" class="chip" type="button"></button>
+        </div>
+      </section>
+
+      <section id="screen-howto" class="screen hidden">
+        <h2 data-i18n="howTo"></h2>
+        <ol id="howto-list" class="howto"></ol>
+        <p class="hint" data-i18n="keyboardHint"></p>
+        <button class="btn primary" type="button" data-back data-i18n="gotIt"></button>
+      </section>
+
+      <section id="screen-album" class="screen hidden">
+        <h2 data-i18n="album"></h2>
+        <p id="album-count" class="subtitle"></p>
+        <div id="album-grid" class="album"></div>
+        <button class="btn" type="button" data-back data-i18n="back"></button>
+      </section>
+
+      <section id="screen-pause" class="screen hidden">
+        <h2 data-i18n="paused"></h2>
+        <div class="buttons">
+          <button id="btn-resume" class="btn primary" type="button" data-i18n="resume"></button>
+          <button id="btn-quit" class="btn" type="button" data-i18n="quit"></button>
+        </div>
+      </section>
+
+      <section id="screen-over" class="screen hidden">
+        <h2 data-i18n="gameOver"></h2>
+        <p id="over-mode" class="subtitle"></p>
+        <p id="over-score" class="big-score"></p>
+        <p id="over-record" class="record hidden" data-i18n="newRecord"></p>
+        <p id="over-unlock" class="unlock hidden"></p>
+        <dl class="stats">
+          <dt data-i18n="served"></dt><dd id="over-served"></dd>
+          <dt data-i18n="bestCombo"></dt><dd id="over-combo"></dd>
+          <dt id="over-best-label"></dt><dd id="over-best"></dd>
+          <dt data-i18n="totalTips"></dt><dd id="over-total"></dd>
+        </dl>
+        <div class="buttons">
+          <button id="btn-retry" class="btn primary" type="button" data-i18n="retry"></button>
+          <div class="row">
+            <button id="btn-share" class="btn" type="button" data-i18n="share"></button>
+            <button id="btn-menu" class="btn" type="button" data-i18n="menu"></button>
+          </div>
+        </div>
+      </section>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    </main>
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

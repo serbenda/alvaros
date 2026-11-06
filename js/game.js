@@ -1,0 +1,427 @@
+// Game state and rules. No drawing and no DOM here, so it can be tested in Node.
+
+import {
+  ITEMS,
+  STATIONS,
+  MENUS,
+  CLOCK,
+  CUSTOMER_TYPES,
+  DIFFICULTY,
+  SEATS,
+  MAX_STRIKES,
+  BOSS,
+} from './config.js';
+import { W, HUD_H, SEAT_X, TRAY, BOSS_X, stationRect, traySlotRect, inside, seatAt } from './layout.js';
+import { makeLook } from './sprites.js';
+
+const lerp = (a, b, k) => a + (b - a) * k;
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+const cosmetic = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+export const COLORS = {
+  gold: '#f5c542',
+  orange: '#ff9f43',
+  red: '#e74c3c',
+  green: '#2ecc71',
+  cream: '#f5e6c8',
+};
+
+export class Game {
+  /**
+   * @param {object} opts
+   * @param {object} opts.staff     Entry from STAFF.
+   * @param {Function} opts.t       Translation function.
+   * @param {Function} [opts.rng]   Random function (seeded for the daily challenge).
+   * @param {object} [opts.twist]   Daily twist from DAILY_TWISTS.
+   * @param {Function} [opts.isNewType] Returns true if a customer type was never met.
+   * @param {Function} [opts.onEvent] Receives (type, data) for sound, vibration and UI.
+   */
+  constructor({ staff, t, rng = Math.random, twist = null, isNewType = () => false, onEvent = () => {} }) {
+    this.staff = staff;
+    this.t = t;
+    this.rng = rng;
+    this.twist = twist || {};
+    this.isNewType = isNewType;
+    this.emit = onEvent;
+
+    this.time = 0;
+    this.score = 0;
+    this.combo = 0;
+    this.bestCombo = 0;
+    this.multiplier = 1;
+    this.strikes = 0;
+    this.served = 0;
+    this.over = false;
+
+    this.seats = new Array(SEATS).fill(null);
+    this.stations = {};
+    for (const id of STATIONS) this.stations[id] = { busy: false, t: 0, dur: 1, flash: 0 };
+    this.tray = [];
+    this.trayCapacity = staff.trayCapacity;
+
+    this.spawnTimer = 1;
+    this.nextId = 1;
+    this.floats = [];
+    // Cosmetic effects for the renderer to pick up (particles, confetti...).
+    this.fx = [];
+    this.speech = null;
+    this.shake = 0;
+    this.onFireShown = false;
+    this.player = { x: W / 2, target: W / 2 };
+    this.boss = { active: false, t: 0, next: BOSS.firstAfter * this.bossFactor(), x: -12 };
+    this.currentPhase = this.phase();
+
+    this.say(cosmetic(t('phrases.start')));
+    if (twist) this.float(W / 2, 122, t(`twists.${twist.id}`), COLORS.gold, 6, 2.4);
+  }
+
+  // ---- Derived values -------------------------------------------------------
+
+  clockMinutes() {
+    return (CLOCK.startMinutes + this.time * CLOCK.minutesPerSecond) % (24 * 60);
+  }
+
+  phase() {
+    const m = CLOCK.startMinutes + this.time * CLOCK.minutesPerSecond;
+    if (m < CLOCK.lunchAt) return 'breakfast';
+    if (m < CLOCK.afternoonAt) return 'lunch';
+    return 'afternoon';
+  }
+
+  ramp() {
+    return clamp01(this.time / DIFFICULTY.rampSeconds);
+  }
+
+  spawnInterval() {
+    return lerp(DIFFICULTY.spawnStart, DIFFICULTY.spawnMin, this.ramp()) * (this.twist.spawn || 1);
+  }
+
+  patienceFactor() {
+    return lerp(1, DIFFICULTY.patienceMinFactor, this.ramp()) * this.staff.patienceBonus * (this.twist.patience || 1);
+  }
+
+  bossFactor() {
+    return this.twist.bossEvery || 1;
+  }
+
+  tipFactor() {
+    const boss = this.boss.active ? BOSS.tipMult : 1;
+    return (this.staff.tipBonus || 1) * (this.twist.tip || 1) * boss;
+  }
+
+  reservedSlots() {
+    let busy = 0;
+    for (const id of STATIONS) if (this.stations[id].busy) busy++;
+    return this.tray.length + busy;
+  }
+
+  // ---- Helpers ------------------------------------------------------------
+
+  randInt(min, max) {
+    return min + Math.floor(this.rng() * (max - min + 1));
+  }
+
+  pick(arr) {
+    return arr[Math.floor(this.rng() * arr.length)];
+  }
+
+  float(x, y, text, color = COLORS.cream, size = 6, life = 1.1) {
+    this.floats.push({ x, y, text, color, size, life, t: 0 });
+  }
+
+  say(text, duration = 1.6) {
+    this.speech = { text, t: duration };
+  }
+
+  // ---- Customers ----------------------------------------------------------
+
+  chooseType() {
+    const entries = Object.entries(CUSTOMER_TYPES).filter(([, def]) => (def.minTime || 0) <= this.time);
+    const weights = entries.map(([id, def]) => (id === 'critic' ? def.weight * (this.twist.criticWeight || 1) : def.weight));
+    const total = weights.reduce((a, b) => a + b, 0);
+    let roll = this.rng() * total;
+    for (let i = 0; i < entries.length; i++) {
+      roll -= weights[i];
+      if (roll <= 0) return entries[i][0];
+    }
+    return entries[entries.length - 1][0];
+  }
+
+  makeOrder(def) {
+    let menu = def.menu || MENUS[this.phase()];
+    if (!def.menu && this.twist.coffeeBias) menu = menu.concat(new Array(this.twist.coffeeBias).fill('coffee'));
+    let count = this.randInt(def.items[0], def.items[1]);
+    if (this.twist.extraItem && this.rng() < this.twist.extraItem) count++;
+    if (this.time > 90 && this.rng() < 0.3) count++;
+    count = Math.min(count, 3);
+    const order = [];
+    for (let i = 0; i < count; i++) order.push(this.pick(menu));
+    return order;
+  }
+
+  spawn() {
+    const free = [];
+    for (let i = 0; i < SEATS; i++) if (!this.seats[i]) free.push(i);
+    if (!free.length) return null;
+    const seat = this.pick(free);
+    const type = this.chooseType();
+    const def = CUSTOMER_TYPES[type];
+    const order = this.makeOrder(def);
+    const maxPatience = (def.patience + order.length * 2) * this.patienceFactor();
+    const customer = {
+      id: this.nextId++,
+      type,
+      seat,
+      order,
+      served: order.map(() => false),
+      patience: maxPatience,
+      maxPatience,
+      state: 'enter',
+      st: 0,
+      mood: 'neutral',
+      look: makeLook(this.rng, type),
+    };
+    this.seats[seat] = customer;
+    if (this.isNewType(type)) {
+      this.float(SEAT_X[seat], 30, this.t('newCustomer', { name: this.t(`customers.${type}.name`) }), COLORS.green, 5, 1.8);
+    }
+    this.emit('meet', { type });
+    return customer;
+  }
+
+  loseCustomer(c) {
+    c.state = 'leave';
+    c.st = 0;
+    c.mood = 'angry';
+    this.strikes++;
+    this.combo = 0;
+    this.multiplier = 1;
+    this.onFireShown = false;
+    this.shake = 0.3;
+    this.float(SEAT_X[c.seat], 64, 'X', COLORS.red, 8);
+    this.fx.push({ kind: 'puff', x: SEAT_X[c.seat], y: 68 });
+    this.say(cosmetic(this.t('phrases.bad')));
+    this.emit('angry', { type: c.type });
+  }
+
+  completeOrder(c) {
+    const def = CUSTOMER_TYPES[c.type];
+    const speed = clamp01(c.patience / c.maxPatience);
+    const base = c.order.reduce((sum, id) => sum + ITEMS[id].tip, 0);
+
+    this.combo++;
+    this.bestCombo = Math.max(this.bestCombo, this.combo);
+    const previous = this.multiplier;
+    this.multiplier = Math.min(5, 1 + Math.floor(this.combo / 3));
+
+    const tip = Math.max(1, Math.round(base * def.tipMult * (1 + speed) * this.multiplier * this.tipFactor()));
+    this.score += tip;
+    this.served++;
+
+    c.state = 'leave';
+    c.st = 0;
+    c.mood = 'happy';
+    this.float(SEAT_X[c.seat], 60, `+${tip}`, COLORS.gold, 7);
+    this.fx.push({ kind: 'sparkle', x: SEAT_X[c.seat], y: 70 });
+    this.fx.push({ kind: 'coins', x: SEAT_X[c.seat], y: 70, n: Math.min(10, 2 + Math.floor(tip / 3)) });
+
+    if (this.multiplier > previous) {
+      this.float(W / 2, 112, this.t('combo', { n: this.multiplier }), COLORS.orange, 7, 1.3);
+      this.fx.push({ kind: 'confetti' });
+      this.emit('combo', { multiplier: this.multiplier });
+    }
+    if (this.multiplier >= 4 && !this.onFireShown) {
+      this.onFireShown = true;
+      this.float(W / 2, 96, this.t('onFire', { name: this.staff.name.toUpperCase() }), '#ff6b35', 6, 1.8);
+      this.emit('onfire', {});
+    }
+    if (Math.random() < 0.35) this.say(cosmetic(this.t('phrases.good')));
+    this.emit('complete', { tip });
+  }
+
+  // ---- Boss ---------------------------------------------------------------
+
+  updateBoss(dt) {
+    const b = this.boss;
+    if (b.active) {
+      b.t -= dt;
+      b.x = Math.min(BOSS_X, b.x + dt * 60);
+      if (b.t <= 0) {
+        b.active = false;
+        b.next = (BOSS.every[0] + this.rng() * (BOSS.every[1] - BOSS.every[0])) * this.bossFactor();
+        this.float(W / 2, 122, this.t('bossLeaves'), COLORS.cream, 5, 1.6);
+        this.emit('bossLeaves', {});
+      }
+    } else {
+      b.x = Math.max(-14, b.x - dt * 60);
+      b.next -= dt;
+      if (b.next <= 0) {
+        b.active = true;
+        b.t = BOSS.duration;
+        this.float(W / 2, 122, this.t('bossArrives'), COLORS.red, 6, 2);
+        this.say(cosmetic(this.t('phrases.boss')), 2);
+        this.emit('bossArrives', {});
+      }
+    }
+  }
+
+  // ---- Main update --------------------------------------------------------
+
+  update(dt) {
+    this.updateFloats(dt);
+    if (this.over) return;
+    this.time += dt;
+
+    for (const id of STATIONS) {
+      const s = this.stations[id];
+      if (s.flash > 0) s.flash = Math.max(0, s.flash - dt);
+      if (!s.busy) continue;
+      const bonus = (this.staff.prepBonus && this.staff.prepBonus[id]) || 1;
+      s.t += dt * this.staff.prepSpeed * bonus;
+      if (s.t >= s.dur) {
+        s.busy = false;
+        s.flash = 0.3;
+        this.tray.push(id);
+        this.fx.push({ kind: 'pop', station: STATIONS.indexOf(id) });
+        this.emit('ready', { item: id });
+      }
+    }
+
+    const occupied = this.seats.filter(Boolean).length;
+    this.spawnTimer -= dt;
+    if (occupied === 0) this.spawnTimer = Math.min(this.spawnTimer, 0.5);
+    if (this.spawnTimer <= 0) {
+      if (occupied < SEATS) this.spawn();
+      this.spawnTimer = this.spawnInterval() * (0.7 + this.rng() * 0.6);
+    }
+
+    for (let i = 0; i < SEATS; i++) {
+      const c = this.seats[i];
+      if (!c) continue;
+      c.st += dt;
+      if (c.state === 'enter' && c.st >= 0.35) {
+        c.state = 'wait';
+        c.st = 0;
+      } else if (c.state === 'wait') {
+        c.patience -= dt;
+        if (c.patience <= 0) this.loseCustomer(c);
+      } else if (c.state === 'leave' && c.st >= 0.7) {
+        this.seats[i] = null;
+      }
+    }
+
+    this.updateBoss(dt);
+
+    const p = this.player;
+    const step = dt * 170;
+    const d = p.target - p.x;
+    p.x = Math.abs(d) <= step ? p.target : p.x + Math.sign(d) * step;
+
+    if (this.speech) {
+      this.speech.t -= dt;
+      if (this.speech.t <= 0) this.speech = null;
+    }
+    this.shake = Math.max(0, this.shake - dt);
+
+    const phase = this.phase();
+    if (phase !== this.currentPhase) {
+      this.currentPhase = phase;
+      this.float(W / 2, 122, this.t(`phase.${phase}`), COLORS.gold, 7, 1.8);
+      this.emit('phase', { phase });
+    }
+
+    if (this.strikes >= MAX_STRIKES) {
+      this.over = true;
+      this.emit('gameover', this.summary());
+    }
+  }
+
+  updateFloats(dt) {
+    for (const f of this.floats) f.t += dt;
+    this.floats = this.floats.filter((f) => f.t < f.life);
+  }
+
+  summary() {
+    return { score: this.score, served: this.served, bestCombo: this.bestCombo, time: this.time };
+  }
+
+  // ---- Input --------------------------------------------------------------
+
+  /** Handles a tap in logical coordinates. */
+  tap(x, y) {
+    if (this.over) return;
+    if (y < HUD_H) {
+      this.emit('pause', {});
+      return;
+    }
+    for (let i = 0; i < STATIONS.length; i++) {
+      if (inside(stationRect(i), x, y)) {
+        this.tapStation(i);
+        return;
+      }
+    }
+    for (let i = 0; i < this.trayCapacity; i++) {
+      if (inside(traySlotRect(i, this.trayCapacity), x, y)) {
+        this.tapTray(i);
+        return;
+      }
+    }
+    const seat = seatAt(x, y);
+    if (seat >= 0) this.tapSeat(seat);
+  }
+
+  tapStation(index) {
+    if (this.over) return;
+    const id = STATIONS[index];
+    const s = this.stations[id];
+    const r = stationRect(index);
+    this.player.target = r.x + r.w / 2;
+    if (s.busy) {
+      this.emit('nope', {});
+      return;
+    }
+    if (this.reservedSlots() >= this.trayCapacity) {
+      this.float(W / 2, TRAY.y - 6, this.t('trayFull'), COLORS.red, 5);
+      this.emit('nope', {});
+      return;
+    }
+    s.busy = true;
+    s.t = 0;
+    s.dur = ITEMS[id].prep;
+    this.emit('prep', { item: id });
+  }
+
+  tapTray(index) {
+    if (this.over || index >= this.tray.length) return;
+    this.tray.splice(index, 1);
+    this.emit('discard', {});
+  }
+
+  tapSeat(index) {
+    if (this.over) return;
+    this.player.target = SEAT_X[index];
+    const c = this.seats[index];
+    if (!c || c.state !== 'wait') return;
+    let matched = 0;
+    for (let k = 0; k < c.order.length; k++) {
+      if (c.served[k]) continue;
+      const at = this.tray.indexOf(c.order[k]);
+      if (at >= 0) {
+        this.tray.splice(at, 1);
+        c.served[k] = true;
+        matched++;
+      }
+    }
+    if (!matched) {
+      this.float(SEAT_X[index], 64, '?', COLORS.cream, 7, 0.6);
+      this.emit('nope', {});
+      return;
+    }
+    if (c.served.every(Boolean)) {
+      this.completeOrder(c);
+    } else {
+      c.patience = Math.min(c.maxPatience, c.patience + 2);
+      this.emit('serve', {});
+    }
+  }
+}
