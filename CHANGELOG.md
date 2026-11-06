@@ -14,6 +14,7 @@ All notable changes to this project are documented here.
 - Proprietary license (all rights reserved).
 
 ### Changed
+- Simpler menu: mini-games and chinos up front, the week, rush hour and the daily challenge folded under "More modes".
 - The penalty mini-game is replaced by flipping the tortilla, which fits the bar better.
 - The bar is now Álvaro's Gastrobar.
 - Code reorganised into `src/` by responsibility, with one file per mini-game and shared drawing helpers.

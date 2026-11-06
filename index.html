@@ -38,12 +38,19 @@
           <span class="badge"><span data-i18n="best"></span> <b id="title-mini"></b></span>
         </button>
 
-        <div class="modes">
-          <button id="btn-chinos" class="mode mode-chinos" type="button">
-            <canvas class="mode-icon" data-icon="chinos" width="96" height="96" aria-hidden="true"></canvas>
-            <strong data-i18n="chinosShort"></strong>
+        <button id="btn-chinos" class="mode mode-chinos mode-wide" type="button">
+          <canvas class="mode-icon" data-icon="chinos" width="96" height="96" aria-hidden="true"></canvas>
+          <span class="mode-text">
+            <strong data-i18n="chinosMode"></strong>
             <small><span data-i18n="chinosWins"></span>: <b id="title-chinos"></b></small>
-          </button>
+          </span>
+          <span class="mode-arrow" aria-hidden="true">▶</span>
+        </button>
+
+        <button id="btn-more" class="more-toggle" type="button" aria-expanded="false" aria-controls="more-modes">
+          <span data-i18n="moreModes"></span> <span class="more-caret" aria-hidden="true">▾</span>
+        </button>
+        <div id="more-modes" class="modes more-modes" hidden>
           <button id="btn-play" class="mode mode-week" type="button">
             <canvas class="mode-icon" data-icon="week" width="96" height="96" aria-hidden="true"></canvas>
             <strong data-i18n="weekShort"></strong>
@@ -52,11 +59,11 @@
           <button id="btn-rush" class="mode mode-rush" type="button">
             <canvas class="mode-icon" data-icon="rush" width="96" height="96" aria-hidden="true"></canvas>
             <strong data-i18n="rush"></strong>
-            <small><span data-i18n="best"></span>: <b id="title-best"></b></small>
+            <small><b id="title-best"></b></small>
           </button>
           <button id="btn-daily" class="mode mode-daily" type="button">
             <canvas class="mode-icon" data-icon="daily" width="96" height="96" aria-hidden="true"></canvas>
-            <strong data-i18n="daily"></strong>
+            <strong data-i18n="dailyShort"></strong>
             <small id="daily-twist"></small>
           </button>
         </div>

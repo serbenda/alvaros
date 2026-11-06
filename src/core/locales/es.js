@@ -4,6 +4,8 @@ export default {
   title: "Álvaro's Gastrobar",
   subtitle: '¡Atiende a la clientela antes de que se le acabe la paciencia!',
   play: 'Jugar',
+  moreModes: 'Más modos',
+  dailyShort: 'Del día',
   playNow: '¡JUGAR!',
   chinosShort: 'Chinos',
   weekShort: 'La semana',

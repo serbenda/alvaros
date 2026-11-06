@@ -719,3 +719,86 @@ p {
     animation: none;
   }
 }
+
+/* Simplified menu: two main choices, the rest under "More modes" */
+.mode-wide {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 0.7rem;
+  width: min(100%, 340px);
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  animation-delay: 0.1s;
+}
+
+.mode-wide .mode-icon {
+  width: 46px;
+  height: 46px;
+}
+
+.mode-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.mode-wide strong {
+  font-size: 12px;
+}
+
+.mode-wide small {
+  font-size: 7px;
+}
+
+.mode-arrow {
+  font-size: 12px;
+  animation: nudge 1.4s ease-in-out infinite;
+}
+
+.more-toggle {
+  padding: 0.45rem 0.9rem;
+  font-family: var(--font);
+  font-size: 8px;
+  color: #8a5a32;
+  background: transparent;
+  border: 2px dashed #d9a868;
+  border-radius: 5px;
+  cursor: pointer;
+  animation: pop-in 0.45s ease-out 0.18s both;
+}
+
+.more-caret {
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.more-toggle.open .more-caret {
+  transform: rotate(180deg);
+}
+
+.more-modes {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.more-modes[hidden] {
+  display: none;
+}
+
+.more-modes .mode {
+  padding: 0.45rem 0.25rem 0.5rem;
+}
+
+.more-modes .mode-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.more-modes .mode strong {
+  font-size: 7.5px;
+}
+
+.more-modes .mode small {
+  font-size: 6px;
+}

@@ -50,7 +50,11 @@ The classic bar coin game. Hide 0 to 3 coins, call the total of both hands witho
 
 <img src="docs/screenshots/chinos.png" alt="Chinos with Blanca" width="230" />
 
-### 📅 A week at Álvaro's
+### More modes
+
+Under **More modes** in the menu, for those who want more.
+
+#### 📅 A week at Álvaro's
 One shift per day, from Monday to Sunday. Prepare items at the stations and serve the customers before they lose their patience:
 
 1. Customers sit at the bar and show what they want in a speech bubble.
@@ -59,7 +63,7 @@ One shift per day, from Monday to Sunday. Prepare items at the stations and serv
 
 Monday only has coffee and toast, and a pointing hand shows what to tap; each day adds new items and a bit more pace. Shifts always end, tired customers just leave without a tip, and each day earns one to three stars. Keyboard on desktop: `1`–`6` stations, `Q W E R` customers, `Z X C V` tray, `P` to pause.
 
-### ⏱️ Rush hour and the daily challenge
+#### ⏱️ Rush hour and the daily challenge
 The bar without an end, with three lives and a growing pace, for the competitive ones. The daily challenge gives every player the same customers and the same twist on the same day.
 
 ## The team

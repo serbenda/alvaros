@@ -4,6 +4,8 @@ export default {
   title: "Álvaro's Gastrobar",
   subtitle: 'Serve the regulars before they lose their patience!',
   play: 'Play',
+  moreModes: 'More modes',
+  dailyShort: 'Daily',
   playNow: 'PLAY!',
   chinosShort: 'Chinos',
   weekShort: 'The week',
