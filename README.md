@@ -29,7 +29,7 @@ Fifteen one-gesture challenges, one after another, faster every four wins. Four 
 | 🍞 | Catch the toast | — | Tap it while it flies |
 | 🧽 | Wipe the counter | Mari | Tap every stain |
 | ☕ | Pour the coffee | Mari | Tap when the cup is under the machine |
-| ⚽ | Score a goal | The bar's TV | Shoot where the keeper is not |
+| 🍳 | Flip the tortilla | Blanca | Tap when it is golden, before it burns |
 | 🔢 | How many? | Andrea | Count the drinks |
 | 🧾 | What did they order? | Andrea | Serve the right item |
 | 🥛 | Stack the cups | Mari | Drop each cup on the pile |
@@ -38,7 +38,7 @@ Fifteen one-gesture challenges, one after another, faster every four wins. Four 
 | 🫙 | Catch the tips | Blanca | Move the jar with your finger |
 | 🚪 | Open the bar | Blanca | Tap fast to pull the shutter up |
 
-Add `?mini=<id>` to the URL to play a single one: `pour`, `watch`, `hide`, `calm`, `toast`, `wipe`, `coffee`, `penalty`, `count`, `order`, `stack`, `fly`, `channel`, `tips`, `shutter`.
+Add `?mini=<id>` to the URL to play a single one: `pour`, `watch`, `hide`, `calm`, `toast`, `wipe`, `coffee`, `tortilla`, `count`, `order`, `stack`, `fly`, `channel`, `tips`, `shutter`.
 
 <img src="docs/screenshots/minigame-pour.png" alt="Pour the beer" width="200" />
 <img src="docs/screenshots/minigame-watch.png" alt="The gold watch" width="200" />
@@ -50,7 +50,11 @@ The classic bar coin game. Hide 0 to 3 coins, call the total of both hands witho
 
 <img src="docs/screenshots/chinos.png" alt="Chinos with Blanca" width="230" />
 
-### 📅 A week at Álvaro's
+### More modes
+
+Under **More modes** in the menu, for those who want more.
+
+#### 📅 A week at Álvaro's
 One shift per day, from Monday to Sunday. Prepare items at the stations and serve the customers before they lose their patience:
 
 1. Customers sit at the bar and show what they want in a speech bubble.
@@ -59,7 +63,7 @@ One shift per day, from Monday to Sunday. Prepare items at the stations and serv
 
 Monday only has coffee and toast, and a pointing hand shows what to tap; each day adds new items and a bit more pace. Shifts always end, tired customers just leave without a tip, and each day earns one to three stars. Keyboard on desktop: `1`–`6` stations, `Q W E R` customers, `Z X C V` tray, `P` to pause.
 
-### ⏱️ Rush hour and the daily challenge
+#### ⏱️ Rush hour and the daily challenge
 The bar without an end, with three lives and a growing pace, for the competitive ones. The daily challenge gives every player the same customers and the same twist on the same day.
 
 ## The team
@@ -127,7 +131,17 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how it fits together and ho
 
 ### Deployment
 
-GitHub Pages publishes the `main` branch from the repository root. Changes go to `development` and reach `main` through a pull request; CI runs the checks and tests on both. See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md).
+GitHub Pages publishes the `main` branch from the repository root. Changes go to `development` and reach `main` through a pull request; CI runs the checks and tests on both. See [CHANGELOG.md](CHANGELOG.md).
+
+## Contributing
+
+Ideas, bug reports, lines for the team and new mini-games are welcome:
+
+- 🐛 [Report a bug](https://github.com/serbenda/alvaros/issues/new?template=bug_report.yml)
+- 💡 [Suggest an idea or a mini-game](https://github.com/serbenda/alvaros/issues/new?template=idea.yml)
+- 🛠️ Send a pull request to `development` — read [CONTRIBUTING.md](CONTRIBUTING.md) first
+
+Please follow the [code of conduct](CODE_OF_CONDUCT.md). Security issues: see [SECURITY.md](SECURITY.md).
 
 ## Roadmap
 
@@ -136,3 +150,7 @@ GitHub Pages publishes the `main` branch from the repository root. Changes go to
 - QR poster for the bar.
 - More mini-games and the team's real lines.
 - Achievements and unlockables.
+
+## License
+
+Proprietary. © 2026 Sergio Santiago Bendaña Quesada. All rights reserved — see [LICENSE](LICENSE). The code is public so it can be published on GitHub Pages, but it may not be copied, reused or redistributed without permission.

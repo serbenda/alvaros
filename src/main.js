@@ -154,7 +154,7 @@ function renderTeam() {
 }
 
 function renderTitle() {
-  $('title-best').textContent = money(state.best);
+  $('title-best').textContent = `${t('best')}: ${money(state.best)}`;
   $('title-mini').textContent = String(state.miniBest || 0);
   $('title-chinos').textContent = String(state.chinosWins || 0);
   $('title-total').textContent = `${totalStars()} / ${WEEK.length * 3} ★`;
@@ -586,6 +586,12 @@ $('btn-play').addEventListener('click', () => {
 });
 $('btn-rush').addEventListener('click', () => startGame('rush'));
 $('btn-mini').addEventListener('click', () => startGame('mini'));
+$('btn-more').addEventListener('click', () => {
+  const panel = $('more-modes');
+  panel.hidden = !panel.hidden;
+  $('btn-more').setAttribute('aria-expanded', String(!panel.hidden));
+  $('btn-more').classList.toggle('open', !panel.hidden);
+});
 $('btn-chinos').addEventListener('click', () => startGame('chinos'));
 $('btn-next').addEventListener('click', () => startGame('week', day + 1));
 $('btn-daily').addEventListener('click', () => startGame('daily'));

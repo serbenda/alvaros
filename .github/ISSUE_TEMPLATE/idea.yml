@@ -1,0 +1,27 @@
+name: Idea or new mini-game
+description: Suggest a new mini-game, a line for the team or any improvement.
+labels: [idea]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of idea?
+      options:
+        - New mini-game
+        - Lines for Blanca or the team
+        - Something about the bar (menu, decoration, characters)
+        - Other improvement
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Describe it
+      description: For a mini-game, say who stars in it and what the single gesture is (tap, hold, drag).
+      placeholder: "Example: 'Pour the vermouth' with Mari — hold to pour and let go at the line."
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why would it be fun?
