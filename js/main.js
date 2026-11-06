@@ -3,21 +3,73 @@
 import { PLAYER, HELPERS, BOSS, STATIONS, DAILY_TWISTS, CUSTOMER_TYPES, WEEK, RUSH_LEVEL } from './config.js';
 import { W, H } from './layout.js';
 import { Game } from './game.js';
-import { render } from './renderer.js';
+import { render, setRenderScale } from './renderer.js';
 import { Sfx } from './audio.js';
 import { t, setLang, getLang, detectLang, money } from './i18n.js';
 import { load, save } from './storage.js';
 import { makeLook, drawPerson } from './sprites.js';
 import { mulberry32, hashString } from './rng.js';
 
-const SCALE = 4;
+const PORTRAIT_SCALE = 4;
+let SCALE = 4;
 const SCREENS = ['title', 'week', 'howto', 'album', 'pause', 'over'];
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('game');
 const ctx = canvas.getContext('2d');
-canvas.width = W * SCALE;
-canvas.height = H * SCALE;
+
+/** Matches the canvas resolution to the screen so it stays sharp on tablets. */
+function resize() {
+  const rect = $('stage').getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const scale = Math.max(2, Math.min(8, Math.ceil((rect.height * dpr) / H)));
+  if (scale === SCALE && canvas.width === W * scale) return;
+  SCALE = scale;
+  canvas.width = W * SCALE;
+  canvas.height = H * SCALE;
+  setRenderScale(SCALE);
+}
+resize();
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+
+// ---- Full screen ----------------------------------------------------------------
+
+function fullscreenSupported() {
+  const el = document.documentElement;
+  return !!(el.requestFullscreen || el.webkitRequestFullscreen);
+}
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+
+function enterFullscreen() {
+  const el = document.documentElement;
+  try {
+    const request = el.requestFullscreen || el.webkitRequestFullscreen;
+    const result = request && request.call(el, { navigationUI: 'hide' });
+    if (result && result.catch) result.catch(() => {});
+  } catch {
+    // Not allowed here; the game still works in the browser window.
+  }
+}
+
+function exitFullscreen() {
+  try {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    const result = exit && exit.call(document);
+    if (result && result.catch) result.catch(() => {});
+  } catch {
+    // Ignore.
+  }
+}
+
+/** On phones and tablets, go full screen when a game starts. */
+function autoFullscreen() {
+  const touch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  if (touch && fullscreenSupported() && !isFullscreen()) enterFullscreen();
+}
 
 const state = load();
 setLang(state.lang || detectLang());
@@ -96,10 +148,10 @@ function selectedStaff() {
 
 function portrait(look, size = 32, silhouette = false) {
   const c = document.createElement('canvas');
-  c.width = size * SCALE;
-  c.height = size * SCALE;
+  c.width = size * PORTRAIT_SCALE;
+  c.height = size * PORTRAIT_SCALE;
   const cctx = c.getContext('2d');
-  cctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+  cctx.setTransform(PORTRAIT_SCALE, 0, 0, PORTRAIT_SCALE, 0, 0);
   drawPerson(cctx, look, size / 2, 6 + (look.offset || 0), { mood: 'happy', silhouette });
   return c;
 }
@@ -205,6 +257,7 @@ function applyLanguage() {
   for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
   $('btn-lang').textContent = getLang() === 'es' ? 'English' : 'Español';
   $('btn-sound').textContent = state.muted ? t('soundOff') : t('soundOn');
+  updateFullscreenButton();
   renderTitle();
   renderWeek();
   renderHowTo();
@@ -280,6 +333,7 @@ function onEvent(type, data) {
 
 function startGame(newMode, dayIndex = day) {
   sfx.unlock();
+  autoFullscreen();
   mode = newMode;
   day = dayIndex;
   let rng = Math.random;
@@ -466,6 +520,25 @@ $('btn-lang').addEventListener('click', () => {
   state.lang = getLang();
   save(state);
   applyLanguage();
+});
+
+function updateFullscreenButton() {
+  const button = $('btn-fullscreen');
+  button.classList.toggle('hidden', !fullscreenSupported());
+  button.textContent = isFullscreen() ? t('exitFullscreen') : t('fullscreen');
+}
+
+$('btn-fullscreen').addEventListener('click', () => {
+  if (isFullscreen()) exitFullscreen();
+  else enterFullscreen();
+});
+document.addEventListener('fullscreenchange', () => {
+  updateFullscreenButton();
+  setTimeout(resize, 100);
+});
+document.addEventListener('webkitfullscreenchange', () => {
+  updateFullscreenButton();
+  setTimeout(resize, 100);
 });
 
 $('btn-sound').addEventListener('click', () => {

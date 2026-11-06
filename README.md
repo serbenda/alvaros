@@ -30,6 +30,7 @@ Keyboard (desktop): `1`–`6` stations, `Q W E R` customers, `Z X C V` tray slot
 - Regulars album, records, total tips and a share button.
 - English and Spanish, chiptune sound effects and vibration, all generated in code.
 - Progress is saved in the browser (`localStorage`).
+- Fills phones and tablets: sharp at any size, the bar extends to the sides on wide screens, a full-screen button (automatic on touch devices when a game starts) and an app manifest so it opens full screen when added to the home screen.
 
 ## The team
 

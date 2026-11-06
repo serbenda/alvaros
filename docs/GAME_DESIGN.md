@@ -80,4 +80,4 @@ Uses a random seed based on the date and one twist per day, so every player gets
 - [ ] QR poster for the bar.
 - [ ] Bar upgrades bought with tips (faster coffee machine, more seats, terrace).
 - [ ] Random events: a bus of tourists, a football match on TV, the coffee machine breaks.
-- [ ] Installable as an app (web manifest and offline support).
+- [ ] Offline support (the app manifest is in place).
