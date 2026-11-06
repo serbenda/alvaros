@@ -15,6 +15,8 @@ import { mulberry32, hashString } from './core/rng.js';
 import { fullscreenSupported, isFullscreen, enterFullscreen, exitFullscreen, autoFullscreen } from './ui/fullscreen.js';
 import { drawLogo } from './ui/logo.js';
 import { shareCard } from './ui/share.js';
+import { trackGameStart, trackShare } from './ui/analytics.js';
+import { STICKERS, checkStickers } from './ui/stickers.js';
 
 const PORTRAIT_SCALE = 4;
 let SCALE = 4;
@@ -201,7 +203,31 @@ function renderHowTo() {
   }
 }
 
+function renderStickers() {
+  const grid = $('sticker-grid');
+  grid.innerHTML = '';
+  const got = state.stickers || {};
+  let n = 0;
+  for (const sticker of STICKERS) {
+    const has = !!got[sticker.id];
+    if (has) n++;
+    const card = document.createElement('div');
+    card.className = has ? 'sticker' : 'sticker locked';
+    const icon = document.createElement('span');
+    icon.className = 'sticker-icon';
+    icon.textContent = has ? sticker.icon : '?';
+    const name = document.createElement('strong');
+    name.textContent = t(`stickers.${sticker.id}.name`);
+    const desc = document.createElement('small');
+    desc.textContent = t(`stickers.${sticker.id}.desc`);
+    card.append(icon, name, desc);
+    grid.appendChild(card);
+  }
+  $('sticker-count').textContent = t('stickerCount', { n, total: STICKERS.length });
+}
+
 function renderAlbum() {
+  renderStickers();
   const grid = $('album-grid');
   grid.innerHTML = '';
   const types = Object.keys(CUSTOMER_TYPES);
@@ -237,7 +263,23 @@ function applyLanguage() {
 
 // ---- Game flow ------------------------------------------------------------------
 
+/** Session list of stickers earned during the current game, shown at the end. */
+let newStickers = [];
+
+function award(type, data) {
+  const earned = checkStickers({ type, data: data || {} }, state);
+  if (!earned.length) return;
+  save(state);
+  for (const sticker of earned) {
+    newStickers.push(sticker);
+    toast(`${sticker.icon} ${t('stickerNew', { name: t(`stickers.${sticker.id}.name`) })}`);
+  }
+  sfx.play('combo');
+  vibrate([30, 40, 30]);
+}
+
 function onEvent(type, data) {
+  if (type === 'miniWin' || type === 'speedup') award(type, data);
   switch (type) {
     case 'prep':
     case 'ready':
@@ -279,6 +321,9 @@ function onEvent(type, data) {
     case 'miniLose':
       sfx.play('angry');
       vibrate([60, 40, 60]);
+      break;
+    case 'speed':
+      sfx.tempo = Math.min(1.6, Math.max(0.85, data.speed));
       break;
     case 'speedup':
       sfx.tempo = Math.min(1.6, data.speed);
@@ -333,10 +378,17 @@ function startGame(newMode, dayIndex = day) {
   hideScreens();
   state.plays++;
   save(state);
+  newStickers = [];
+  trackGameStart(mode);
   if (mode === 'mini' || mode === 'chinos') {
     // ?mini=<id> in the URL plays a single mini-game, handy to show or test one.
     const only = new URLSearchParams(location.search).get('mini');
-    game = mode === 'mini' ? new MiniRun({ t, onEvent, only: MINIGAME_IDS.includes(only) ? only : null }) : new ChinosGame({ t, onEvent });
+    const beginner = (state.miniRuns || 0) < 2;
+    if (mode === 'mini') state.miniRuns = (state.miniRuns || 0) + 1;
+    game =
+      mode === 'mini'
+        ? new MiniRun({ t, onEvent, beginner, only: MINIGAME_IDS.includes(only) ? only : null })
+        : new ChinosGame({ t, onEvent });
     sfx.play('start');
     sfx.startMusic();
     return;
@@ -376,6 +428,7 @@ function finishGame(summary) {
       stars[day] = summary.stars;
       isRecord = true;
     }
+    award('weekStars', {});
   } else if (mode === 'daily') {
     if (state.daily.date !== todayKey()) state.daily = { date: todayKey(), best: 0 };
     if (summary.score > state.daily.best) {
@@ -424,8 +477,23 @@ function finishGame(summary) {
     $('btn-next').classList.toggle('hidden', !canAdvance);
     $('btn-retry').classList.toggle('primary', !canAdvance);
 
+    showOverExtras(isRecord, summary);
     show('over');
   }, 1200);
+}
+
+/** Blanca's comment and the stickers earned, on the end screen. */
+function showOverExtras(isRecord, summary) {
+  let key = 'endLines.bad';
+  if (mode === 'chinos') key = summary.won ? 'endLines.chinosYouWon' : 'endLines.chinosBlancaWon';
+  else if (isRecord && summary.score > 0) key = 'endLines.record';
+  else if (mode === 'mini' ? summary.score >= 8 : mode === 'week' ? summary.stars >= 2 : summary.score >= 200) key = 'endLines.good';
+  const lines = t(key);
+  $('over-line').textContent = `Blanca: «${lines[Math.floor(Math.random() * lines.length)]}»`;
+  const stickers = $('over-stickers');
+  stickers.textContent = newStickers.length ? `${t('stickersEarned')} ${newStickers.map((st) => st.icon).join(' ')}` : '';
+  stickers.classList.toggle('hidden', !newStickers.length);
+  $('over-record').classList.toggle('celebrate', isRecord && summary.score > 0 && mode !== 'chinos');
 }
 
 /** End screen for the mini-games and the chinos. */
@@ -439,6 +507,7 @@ function finishExtraMode(summary) {
   }
   if (!mini && summary.won) {
     state.chinosWins = (state.chinosWins || 0) + 1;
+    award('chinosWon', {});
     isRecord = true;
   }
   save(state);
@@ -458,6 +527,7 @@ function finishExtraMode(summary) {
     $('over-total-row').classList.add('hidden');
     $('btn-next').classList.add('hidden');
     $('btn-retry').classList.add('primary');
+    showOverExtras(isRecord, summary);
     show('over');
   }, 1300);
 }
@@ -516,6 +586,7 @@ async function share() {
       look: PLAYER.look,
       url: location.href.split('#')[0].split('?')[0],
     });
+    trackShare(mode);
     if (result === 'copied') toast(t('copied'));
   } catch {
     // Cancelled or not allowed.
@@ -729,3 +800,8 @@ function frame(now) {
 applyLanguage();
 show('title');
 requestAnimationFrame(frame);
+
+// Offline play: cache the game after the first visit (only on HTTPS or localhost).
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}

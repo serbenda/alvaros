@@ -5,6 +5,13 @@ All notable changes to this project are documented here.
 ## [Unreleased]
 
 ### Added
+- Stickers to collect in the album, with a toast when you earn one and a list on the end screen.
+- Blanca comments on every result, and a new record gets a celebration.
+- Guided first games: slower, the easiest challenges first and an on-screen instruction.
+- Adaptive pace: after a miss the mini-games slow down a little.
+- Offline play with a service worker.
+- Printable A4 poster with a QR code to the game (`poster.html`).
+- Visit and play counter with GoatCounter (`partida/alvaros` events).
 - Game-style title menu: big play button, mode cards with icons and records, team strip and toolbar, with the living bar in the background.
 - Five new mini-games: stack the cups, shoo the fly, put the football on, catch the tips and open the bar (15 in total).
 - Curtain transitions, "just in time" and streak messages, bouncing score, ticking clock and music that speeds up.

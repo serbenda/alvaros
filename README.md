@@ -87,6 +87,11 @@ The waiters and Pepe Nacho have black hair, and nobody has a beard or a moustach
 
   <img src="docs/screenshots/score-card.png" alt="Score card" width="200" />
 - **Full screen** on phones and tablets, and installable with the browser's "Add to home screen".
+- **Easy start**: the first games are slower, start with the easiest challenges and show what to do; after a miss the pace eases off a little.
+- **Stickers to collect**: 14 stickers in the album (beat Blanca at chinos, find the gold watch, win every mini-game…), and Blanca comments on every result.
+- **Works offline** after the first visit, so a bad signal in the bar does not stop a game.
+- **Poster for the bar**: [`poster.html`](https://bendi.dev/alvaros/poster.html) is an A4 poster with a QR code to the game and a space to write the week's record. Open it and press *Print*.
+- **Visit and play counter**: [GoatCounter](https://serbenda.goatcounter.com) counts visits and the events `partida/alvaros` (every game started), `partida/alvaros/<mode>` and `compartir/alvaros/<mode>`. No cookies and no personal data.
 - **No server**: progress and records are saved in the browser.
 
 ## Development
@@ -115,7 +120,9 @@ src/
   modes/minigames/    Mini-games engine, renderer and one file per mini-game
   modes/chinos/       Chinos against Blanca
   modes/bar/          The week and rush hour: rules and renderer
-  ui/                 Full screen, logo and share card
+  ui/                 Full screen, logo, share card, stickers and analytics
+sw.js                 Offline cache (service worker)
+poster.html           Printable QR poster for the bar
 tests/                Unit tests
 docs/                 Architecture, game design and screenshots
 ```
@@ -147,9 +154,8 @@ Please follow the [code of conduct](CODE_OF_CONDUCT.md). Security issues: see [S
 
 - Shared weekly ranking and tournaments (needs a small database).
 - Prize codes to show at the till.
-- QR poster for the bar.
 - More mini-games and the team's real lines.
-- Achievements and unlockables.
+- More stickers and unlockables.
 
 ## License
 

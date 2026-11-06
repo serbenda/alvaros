@@ -802,3 +802,67 @@ p {
 .more-modes .mode small {
   font-size: 6px;
 }
+
+/* Album: stickers */
+.album-section {
+  margin: 0.4rem 0 -0.4rem;
+  font-size: 11px;
+  color: var(--gold);
+}
+
+.stickers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  width: min(100%, 330px);
+}
+
+.sticker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.3rem;
+  background: #fff3dc;
+  border-radius: 50% 50% 8px 8px / 30% 30% 8px 8px;
+  box-shadow: 0 0 0 2px #d9a868, 0 3px 0 rgba(90, 54, 29, 0.25);
+  font-size: 6.5px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.sticker-icon {
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.sticker strong {
+  font-size: 7px;
+  color: var(--gold);
+}
+
+.sticker.locked {
+  opacity: 0.55;
+  filter: grayscale(1);
+}
+
+/* End screen extras */
+.over-line {
+  max-width: 300px;
+  padding: 0.5rem 0.7rem;
+  font-size: 9px;
+  line-height: 1.6;
+  background: #fffaf0;
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px #d9a868;
+}
+
+.over-stickers {
+  font-size: 10px;
+  color: var(--green);
+}
+
+.record.celebrate {
+  font-size: 14px;
+  animation: blink 0.8s steps(2) infinite, pop 0.5s ease-out;
+}
