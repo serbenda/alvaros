@@ -84,6 +84,7 @@ let day = 0;
 let paused = false;
 let lastFrame = performance.now();
 let lastScore = 0;
+let lastChinosHer = 0;
 
 // ---- Helpers ----------------------------------------------------------------
 
@@ -312,8 +313,12 @@ function onEvent(type, data) {
       vibrate([60, 40, 60]);
       break;
     case 'speedup':
+      sfx.tempo = Math.min(1.6, data.speed);
       sfx.play('combo');
       vibrate([20, 30, 20]);
+      break;
+    case 'tick':
+      sfx.play('tick');
       break;
     case 'miniIntro':
     case 'chinosCall':
@@ -352,6 +357,7 @@ function onEvent(type, data) {
 
 function startGame(newMode, dayIndex = day) {
   sfx.unlock();
+  sfx.tempo = 1;
   autoFullscreen();
   mode = newMode;
   day = dayIndex;
@@ -457,6 +463,7 @@ function finishGame(summary) {
 /** End screen for the mini-games and the chinos. */
 function finishExtraMode(summary) {
   const mini = mode === 'mini';
+  lastChinosHer = summary.bestCombo;
   let isRecord = false;
   if (mini && summary.score > (state.miniBest || 0)) {
     state.miniBest = summary.score;
@@ -514,15 +521,113 @@ function quitToTitle() {
   }
 }
 
+/** Builds a square score card image: the sign, Blanca, the score and the link. */
+function makeCard(text, scoreLabel) {
+  const S = 4;
+  const size = 270;
+  const c = document.createElement('canvas');
+  c.width = size * S;
+  c.height = size * S;
+  const g = c.getContext('2d');
+  g.imageSmoothingEnabled = false;
+  g.setTransform(S, 0, 0, S, 0, 0);
+  // Background: the bar's wall, brick strip and wooden floor
+  g.fillStyle = '#fdf9f1';
+  g.fillRect(0, 0, size, size);
+  g.fillStyle = '#aaa49b';
+  g.fillRect(0, 150, size, 40);
+  g.fillStyle = '#8b857c';
+  for (let y = 150; y < 190; y += 5) g.fillRect(0, y, size, 0.6);
+  g.fillStyle = '#cf8e5c';
+  g.fillRect(0, 190, size, 80);
+  g.fillStyle = '#dcae74';
+  g.fillRect(0, 186, size, 5);
+  // Sign
+  const sign = document.createElement('canvas');
+  sign.width = 720;
+  sign.height = 240;
+  drawLogo(0.2, sign.getContext('2d'), 4);
+  g.drawImage(sign, 45, 6, 180, 60);
+  // Blanca, big and happy
+  g.save();
+  g.translate(64, 98);
+  g.scale(3.2, 3.2);
+  drawPerson(g, PLAYER.look, 0, 0, { mood: 'happy', legs: true });
+  g.restore();
+  // Score
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.font = '7px "Press Start 2P", monospace';
+  g.fillStyle = '#8a5a32';
+  g.fillText(scoreLabel, 178, 96);
+  g.font = '30px "Press Start 2P", monospace';
+  g.fillStyle = '#e9b820';
+  g.fillText(String(lastScoreText()), 180, 128);
+  g.fillStyle = '#c0392b';
+  g.fillText(String(lastScoreText()), 178, 126);
+  // Challenge line and link
+  g.fillStyle = 'rgba(36,22,15,0.85)';
+  g.fillRect(0, 222, size, 48);
+  g.font = '7px "Press Start 2P", monospace';
+  g.fillStyle = '#fffaf0';
+  const words = text.split(' ');
+  let line = '';
+  const lines = [];
+  for (const w of words) {
+    const test = line ? `${line} ${w}` : w;
+    if (g.measureText(test).width > 250 && line) {
+      lines.push(line);
+      line = w;
+    } else {
+      line = test;
+    }
+  }
+  lines.push(line);
+  lines.slice(0, 2).forEach((l, i) => g.fillText(l, size / 2, 234 + i * 11));
+  g.font = '6px "Press Start 2P", monospace';
+  g.fillStyle = '#f8d75a';
+  g.fillText(location.host + location.pathname.replace(/index\.html$/, ''), size / 2, 260);
+  return c;
+}
+
+function lastScoreText() {
+  if (mode === 'mini') return lastScore;
+  if (mode === 'chinos') return `${lastScore}-${lastChinosHer}`;
+  return money(lastScore);
+}
+
 async function share() {
   let text = t('shareText', { score: money(lastScore) });
-  if (mode === 'mini') text = t('shareMini', { score: lastScore });
-  if (mode === 'chinos') text = t('shareChinos');
+  let label = t('modeRush');
+  if (mode === 'mini') {
+    text = t('shareMini', { score: lastScore });
+    label = t('miniScore');
+  } else if (mode === 'chinos') {
+    text = t('shareChinos');
+    label = t('chinosMode');
+  } else if (mode === 'week') {
+    label = t(`days.${WEEK[day].id}`);
+  }
   const url = location.href.split('#')[0].split('?')[0];
   try {
+    const card = makeCard(text, label.toUpperCase());
+    const blob = await new Promise((resolve) => card.toBlob(resolve, 'image/png'));
+    const file = blob && new File([blob], 'alvaros.png', { type: 'image/png' });
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: t('title'), text: `${text} ${url}` });
+      return;
+    }
     if (navigator.share) {
       await navigator.share({ title: t('title'), text, url });
       return;
+    }
+    // Desktop: download the card and copy the text
+    if (blob) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'alvaros.png';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     }
     await navigator.clipboard.writeText(`${text} ${url}`);
     toast(t('copied'));
@@ -549,6 +654,11 @@ function pointerUp(event) {
   const r = canvas.getBoundingClientRect();
   game.up(((event.clientX - r.left) / r.width) * W, ((event.clientY - r.top) / r.height) * H);
 }
+canvas.addEventListener('pointermove', (event) => {
+  if (!game || paused || !game.move || !event.buttons) return;
+  const r = canvas.getBoundingClientRect();
+  game.move(((event.clientX - r.left) / r.width) * W, ((event.clientY - r.top) / r.height) * H);
+});
 canvas.addEventListener('pointerup', pointerUp);
 canvas.addEventListener('pointercancel', pointerUp);
 canvas.addEventListener('pointerleave', pointerUp);
@@ -644,9 +754,8 @@ const logo = $('logo');
 const logoCtx = logo.getContext('2d');
 
 /** The bar's sign: light wood, marquee bulbs and the name in red. */
-function drawLogo(now) {
-  const c = logoCtx;
-  c.setTransform(4, 0, 0, 4, 0, 0);
+function drawLogo(now, c = logoCtx, scale = 4) {
+  c.setTransform(scale, 0, 0, scale, 0, 0);
   c.clearRect(0, 0, 180, 60);
   const R = (x, y, w, h, color) => {
     c.fillStyle = color;

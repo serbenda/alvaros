@@ -755,6 +755,356 @@ const GAMES = [
       };
     },
   },
+  {
+    // Stack three cups: tap to drop the sliding cup on top of the pile.
+    id: 'stack',
+    who: 'mari',
+    create() {
+      return {
+        dur: 7,
+        need: 3,
+        pile: [90],
+        x: 30,
+        dir: 1,
+        v: 70,
+        drop: null,
+        down() {
+          if (this.result || this.drop) return;
+          this.drop = { x: this.x, y: 70 };
+        },
+        update(dt) {
+          if (this.result) return;
+          if (this.drop) {
+            const target = 250 - this.pile.length * 18;
+            this.drop.y += dt * 260;
+            if (this.drop.y >= target) {
+              const top = this.pile[this.pile.length - 1];
+              if (Math.abs(this.drop.x - top) <= 8) {
+                this.pile.push(this.drop.x);
+                this.drop = null;
+                this.v *= 1.25;
+                if (this.pile.length > this.need) this.result = 'win';
+              } else {
+                this.fallen = { x: this.drop.x, y: target };
+                this.result = 'lose';
+              }
+            }
+            return;
+          }
+          this.x += this.dir * this.v * dt;
+          if (this.x > 150) this.dir = -1;
+          if (this.x < 30) this.dir = 1;
+        },
+        draw(ctx, now, run, t) {
+          bgRoom(ctx, 268);
+          counter(ctx, 264);
+          person(ctx, LOOKS.mari, 26, 166, 1.4, { mood: this.result === 'lose' ? 'worried' : 'happy' });
+          const cup = (x, y, tilt = 0) => {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(tilt);
+            drawIcon(ctx, 'coffee', -12, -14, 1.5);
+            ctx.restore();
+          };
+          this.pile.forEach((x, i) => cup(x, 250 - i * 18));
+          if (this.drop) cup(this.drop.x, this.drop.y);
+          else if (!this.result) {
+            cup(this.x, 70);
+            rect(ctx, this.x - 0.5, 84, 1, 140, 'rgba(46,204,113,0.35)');
+          }
+          if (this.fallen) cup(this.fallen.x + 10, this.fallen.y + 6, 1.2);
+          text(ctx, `${Math.min(this.need, this.pile.length - 1)}/${this.need}`, 160, 40, { size: 7, color: '#3a2518', align: 'right' });
+        },
+      };
+    },
+  },
+  {
+    // A fly buzzes over the tapa: tap it to shoo it away.
+    id: 'fly',
+    who: 'andrea',
+    create() {
+      return {
+        dur: 4,
+        x: rand(40, 140),
+        y: rand(150, 220),
+        vx: rand(-60, 60),
+        vy: rand(-60, 60),
+        down(x, y) {
+          if (this.result) return;
+          if (dist(x, y, this.x, this.y) < 16) this.result = 'win';
+        },
+        update(dt) {
+          if (this.result === 'win') {
+            this.y -= dt * 120;
+            this.x += dt * 60;
+            return;
+          }
+          this.vx += rand(-400, 400) * dt;
+          this.vy += rand(-400, 400) * dt;
+          const sp = Math.hypot(this.vx, this.vy);
+          const max = 95;
+          if (sp > max) {
+            this.vx *= max / sp;
+            this.vy *= max / sp;
+          }
+          this.x += this.vx * dt;
+          this.y += this.vy * dt;
+          if (this.x < 20 || this.x > 160) this.vx *= -1;
+          if (this.y < 110 || this.y > 250) this.vy *= -1;
+          this.x = Math.max(20, Math.min(160, this.x));
+          this.y = Math.max(110, Math.min(250, this.y));
+        },
+        draw(ctx, now, run, t) {
+          bgTable(ctx, 100);
+          person(ctx, LOOKS.andrea, 90, 34, 1.5, { mood: this.result === 'win' ? 'happy' : 'worried' });
+          bubble(ctx, t('mini.flyLine'), 90, 14);
+          // Plate with the tapa
+          box(ctx, 50, 190, 80, 34, OUTLINE, 12);
+          box(ctx, 51, 191, 78, 32, '#f4f4f8', 12);
+          box(ctx, 58, 196, 64, 22, '#dcdce4', 9);
+          drawIcon(ctx, 'tapa', 66, 186, 3);
+          // The fly
+          const wing = Math.sin(now * 60) > 0 ? 1 : 0;
+          ctx.globalAlpha = 0.6;
+          box(ctx, this.x - 6, this.y - 4 - wing * 2, 5, 4, '#d8eef5', 2);
+          box(ctx, this.x + 1, this.y - 4 - wing * 2, 5, 4, '#d8eef5', 2);
+          ctx.globalAlpha = 1;
+          box(ctx, this.x - 3, this.y - 2, 6, 5, '#1a1a1a', 2);
+          rect(ctx, this.x - 2, this.y - 1, 1, 1, '#c0392b');
+          rect(ctx, this.x + 1, this.y - 1, 1, 1, '#c0392b');
+          if (!this.result) {
+            for (let i = 0; i < 2; i++) {
+              const a = now * 9 + i * 3;
+              rect(ctx, this.x + Math.cos(a) * 10, this.y + Math.sin(a) * 6, 2, 0.6, '#3a2518');
+            }
+          }
+        },
+      };
+    },
+  },
+  {
+    // Zap through the TV channels and stop on the football.
+    id: 'channel',
+    who: 'boss',
+    create() {
+      const others = shuffle(['news', 'cooking', 'weather', 'cartoon']);
+      const order = [others[0], others[1], 'football', others[2], others[3], 'football'];
+      return {
+        dur: 5,
+        order,
+        index: 0,
+        every: 0.7,
+        timer: 0,
+        current() {
+          return this.order[this.index % this.order.length];
+        },
+        down() {
+          if (this.result) return;
+          this.result = this.current() === 'football' ? 'win' : 'lose';
+        },
+        update(dt) {
+          if (this.result) return;
+          this.timer += dt;
+          if (this.timer >= this.every) {
+            this.timer = 0;
+            this.index++;
+          }
+        },
+        draw(ctx, now, run, t) {
+          bgRoom(ctx, 262);
+          const x = 22;
+          const y = 64;
+          const w = 136;
+          const h = 92;
+          rect(ctx, x + w / 2 - 6, 24, 2, y - 24, '#3a3a3a');
+          rect(ctx, x + w / 2 + 4, 24, 2, y - 24, '#3a3a3a');
+          box(ctx, x - 5, y - 5, w + 10, h + 10, '#151515', 3);
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(x, y, w, h);
+          ctx.clip();
+          const ch = this.current();
+          if (ch === 'football') {
+            rect(ctx, x, y, w, h, '#2e8b3e');
+            for (let i = 0; i < w; i += 16) rect(ctx, x + i, y, 8, h, '#339945');
+            rect(ctx, x + w / 2, y, 1, h, '#d8f0d8');
+            box(ctx, x + w / 2 - 12, y + h / 2 - 12, 24, 24, '#d8f0d8', 6);
+            box(ctx, x + w / 2 - 11, y + h / 2 - 11, 22, 22, '#2e8b3e', 6);
+            const bx = x + w / 2 + Math.sin(now * 3) * 40;
+            for (const [dx, c] of [[-14, '#ffffff'], [10, '#e74c3c'], [-4, '#e74c3c'], [18, '#ffffff']]) {
+              rect(ctx, bx + dx, y + 40 + Math.sin(now * 4 + dx) * 10, 4, 7, c);
+            }
+            box(ctx, bx, y + 50, 4, 4, '#ffffff', 1);
+          } else if (ch === 'news') {
+            rect(ctx, x, y, w, h, '#1f4e8c');
+            rect(ctx, x, y + h - 18, w, 18, '#c0392b');
+            rect(ctx, x + 6, y + h - 13, 70, 3, '#ffffff');
+            person(ctx, { skin: '#f1c27d', hair: '#4a3020', hairStyle: 'short', shirt: '#2c3e50', accessory: 'tie' }, x + w / 2, y + 14, 2);
+          } else if (ch === 'cooking') {
+            rect(ctx, x, y, w, h, '#f6e3c4');
+            box(ctx, x + 40, y + 46, 56, 30, OUTLINE, 6);
+            box(ctx, x + 41, y + 47, 54, 28, '#9aa3a8', 6);
+            rect(ctx, x + 41, y + 47, 54, 5, '#e67e22');
+            for (let i = 0; i < 3; i++) box(ctx, x + 52 + i * 12, y + 30 - ((now * 20 + i * 8) % 20), 6, 6, 'rgba(255,255,255,0.8)', 2);
+          } else if (ch === 'weather') {
+            rect(ctx, x, y, w, h, '#5dade2');
+            box(ctx, x + 20, y + 20, 56, 56, '#58a55c', 18);
+            box(ctx, x + 70, y + 30, 44, 40, '#58a55c', 12);
+            box(ctx, x + 40, y + 30, 16, 16, '#f5c542', 8);
+            box(ctx, x + 84, y + 40, 18, 10, '#ffffff', 5);
+          } else {
+            rect(ctx, x, y, w, h, '#ff9ff3');
+            box(ctx, x + 46, y + 20, 44, 44, OUTLINE, 18);
+            box(ctx, x + 47, y + 21, 42, 42, '#f8d75a', 18);
+            rect(ctx, x + 58, y + 34, 5, 7, OUTLINE);
+            rect(ctx, x + 74, y + 34, 5, 7, OUTLINE);
+            box(ctx, x + 60, y + 48, 16, 6, '#c0392b', 3);
+          }
+          // Static between channels
+          if (this.timer < 0.08 && !this.result) {
+            for (let i = 0; i < 160; i++) rect(ctx, x + Math.random() * w, y + Math.random() * h, 2, 1, Math.random() > 0.5 ? '#ffffff' : '#555555');
+          }
+          ctx.globalAlpha = 0.08;
+          for (let yy = y; yy < y + h; yy += 2) rect(ctx, x, yy, w, 0.7, '#000000');
+          ctx.globalAlpha = 1;
+          ctx.restore();
+          // Remote control
+          box(ctx, 74, 196, 32, 60, OUTLINE, 6);
+          box(ctx, 75, 197, 30, 58, '#2b2b2b', 6);
+          box(ctx, 83, 204, 14, 14, this.result ? '#2ecc71' : '#e74c3c', 7);
+          for (let r = 0; r < 3; r++) for (let c = 0; c < 2; c++) box(ctx, 80 + c * 12, 226 + r * 9, 8, 5, '#5a5a5a', 2);
+          person(ctx, LOOKS.boss, 150, 186, 1.3, { mood: this.result === 'win' ? 'happy' : this.result === 'lose' ? 'angry' : 'neutral' });
+          if (this.result === 'win') bubble(ctx, t('goal'), 150, 162, '#ffe9e4');
+        },
+      };
+    },
+  },
+  {
+    // Move the tip jar to catch the falling coins.
+    id: 'tips',
+    who: 'blanca',
+    create() {
+      return {
+        dur: 6,
+        need: 4,
+        caught: 0,
+        jar: 90,
+        target: 90,
+        coins: [],
+        spawn: 0.2,
+        down(x) {
+          this.target = x;
+        },
+        move(x) {
+          this.target = x;
+        },
+        update(dt) {
+          if (this.result) return;
+          this.jar += Math.max(-260 * dt, Math.min(260 * dt, this.target - this.jar));
+          this.jar = Math.max(20, Math.min(160, this.jar));
+          this.spawn -= dt;
+          if (this.spawn <= 0) {
+            this.coins.push({ x: rand(20, 160), y: 40, vy: rand(60, 90) });
+            this.spawn = rand(0.45, 0.8);
+          }
+          for (const c of this.coins) {
+            c.y += c.vy * dt;
+            c.vy += 60 * dt;
+            if (!c.done && c.y > 236 && c.y < 252 && Math.abs(c.x - this.jar) < 16) {
+              c.done = true;
+              this.caught++;
+              if (this.caught >= this.need) this.result = 'win';
+            }
+          }
+          this.coins = this.coins.filter((c) => !c.done && c.y < 300);
+        },
+        draw(ctx, now, run, t) {
+          bgRoom(ctx, 262);
+          person(ctx, LOOKS.blanca, 26, 166, 1.3, { mood: 'happy' });
+          for (const c of this.coins) {
+            box(ctx, c.x - 5, c.y - 5, 10, 10, OUTLINE, 3);
+            box(ctx, c.x - 4, c.y - 4, 8, 8, '#f5c542', 3);
+            rect(ctx, c.x - 2, c.y - 3, 1.5, 4, '#fff1a8');
+          }
+          // Tip jar
+          const jx = this.jar;
+          box(ctx, jx - 17, 232, 34, 32, OUTLINE, 5);
+          box(ctx, jx - 16, 233, 32, 30, '#d8eef5', 5);
+          rect(ctx, jx - 16, 252, 32, 11, '#f5c542');
+          rect(ctx, jx - 18, 230, 36, 4, '#a8713a');
+          rect(ctx, jx - 13, 240, 22, 8, '#fffaf0');
+          text(ctx, t('mini.tipsJar'), jx - 2, 241.5, { size: 4, color: '#c0392b', align: 'center' });
+          rect(ctx, jx - 13, 236, 2, 22, 'rgba(255,255,255,0.6)');
+          text(ctx, `${this.caught}/${this.need}`, 160, 40, { size: 7, color: '#3a2518', align: 'right' });
+        },
+      };
+    },
+  },
+  {
+    // Morning! Tap fast to pull the shutter up before opening time.
+    id: 'shutter',
+    who: 'blanca',
+    create() {
+      return {
+        dur: 4.5,
+        raised: 0,
+        down() {
+          if (this.result) return;
+          this.raised += 0.075;
+          if (this.raised >= 1) this.result = 'win';
+        },
+        update(dt) {
+          if (this.result) return;
+          this.raised = Math.max(0, this.raised - dt * 0.16);
+        },
+        draw(ctx, now, run, t) {
+          // Street facade at sunrise
+          const sky = ctx.createLinearGradient(0, 0, 0, 120);
+          sky.addColorStop(0, '#8cc4ee');
+          sky.addColorStop(1, '#f8d9b0');
+          ctx.fillStyle = sky;
+          ctx.fillRect(0, 0, W, H);
+          rect(ctx, 0, 40, W, 240, '#e8d4b0');
+          for (let y = 40; y < 280; y += 8) rect(ctx, 0, y, W, 0.5, '#d4bd94');
+          // Sign above the door
+          box(ctx, 30, 50, 120, 22, OUTLINE, 2);
+          box(ctx, 32, 52, 116, 18, '#fffaf0', 2);
+          text(ctx, "ÁLVARO'S", 90, 56, { size: 9, color: '#c0392b', align: 'center' });
+          // Shop window behind the shutter: the bar inside
+          const sx = 26;
+          const sy = 78;
+          const sw = 128;
+          const sh = 168;
+          rect(ctx, sx, sy, sw, sh, '#fdf9f1');
+          rect(ctx, sx, sy + sh - 50, sw, 50, '#a8713a');
+          rect(ctx, sx, sy + sh - 52, sw, 4, '#dcae74');
+          box(ctx, sx + 20, sy + 60, 20, 18, '#e9b820', 5);
+          box(ctx, sx + 86, sy + 60, 20, 18, '#8c7279', 5);
+          drawIcon(ctx, 'coffee', sx + 52, sy + sh - 72, 1.5);
+          // Shutter
+          const covered = sh * (1 - this.raised);
+          for (let y = sy; y < sy + covered; y += 6) {
+            rect(ctx, sx, y, sw, 6, '#9aa3a8');
+            rect(ctx, sx, y, sw, 1, '#d5dbde');
+            rect(ctx, sx, y + 4.5, sw, 1.5, '#6e777c');
+          }
+          rect(ctx, sx, sy + covered - 4, sw, 4, '#4a5155');
+          box(ctx, sx + sw / 2 - 10, sy + covered - 7, 20, 3, '#3a3f42', 1);
+          rect(ctx, sx - 4, sy - 4, 4, sh + 4, '#8a5a32');
+          rect(ctx, sx + sw, sy - 4, 4, sh + 4, '#8a5a32');
+          // Pavement
+          rect(ctx, 0, 250, W, 70, '#b8b0a0');
+          for (let x = 0; x < W; x += 20) rect(ctx, x, 250, 0.5, 70, '#a39b8a');
+          person(ctx, LOOKS.blanca, 150, 210, 1.4, { mood: this.result === 'win' ? 'happy' : 'neutral', legs: true });
+          if (this.result === 'win') bubble(ctx, t('mini.shutterOk'), 150, 188);
+          // Progress
+          box(ctx, 20, 290, 140, 12, OUTLINE, 2);
+          rect(ctx, 22, 292, 136, 8, '#4a3a33');
+          rect(ctx, 22, 292, 136 * Math.min(1, this.raised), 8, '#2ecc71');
+        },
+      };
+    },
+  },
 ];
 
 export const MINIGAME_IDS = GAMES.map((g) => g.id);
@@ -778,6 +1128,9 @@ export class MiniRun {
     this.last = null;
     this.shake = 0;
     this.confetti = [];
+    this.streak = 0;
+    this.bump = 0;
+    this.tickT = 0;
     this.next();
   }
 
@@ -813,6 +1166,7 @@ export class MiniRun {
     }
     this.confetti = this.confetti.filter((c) => c.t < c.life);
     this.shake = Math.max(0, this.shake - dt);
+    this.bump = Math.max(0, this.bump - dt);
     if (this.over) {
       this.overTime += dt;
       return;
@@ -828,6 +1182,14 @@ export class MiniRun {
     } else if (this.phase === 'play') {
       const sdt = dt * this.speed;
       g.elapsed += sdt;
+      // Ticking clock when time is running out
+      if (this.timeLeft() < 0.3) {
+        this.tickT -= dt;
+        if (this.tickT <= 0) {
+          this.tickT = 0.25;
+          this.emit('tick', {});
+        }
+      }
       if (g.update) g.update(sdt, this);
       if (g.result) this.finish(g.result);
       else if (g.elapsed >= g.dur) this.finish(g.timeout ? g.timeout(this) : 'lose');
@@ -857,8 +1219,11 @@ export class MiniRun {
     this.pt = 0;
     this.result = result;
     this.game.result = result;
+    this.closeCall = result === 'win' && this.timeLeft() < 0.2;
     if (result === 'win') {
       this.score++;
+      this.streak++;
+      this.bump = 0.35;
       for (let i = 0; i < 30; i++) {
         this.confetti.push({
           x: Math.random() * W,
@@ -873,6 +1238,7 @@ export class MiniRun {
       this.emit('miniWin', { score: this.score });
     } else {
       this.lives--;
+      this.streak = 0;
       this.shake = 0.35;
       this.emit('miniLose', { lives: this.lives });
     }
@@ -886,6 +1252,11 @@ export class MiniRun {
       return;
     }
     if (this.phase === 'play' && this.game.down) this.game.down(x, y, this);
+  }
+
+  /** Finger moved while pressed. */
+  move(x, y) {
+    if (this.phase === 'play' && this.game.move) this.game.move(x, y, this);
   }
 
   /** Finger released. */
@@ -909,7 +1280,12 @@ function drawHud(ctx, run, now) {
   rect(ctx, 0, HUD_H, W, 1, OUTLINE);
   for (let i = 0; i < LIVES; i++) drawHeart(ctx, 4 + i * 9, 5.5, i < run.lives);
   box(ctx, 66, 3, 48, 12, 'rgba(0,0,0,0.35)', 2);
-  text(ctx, String(run.score), 90, 5.5, { size: 7, color: '#f5c542', align: 'center' });
+  const bump = 1 + run.bump * 1.2;
+  ctx.save();
+  ctx.translate(90, 9);
+  ctx.scale(bump, bump);
+  text(ctx, String(run.score), 0, -3.5, { size: 7, color: '#f5c542', align: 'center' });
+  ctx.restore();
   rect(ctx, 165, 5.5, 3, 7, '#f5e6c8');
   rect(ctx, 170, 5.5, 3, 7, '#f5e6c8');
   text(ctx, `x${run.speed.toFixed(2).replace(/0$/, '')}`, 158, 6.5, { size: 5, color: '#ffd9b0', align: 'right' });
@@ -924,6 +1300,13 @@ function drawHud(ctx, run, now) {
 
 function drawIntro(ctx, run, t) {
   const k = Math.min(1, run.pt / 0.25);
+  // Mustard curtain sliding away to reveal the next scene
+  const wipe = Math.min(1, run.pt / 0.3);
+  if (wipe < 1) {
+    const e = wipe * wipe;
+    rect(ctx, -e * W * 1.2, 0, W * 1.2, H, '#e8c21c');
+    rect(ctx, -e * W * 1.2 + W * 1.2 - 4, 0, 4, H, '#b8930a');
+  }
   ctx.globalAlpha = 0.55 * k;
   rect(ctx, 0, 0, W, H, '#2b1a10');
   ctx.globalAlpha = 1;
@@ -955,6 +1338,11 @@ function drawResult(ctx, run, t) {
   const size = fitSize(ctx, label, 170, 16);
   text(ctx, label, 0, -size / 2, { size, color: win ? '#2ecc71' : '#e74c3c', align: 'center', outline: OUTLINE });
   ctx.restore();
+  if (win && run.closeCall) {
+    text(ctx, t('mini.closeCall'), W / 2, 172, { size: 7, color: '#f5c542', align: 'center', outline: OUTLINE });
+  } else if (win && run.streak >= 3) {
+    text(ctx, t('mini.streak', { n: run.streak }), W / 2, 172, { size: 7, color: '#ff9f43', align: 'center', outline: OUTLINE });
+  }
 }
 
 function drawSpeedup(ctx, run, t, now) {
