@@ -3,16 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-    <title>Rush Hour at Álvaro's</title>
-    <meta name="description" content="A pixel-art arcade game about serving the regulars at Álvaro's bar before they lose their patience." />
+    <title>Álvaro's Gastrobar</title>
+    <meta name="description" content="The game of Álvaro's Gastrobar: mini-games with Blanca and the team, chinos and a week behind the bar." />
     <meta name="theme-color" content="#8a5a32" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Álvaro's" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="icons/icon-180.png" />
-    <meta property="og:title" content="Rush Hour at Álvaro's" />
+    <link rel="apple-touch-icon" href="assets/icons/icon-180.png" />
+    <meta property="og:title" content="Álvaro's Gastrobar" />
     <meta property="og:description" content="Serve the regulars before they lose their patience. Can you beat my score?" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -24,52 +24,56 @@
     <main id="stage">
       <canvas id="game" aria-label="Game"></canvas>
 
-      <section id="screen-title" class="screen">
+      <section id="screen-title" class="screen title-screen">
         <canvas id="logo" class="logo" width="720" height="240" aria-hidden="true"></canvas>
-        <h1 data-i18n="title"></h1>
-        <p class="subtitle" data-i18n="subtitle"></p>
-        <p class="scores">
-          <span data-i18n="totalStars"></span>: <strong id="title-total"></strong>
-          · <span data-i18n="minigames"></span>: <strong id="title-mini"></strong>
-          · <span data-i18n="rush"></span>: <strong id="title-best"></strong>
-        </p>
+        <h1 class="visually-hidden" data-i18n="title"></h1>
+
+        <button id="btn-mini" class="hero" type="button">
+          <canvas class="hero-icon" data-icon="mini" width="128" height="128" aria-hidden="true"></canvas>
+          <span class="hero-text">
+            <strong data-i18n="minigames"></strong>
+            <small data-i18n="minigamesDesc"></small>
+          </span>
+          <span class="hero-play" data-i18n="playNow"></span>
+          <span class="badge"><span data-i18n="best"></span> <b id="title-mini"></b></span>
+        </button>
+
+        <div class="modes">
+          <button id="btn-chinos" class="mode mode-chinos" type="button">
+            <canvas class="mode-icon" data-icon="chinos" width="96" height="96" aria-hidden="true"></canvas>
+            <strong data-i18n="chinosShort"></strong>
+            <small><span data-i18n="chinosWins"></span>: <b id="title-chinos"></b></small>
+          </button>
+          <button id="btn-play" class="mode mode-week" type="button">
+            <canvas class="mode-icon" data-icon="week" width="96" height="96" aria-hidden="true"></canvas>
+            <strong data-i18n="weekShort"></strong>
+            <small><b id="title-total"></b></small>
+          </button>
+          <button id="btn-rush" class="mode mode-rush" type="button">
+            <canvas class="mode-icon" data-icon="rush" width="96" height="96" aria-hidden="true"></canvas>
+            <strong data-i18n="rush"></strong>
+            <small><span data-i18n="best"></span>: <b id="title-best"></b></small>
+          </button>
+          <button id="btn-daily" class="mode mode-daily" type="button">
+            <canvas class="mode-icon" data-icon="daily" width="96" height="96" aria-hidden="true"></canvas>
+            <strong data-i18n="daily"></strong>
+            <small id="daily-twist"></small>
+          </button>
+        </div>
+
         <div class="team">
           <p class="team-title" data-i18n="teamTitle"></p>
           <div id="team-list" class="team-list"></div>
           <p id="team-desc" class="team-desc"></p>
         </div>
-        <div class="buttons">
-          <button id="btn-mini" class="btn primary" type="button">
-            <span data-i18n="minigames"></span>
-            <small class="light" data-i18n="minigamesDesc"></small>
-          </button>
-          <button id="btn-chinos" class="btn" type="button">
-            <span data-i18n="chinosMode"></span>
-            <small data-i18n="chinosDesc"></small>
-          </button>
-          <button id="btn-play" class="btn" type="button">
-            <span data-i18n="week"></span>
-            <small data-i18n="chooseDay"></small>
-          </button>
-          <div class="row">
-            <button id="btn-rush" class="btn" type="button">
-              <span data-i18n="rush"></span>
-            </button>
-            <button id="btn-daily" class="btn" type="button">
-              <span data-i18n="daily"></span>
-              <small id="daily-twist"></small>
-            </button>
-          </div>
-          <div class="row">
-            <button id="btn-album" class="btn" type="button" data-i18n="album"></button>
-            <button id="btn-howto" class="btn" type="button" data-i18n="howTo"></button>
-          </div>
-        </div>
-        <div class="toggles">
-          <button id="btn-lang" class="chip" type="button"></button>
-          <button id="btn-sound" class="chip" type="button"></button>
-          <button id="btn-fullscreen" class="chip" type="button"></button>
-        </div>
+
+        <nav class="toolbar">
+          <button id="btn-album" class="tool" type="button"><span class="tool-icon">📖</span><span data-i18n="albumShort"></span></button>
+          <button id="btn-howto" class="tool" type="button"><span class="tool-icon">❓</span><span data-i18n="howToShort"></span></button>
+          <button id="btn-lang" class="tool" type="button"></button>
+          <button id="btn-sound" class="tool" type="button"></button>
+          <button id="btn-fullscreen" class="tool" type="button"></button>
+        </nav>
       </section>
 
       <section id="screen-week" class="screen hidden">
@@ -126,6 +130,6 @@
 
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
     </main>
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="src/main.js"></script>
   </body>
 </html>

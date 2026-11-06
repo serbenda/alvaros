@@ -12,9 +12,9 @@ import {
   RUSH_LEVEL,
   HELPERS,
   TV_GOALS,
-} from './config.js';
-import { W, HUD_H, SEAT_X, TRAY, BOSS_X, stationRect, traySlotRect, inside, seatAt } from './layout.js';
-import { makeLook } from './sprites.js';
+} from '../../config.js';
+import { W, HUD_H, SEAT_X, TRAY, BOSS_X, stationRect, traySlotRect, inside, seatAt } from '../../core/layout.js';
+import { makeLook } from '../../graphics/sprites.js';
 
 const lerp = (a, b, k) => a + (b - a) * k;
 const clamp01 = (v) => Math.max(0, Math.min(1, v));

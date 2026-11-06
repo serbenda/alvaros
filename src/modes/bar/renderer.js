@@ -19,12 +19,12 @@ import {
   STATION_PANEL_Y,
   stationRect,
   traySlotRect,
-} from './layout.js';
-import { STATIONS, MAX_STRIKES, PLAYER, BOSS, CLOCK, HELPERS } from './config.js';
-import { drawIcon, drawPerson, drawHeart, drawCoin, shade, OUTLINE } from './sprites.js';
+} from '../../core/layout.js';
+import { STATIONS, MAX_STRIKES, PLAYER, BOSS, CLOCK, HELPERS } from '../../config.js';
+import { drawIcon, drawPerson, drawHeart, drawCoin, shade, OUTLINE } from '../../graphics/sprites.js';
 import { ENTER_TIME, ENJOY_TIME, LEAVE_TIME } from './game.js';
+import { FONT, rect, box, text, clamp, glow, outline, easeInOut } from '../../graphics/draw.js';
 
-export const FONT = '"Press Start 2P", ui-monospace, monospace';
 let layerScale = 4;
 
 const STATION_ACCENTS = {
@@ -38,51 +38,11 @@ const STATION_ACCENTS = {
 
 // ---- Drawing helpers ------------------------------------------------------------
 
-function rect(ctx, x, y, w, h, color) {
-  ctx.fillStyle = color;
-  ctx.fillRect(x, y, w, h);
-}
 
-/** Pixel-style rounded box: a rectangle with its four corner pixels cut off. */
-function box(ctx, x, y, w, h, color, radius = 1) {
-  ctx.fillStyle = color;
-  ctx.fillRect(x + radius, y, w - radius * 2, h);
-  ctx.fillRect(x, y + radius, w, h - radius * 2);
-}
 
-function text(ctx, str, x, y, { size = 6, color = '#fff', align = 'left', outline = null, shadow = null } = {}) {
-  ctx.font = `${size}px ${FONT}`;
-  ctx.textAlign = align;
-  ctx.textBaseline = 'top';
-  if (shadow) {
-    ctx.fillStyle = shadow;
-    ctx.fillText(str, x + 0.75, y + 0.75);
-  }
-  if (outline) {
-    ctx.fillStyle = outline;
-    for (const [dx, dy] of [[-0.75, 0], [0.75, 0], [0, -0.75], [0, 0.75], [-0.75, -0.75], [0.75, 0.75], [-0.75, 0.75], [0.75, -0.75]]) {
-      ctx.fillText(str, x + dx, y + dy);
-    }
-  }
-  ctx.fillStyle = color;
-  ctx.fillText(str, x, y);
-}
 
-const easeInOut = (k) => (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
 
-function clamp(v, lo, hi) {
-  return Math.max(lo, Math.min(hi, v));
-}
 
-function glow(ctx, x, y, radius, color, alpha) {
-  const g = ctx.createRadialGradient(x, y, 0, x, y, radius);
-  g.addColorStop(0, color);
-  g.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = g;
-  ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-  ctx.globalAlpha = 1;
-}
 
 // ---- Cached layers ----------------------------------------------------------------
 
@@ -1170,12 +1130,6 @@ export function drawStar(ctx, x, y, filled, scale = 1) {
   }
 }
 
-function outline(ctx, x, y, w, h, color, t = 1) {
-  rect(ctx, x, y, w, t, color);
-  rect(ctx, x, y + h - t, w, t, color);
-  rect(ctx, x, y, t, h, color);
-  rect(ctx, x + w - t, y, t, h, color);
-}
 
 function drawLockedStation(ctx, r) {
   box(ctx, r.x - 1, r.y - 1, r.w + 2, r.h + 2, OUTLINE, 2);
@@ -1395,7 +1349,8 @@ function drawTv(ctx, game, now) {
 // ---- Metal shutter (persiana) ---------------------------------------------------------
 
 function drawShutter(ctx, game) {
-  let closed = 1;
+  // Behind the menus (no game) the bar is open, so the title screen shows it alive.
+  let closed = 0;
   if (game) {
     if (game.over) closed = Math.min(1, Math.max(0, (game.overTime - 0.2) / 0.6));
     else closed = Math.max(0, 1 - game.time / 0.8);
@@ -1417,7 +1372,7 @@ function drawShutter(ctx, game) {
   }
   const ty = top + h - fullH / 2 - 12;
   text(ctx, "ÁLVARO'S", W / 2, ty, { size: 12, color: '#c0392b', align: 'center', shadow: '#5a1a12' });
-  text(ctx, 'BAR · CAFETERÍA', W / 2, ty + 17, { size: 5, color: '#2b1d14', align: 'center' });
+  text(ctx, 'GASTROBAR', W / 2, ty + 17, { size: 5, color: '#2b1d14', align: 'center' });
   ctx.restore();
   rect(ctx, 0, top + h - 4, W, 4, '#4a5155');
   rect(ctx, 0, top + h - 4, W, 1, '#8a9398');

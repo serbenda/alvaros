@@ -1,7 +1,7 @@
 {
-  "name": "Hora punta en Álvaro's",
+  "name": "Álvaro's Gastrobar",
   "short_name": "Álvaro's",
-  "description": "Serve the regulars at Álvaro's bar before they lose their patience.",
+  "description": "The game of Álvaro's Gastrobar: mini-games with Blanca and the team, chinos and a week behind the bar.",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
@@ -10,7 +10,7 @@
   "background_color": "#6e4426",
   "theme_color": "#8a5a32",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }

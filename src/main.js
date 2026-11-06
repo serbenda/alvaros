@@ -1,16 +1,20 @@
 // Entry point: wires the canvas, menus, input, sound and saved progress.
 
 import { PLAYER, HELPERS, BOSS, STATIONS, DAILY_TWISTS, CUSTOMER_TYPES, WEEK, RUSH_LEVEL } from './config.js';
-import { W, H } from './layout.js';
-import { Game } from './game.js';
-import { render, setRenderScale } from './renderer.js';
-import { MiniRun, renderMini, MINIGAME_IDS } from './minigames.js';
-import { ChinosGame, renderChinos } from './chinos.js';
-import { Sfx } from './audio.js';
-import { t, setLang, getLang, detectLang, money } from './i18n.js';
-import { load, save } from './storage.js';
-import { makeLook, drawPerson } from './sprites.js';
-import { mulberry32, hashString } from './rng.js';
+import { W, H } from './core/layout.js';
+import { Game } from './modes/bar/game.js';
+import { render, setRenderScale, drawStar } from './modes/bar/renderer.js';
+import { MiniRun, MINIGAME_IDS } from './modes/minigames/run.js';
+import { renderMini } from './modes/minigames/render.js';
+import { ChinosGame, renderChinos } from './modes/chinos/chinos.js';
+import { Sfx } from './core/audio.js';
+import { t, setLang, getLang, detectLang, money } from './core/i18n.js';
+import { load, save } from './core/storage.js';
+import { makeLook, drawPerson, drawIcon } from './graphics/sprites.js';
+import { mulberry32, hashString } from './core/rng.js';
+import { fullscreenSupported, isFullscreen, enterFullscreen, exitFullscreen, autoFullscreen } from './ui/fullscreen.js';
+import { drawLogo } from './ui/logo.js';
+import { shareCard } from './ui/share.js';
 
 const PORTRAIT_SCALE = 4;
 let SCALE = 4;
@@ -34,44 +38,6 @@ function resize() {
 resize();
 window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 200));
-
-// ---- Full screen ----------------------------------------------------------------
-
-function fullscreenSupported() {
-  const el = document.documentElement;
-  return !!(el.requestFullscreen || el.webkitRequestFullscreen);
-}
-
-function isFullscreen() {
-  return !!(document.fullscreenElement || document.webkitFullscreenElement);
-}
-
-function enterFullscreen() {
-  const el = document.documentElement;
-  try {
-    const request = el.requestFullscreen || el.webkitRequestFullscreen;
-    const result = request && request.call(el, { navigationUI: 'hide' });
-    if (result && result.catch) result.catch(() => {});
-  } catch {
-    // Not allowed here; the game still works in the browser window.
-  }
-}
-
-function exitFullscreen() {
-  try {
-    const exit = document.exitFullscreen || document.webkitExitFullscreen;
-    const result = exit && exit.call(document);
-    if (result && result.catch) result.catch(() => {});
-  } catch {
-    // Ignore.
-  }
-}
-
-/** On phones and tablets, go full screen when a game starts. */
-function autoFullscreen() {
-  const touch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-  if (touch && fullscreenSupported() && !isFullscreen()) enterFullscreen();
-}
 
 const state = load();
 setLang(state.lang || detectLang());
@@ -190,6 +156,7 @@ function renderTeam() {
 function renderTitle() {
   $('title-best').textContent = money(state.best);
   $('title-mini').textContent = String(state.miniBest || 0);
+  $('title-chinos').textContent = String(state.chinosWins || 0);
   $('title-total').textContent = `${totalStars()} / ${WEEK.length * 3} ★`;
   $('daily-twist').textContent = t(`twists.${dailyTwist().id}`);
   renderTeam();
@@ -259,8 +226,9 @@ function applyLanguage() {
   document.documentElement.lang = getLang();
   document.title = t('title');
   for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
-  $('btn-lang').textContent = getLang() === 'es' ? 'English' : 'Español';
-  $('btn-sound').textContent = state.muted ? t('soundOff') : t('soundOn');
+  $('btn-lang').innerHTML = `<span class="tool-icon">🌐</span><span>${getLang() === 'es' ? 'English' : 'Español'}</span>`;
+  updateSoundButton();
+  drawMenuIcons();
   updateFullscreenButton();
   renderTitle();
   renderWeek();
@@ -521,75 +489,6 @@ function quitToTitle() {
   }
 }
 
-/** Builds a square score card image: the sign, Blanca, the score and the link. */
-function makeCard(text, scoreLabel) {
-  const S = 4;
-  const size = 270;
-  const c = document.createElement('canvas');
-  c.width = size * S;
-  c.height = size * S;
-  const g = c.getContext('2d');
-  g.imageSmoothingEnabled = false;
-  g.setTransform(S, 0, 0, S, 0, 0);
-  // Background: the bar's wall, brick strip and wooden floor
-  g.fillStyle = '#fdf9f1';
-  g.fillRect(0, 0, size, size);
-  g.fillStyle = '#aaa49b';
-  g.fillRect(0, 150, size, 40);
-  g.fillStyle = '#8b857c';
-  for (let y = 150; y < 190; y += 5) g.fillRect(0, y, size, 0.6);
-  g.fillStyle = '#cf8e5c';
-  g.fillRect(0, 190, size, 80);
-  g.fillStyle = '#dcae74';
-  g.fillRect(0, 186, size, 5);
-  // Sign
-  const sign = document.createElement('canvas');
-  sign.width = 720;
-  sign.height = 240;
-  drawLogo(0.2, sign.getContext('2d'), 4);
-  g.drawImage(sign, 45, 6, 180, 60);
-  // Blanca, big and happy
-  g.save();
-  g.translate(64, 98);
-  g.scale(3.2, 3.2);
-  drawPerson(g, PLAYER.look, 0, 0, { mood: 'happy', legs: true });
-  g.restore();
-  // Score
-  g.textAlign = 'center';
-  g.textBaseline = 'middle';
-  g.font = '7px "Press Start 2P", monospace';
-  g.fillStyle = '#8a5a32';
-  g.fillText(scoreLabel, 178, 96);
-  g.font = '30px "Press Start 2P", monospace';
-  g.fillStyle = '#e9b820';
-  g.fillText(String(lastScoreText()), 180, 128);
-  g.fillStyle = '#c0392b';
-  g.fillText(String(lastScoreText()), 178, 126);
-  // Challenge line and link
-  g.fillStyle = 'rgba(36,22,15,0.85)';
-  g.fillRect(0, 222, size, 48);
-  g.font = '7px "Press Start 2P", monospace';
-  g.fillStyle = '#fffaf0';
-  const words = text.split(' ');
-  let line = '';
-  const lines = [];
-  for (const w of words) {
-    const test = line ? `${line} ${w}` : w;
-    if (g.measureText(test).width > 250 && line) {
-      lines.push(line);
-      line = w;
-    } else {
-      line = test;
-    }
-  }
-  lines.push(line);
-  lines.slice(0, 2).forEach((l, i) => g.fillText(l, size / 2, 234 + i * 11));
-  g.font = '6px "Press Start 2P", monospace';
-  g.fillStyle = '#f8d75a';
-  g.fillText(location.host + location.pathname.replace(/index\.html$/, ''), size / 2, 260);
-  return c;
-}
-
 function lastScoreText() {
   if (mode === 'mini') return lastScore;
   if (mode === 'chinos') return `${lastScore}-${lastChinosHer}`;
@@ -608,29 +507,16 @@ async function share() {
   } else if (mode === 'week') {
     label = t(`days.${WEEK[day].id}`);
   }
-  const url = location.href.split('#')[0].split('?')[0];
   try {
-    const card = makeCard(text, label.toUpperCase());
-    const blob = await new Promise((resolve) => card.toBlob(resolve, 'image/png'));
-    const file = blob && new File([blob], 'alvaros.png', { type: 'image/png' });
-    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: t('title'), text: `${text} ${url}` });
-      return;
-    }
-    if (navigator.share) {
-      await navigator.share({ title: t('title'), text, url });
-      return;
-    }
-    // Desktop: download the card and copy the text
-    if (blob) {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'alvaros.png';
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-    }
-    await navigator.clipboard.writeText(`${text} ${url}`);
-    toast(t('copied'));
+    const result = await shareCard({
+      title: t('title'),
+      text,
+      label: label.toUpperCase(),
+      score: lastScoreText(),
+      look: PLAYER.look,
+      url: location.href.split('#')[0].split('?')[0],
+    });
+    if (result === 'copied') toast(t('copied'));
   } catch {
     // Cancelled or not allowed.
   }
@@ -722,10 +608,17 @@ $('btn-lang').addEventListener('click', () => {
   applyLanguage();
 });
 
+function updateSoundButton() {
+  const button = $('btn-sound');
+  button.innerHTML = `<span class="tool-icon">${state.muted ? '🔇' : '🔊'}</span><span>${t('soundShort')}</span>`;
+  button.title = state.muted ? t('soundOff') : t('soundOn');
+}
+
 function updateFullscreenButton() {
   const button = $('btn-fullscreen');
   button.classList.toggle('hidden', !fullscreenSupported());
-  button.textContent = isFullscreen() ? t('exitFullscreen') : t('fullscreen');
+  button.innerHTML = `<span class="tool-icon">${isFullscreen() ? '🗗' : '⛶'}</span><span>${t('screenShort')}</span>`;
+  button.title = isFullscreen() ? t('exitFullscreen') : t('fullscreen');
 }
 
 $('btn-fullscreen').addEventListener('click', () => {
@@ -745,69 +638,71 @@ $('btn-sound').addEventListener('click', () => {
   state.muted = !state.muted;
   sfx.muted = state.muted;
   save(state);
-  $('btn-sound').textContent = state.muted ? t('soundOff') : t('soundOn');
+  updateSoundButton();
 });
+
+// ---- Menu icons -----------------------------------------------------------------
+
+/** Pixel-art icons for the mode buttons on the title screen. */
+function drawMenuIcons() {
+  for (const c of document.querySelectorAll('canvas[data-icon]')) {
+    const g = c.getContext('2d');
+    const s = c.width / 32;
+    g.setTransform(s, 0, 0, s, 0, 0);
+    g.clearRect(0, 0, 32, 32);
+    const R = (x, y, w, h, color) => {
+      g.fillStyle = color;
+      g.fillRect(x, y, w, h);
+    };
+    switch (c.dataset.icon) {
+      case 'mini':
+        drawIcon(g, 'beer', 1, 4, 1.5);
+        g.save();
+        g.translate(14, 10);
+        g.rotate(0.25);
+        drawIcon(g, 'coffee', 0, 0, 1.1);
+        g.restore();
+        R(24, 2, 2, 6, '#ffffff');
+        R(22, 4, 6, 2, '#ffffff');
+        break;
+      case 'chinos':
+        for (const [x, y] of [[6, 18], [14, 12], [20, 20], [11, 22]]) {
+          R(x - 5, y - 5, 10, 10, '#24160f');
+          R(x - 4, y - 4, 8, 8, '#d4a017');
+          R(x - 3, y - 3, 6, 6, '#f5c542');
+          R(x - 2, y - 2, 1.5, 3, '#fff1a8');
+        }
+        break;
+      case 'week':
+        R(3, 5, 26, 24, '#24160f');
+        R(4, 6, 24, 22, '#fffaf0');
+        R(4, 6, 24, 6, '#27ae60');
+        R(9, 3, 2, 5, '#24160f');
+        R(21, 3, 2, 5, '#24160f');
+        for (let i = 0; i < 9; i++) R(7 + (i % 3) * 7, 14 + Math.floor(i / 3) * 4.5, 4, 3, i < 4 ? '#f5c542' : '#d9c7a6');
+        break;
+      case 'rush':
+        R(6, 5, 20, 22, '#24160f');
+        R(7, 6, 18, 20, '#ffffff');
+        R(15.5, 8, 1.5, 9, '#24160f');
+        R(15.5, 15.5, 7, 1.5, '#24160f');
+        R(10, 1, 4, 3, '#e74c3c');
+        R(18, 1, 4, 3, '#e74c3c');
+        R(2, 26, 4, 4, '#ff9f43');
+        R(26, 26, 4, 4, '#ff9f43');
+        break;
+      case 'daily':
+        drawStar(g, 2, 2, true, 4);
+        break;
+      default:
+        break;
+    }
+  }
+}
 
 // ---- Title logo -----------------------------------------------------------------
 
-const logo = $('logo');
-const logoCtx = logo.getContext('2d');
-
-/** The bar's sign: light wood, marquee bulbs and the name in red. */
-function drawLogo(now, c = logoCtx, scale = 4) {
-  c.setTransform(scale, 0, 0, scale, 0, 0);
-  c.clearRect(0, 0, 180, 60);
-  const R = (x, y, w, h, color) => {
-    c.fillStyle = color;
-    c.fillRect(x, y, w, h);
-  };
-  // Hanging chains
-  R(40, 0, 1, 8, '#5a4030');
-  R(139, 0, 1, 8, '#5a4030');
-  // Board
-  R(6, 7, 168, 46, '#24160f');
-  R(8, 9, 164, 42, '#d9a868');
-  R(8, 9, 164, 2, '#ecc48d');
-  R(8, 49, 164, 2, '#a8743e');
-  R(13, 14, 154, 32, '#fffaf0');
-  R(13, 14, 154, 1.5, '#efe9de');
-  // Marquee bulbs
-  const phase = Math.floor(now * 4);
-  let i = 0;
-  for (let x = 16; x <= 164; x += 6) {
-    for (const y of [11.5, 47.5]) {
-      const on = (i + phase) % 3 !== 0;
-      R(x - 1, y - 1, 2, 2, on ? '#fff3b0' : '#a8743e');
-      if (on) {
-        c.globalAlpha = 0.35;
-        R(x - 2, y - 2, 4, 4, '#ffe08a');
-        c.globalAlpha = 1;
-      }
-      i++;
-    }
-  }
-  // Coffee cup with steam
-  R(20, 26, 14, 12, '#24160f');
-  R(21, 27, 12, 10, '#ffffff');
-  R(21, 27, 12, 2, '#6f3b1e');
-  R(33, 29, 4, 6, '#24160f');
-  R(34, 30, 2, 4, '#ffffff');
-  R(18, 37, 18, 2, '#24160f');
-  const s = Math.sin(now * 3);
-  R(24 + s, 20, 1.5, 4, '#c9c9d4');
-  R(29 - s, 18, 1.5, 5, '#c9c9d4');
-  // Name
-  c.font = '15px "Press Start 2P", monospace';
-  c.textAlign = 'center';
-  c.textBaseline = 'middle';
-  c.fillStyle = '#f0c9a0';
-  c.fillText("ÁLVARO'S", 102, 32);
-  c.fillStyle = '#c0392b';
-  c.fillText("ÁLVARO'S", 101, 31);
-  c.font = '5px "Press Start 2P", monospace';
-  c.fillStyle = '#8a5a32';
-  c.fillText('BAR · CAFETERÍA', 101, 42);
-}
+const logoCtx = $('logo').getContext('2d');
 
 // ---- Loop -----------------------------------------------------------------------
 
@@ -818,7 +713,7 @@ function frame(now) {
   ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
   ctx.imageSmoothingEnabled = false;
   const opts = { t, now: now / 1000, dt: paused ? 0 : dt };
-  if (!$('screen-title').classList.contains('hidden')) drawLogo(now / 1000);
+  if (!$('screen-title').classList.contains('hidden')) drawLogo(logoCtx, now / 1000);
   if (game && mode === 'mini') renderMini(ctx, game, opts);
   else if (game && mode === 'chinos') renderChinos(ctx, game, opts);
   else render(ctx, game && game.seats ? game : null, opts);
