@@ -25,7 +25,7 @@ import { drawIcon, drawPerson, drawHeart, drawCoin, shade, OUTLINE } from './spr
 import { ENTER_TIME, ENJOY_TIME, LEAVE_TIME } from './game.js';
 
 export const FONT = '"Press Start 2P", ui-monospace, monospace';
-const LAYER_SCALE = 4;
+let layerScale = 4;
 
 const STATION_ACCENTS = {
   coffee: '#8b4a2b',
@@ -88,13 +88,20 @@ function glow(ctx, x, y, radius, color, alpha) {
 
 const layers = {};
 
+/** Sets the pixel density of the cached layers, so big screens stay sharp. */
+export function setRenderScale(scale) {
+  if (scale === layerScale) return;
+  layerScale = scale;
+  for (const name of Object.keys(layers)) delete layers[name];
+}
+
 function layer(name, paint) {
   if (!layers[name]) {
     const c = document.createElement('canvas');
-    c.width = W * LAYER_SCALE;
-    c.height = H * LAYER_SCALE;
+    c.width = W * layerScale;
+    c.height = H * layerScale;
     const lctx = c.getContext('2d');
-    lctx.setTransform(LAYER_SCALE, 0, 0, LAYER_SCALE, 0, 0);
+    lctx.setTransform(layerScale, 0, 0, layerScale, 0, 0);
     lctx.imageSmoothingEnabled = false;
     paint(lctx);
     layers[name] = c;
