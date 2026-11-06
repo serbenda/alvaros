@@ -8,7 +8,7 @@ Thanks for wanting to help with the Álvaro's Gastrobar game! Ideas, bug reports
 - **Suggest an idea or a mini-game**: open an issue with the *Idea or new mini-game* template. The best mini-games use a single gesture (tap, hold or drag) and something recognisable from the bar.
 - **Send code**: fork the repository, make your change and open a pull request (see below).
 
-Please follow the [code of conduct](CODE_OF_CONDUCT.md).
+Please follow the [code of conduct](CODE_OF_CONDUCT.md). The project is proprietary (see [LICENSE](LICENSE)): by sending a contribution you agree that it becomes part of the project under the same terms.
 
 ## Workflow
 

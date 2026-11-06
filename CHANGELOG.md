@@ -11,6 +11,7 @@ All notable changes to this project are documented here.
 - Shareable score card image.
 - CI workflow, editor config, architecture notes and locale tests.
 - Community files: contributing guide, issue templates (bug, idea or new mini-game), pull request template, code of conduct and security policy.
+- Proprietary license (all rights reserved).
 
 ### Changed
 - The penalty mini-game is replaced by flipping the tortilla, which fits the bar better.

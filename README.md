@@ -146,3 +146,7 @@ Please follow the [code of conduct](CODE_OF_CONDUCT.md). Security issues: see [S
 - QR poster for the bar.
 - More mini-games and the team's real lines.
 - Achievements and unlockables.
+
+## License
+
+Proprietary. © 2026 Sergio Santiago Bendaña Quesada. All rights reserved — see [LICENSE](LICENSE). The code is public so it can be published on GitHub Pages, but it may not be copied, reused or redistributed without permission.
