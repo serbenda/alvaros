@@ -7,6 +7,7 @@ export class Sfx {
     this.musicTimer = null;
     this.musicStep = 0;
     this.nextNoteTime = 0;
+    this.tempo = 1;
   }
 
   /** Must be called from a user gesture before sounds can play on mobile. */
@@ -93,6 +94,9 @@ export class Sfx {
       case 'andrea':
         this.arpeggio([880, 1175], 0.08, { type: 'triangle', vol: 0.05 });
         break;
+      case 'tick':
+        this.tone(1200, 0.03, { vol: 0.03 });
+        break;
       case 'gameover':
         this.arpeggio([523, 392, 330, 262], 0.16, { type: 'triangle', vol: 0.07 });
         break;
@@ -118,7 +122,7 @@ export class Sfx {
 
   scheduleMusic() {
     if (!this.ctx) return;
-    const stepTime = 60 / 132 / 2; // eighth notes at 132 bpm
+    const stepTime = 60 / (132 * this.tempo) / 2; // eighth notes at 132 bpm, faster with the game
     // C - Am - F - G, two bars each
     const bass = [131, 131, 110, 110, 87, 87, 98, 98];
     const melody = [

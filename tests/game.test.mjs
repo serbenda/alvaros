@@ -2,10 +2,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { Game, ENTER_TIME } from '../js/game.js';
-import { PLAYER, HELPERS, STATIONS, ITEMS, MAX_STRIKES, BOSS, WEEK, RUSH_LEVEL } from '../js/config.js';
-import { t } from '../js/i18n.js';
-import { mulberry32 } from '../js/rng.js';
+import { Game, ENTER_TIME } from '../src/modes/bar/game.js';
+import { PLAYER, HELPERS, STATIONS, ITEMS, MAX_STRIKES, BOSS, WEEK, RUSH_LEVEL } from '../src/config.js';
+import { t } from '../src/core/i18n.js';
+import { mulberry32 } from '../src/core/rng.js';
 
 function newGame(overrides = {}) {
   const events = [];

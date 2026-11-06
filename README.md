@@ -1,103 +1,138 @@
-# Rush Hour at Álvaro's
+<div align="center">
 
-A pixel-art arcade game set in **Álvaro's**, a neighbourhood bar. You play as **Blanca**, the heart of the bar, serving coffees, toasts, beers, tapas and set menus before the regulars run out of patience.
+# Álvaro's Gastrobar — the game
 
-The game is available in **English and Spanish** and runs in any mobile or desktop browser, with nothing to install. It is designed to be shared with a QR code at the bar.
+**A pixel-art party game set in Álvaro's Gastrobar, starring Blanca and her team.**
+Quick mini-games, chinos against Blanca and a week behind the bar. For everyone who comes in: kids, grandparents and the competitive regulars.
 
-## How to play
+[**▶ Play now**](https://bendi.dev/alvaros/) · English and Spanish · Phones, tablets and desktop · No install
+
+<img src="docs/screenshots/menu.png" alt="Title menu" width="230" />
+<img src="docs/screenshots/minigame-intro.png" alt="Mini-game intro" width="230" />
+<img src="docs/screenshots/bar.png" alt="A shift at the bar" width="230" />
+
+</div>
+
+---
+
+## Game modes
+
+### 🎮 Mini-games
+Fifteen one-gesture challenges, one after another, faster every four wins. Four lives; your score is how many you survive.
+
+| | Mini-game | With | Gesture |
+| --- | --- | --- | --- |
+| 🍺 | Pour the beer | Blanca | Hold and let go in the green zone |
+| ⌚ | The gold watch | Alejandro | Find his gold watch among the others |
+| 📱 | Don't get caught | Pepe Nacho | Hide the phone the moment he walks in |
+| 😤 | Calm Blanca down | Blanca | Tap really fast |
+| 🍞 | Catch the toast | — | Tap it while it flies |
+| 🧽 | Wipe the counter | Mari | Tap every stain |
+| ☕ | Pour the coffee | Mari | Tap when the cup is under the machine |
+| ⚽ | Score a goal | The bar's TV | Shoot where the keeper is not |
+| 🔢 | How many? | Andrea | Count the drinks |
+| 🧾 | What did they order? | Andrea | Serve the right item |
+| 🥛 | Stack the cups | Mari | Drop each cup on the pile |
+| 🪰 | Shoo the fly | Andrea | Tap the fly before it lands on the tapa |
+| 📺 | Put the football on | Pepe Nacho | Stop on the right channel |
+| 🫙 | Catch the tips | Blanca | Move the jar with your finger |
+| 🚪 | Open the bar | Blanca | Tap fast to pull the shutter up |
+
+Add `?mini=<id>` to the URL to play a single one: `pour`, `watch`, `hide`, `calm`, `toast`, `wipe`, `coffee`, `penalty`, `count`, `order`, `stack`, `fly`, `channel`, `tips`, `shutter`.
+
+<img src="docs/screenshots/minigame-pour.png" alt="Pour the beer" width="200" />
+<img src="docs/screenshots/minigame-watch.png" alt="The gold watch" width="200" />
+<img src="docs/screenshots/minigame-hide.png" alt="Don't get caught" width="200" />
+<img src="docs/screenshots/minigame-tips.png" alt="Catch the tips" width="200" />
+
+### 🪙 Chinos with Blanca
+The classic bar coin game. Hide 0 to 3 coins, call the total of both hands without repeating Blanca's call, and be the first to guess right three times. Blanca reads your call to make hers, and she does not like losing.
+
+<img src="docs/screenshots/chinos.png" alt="Chinos with Blanca" width="230" />
+
+### 📅 A week at Álvaro's
+One shift per day, from Monday to Sunday. Prepare items at the stations and serve the customers before they lose their patience:
 
 1. Customers sit at the bar and show what they want in a speech bubble.
 2. Tap a station (coffee, juice, toast, beer, tapa, menu) to prepare it. When it is ready it goes to the tray.
 3. Tap the customer to hand it over. A customer you can serve glows green.
-4. Serve quickly for bigger tips, and chain orders to build a combo multiplier.
 
-Keyboard (desktop): `1`–`6` stations, `Q W E R` customers, `Z X C V` tray slots, `P` or `Esc` to pause.
+Monday only has coffee and toast, and a pointing hand shows what to tap; each day adds new items and a bit more pace. Shifts always end, tired customers just leave without a tip, and each day earns one to three stars. Keyboard on desktop: `1`–`6` stations, `Q W E R` customers, `Z X C V` tray, `P` to pause.
 
-## Game modes
-
-- **Mini-games** (main mode): quick one-gesture challenges with the whole team, faster and faster, with 4 lives. Pour the beer, find Alejandro's gold watch, hide from Pepe Nacho, calm Blanca down, catch the toast, wipe the counter, pour the coffee, score a penalty on the bar's TV, count the drinks and serve the right order. Add `?mini=<id>` to the URL to play a single one (`pour`, `watch`, `hide`, `calm`, `toast`, `wipe`, `coffee`, `penalty`, `count`, `order`).
-- **Chinos with Blanca**: the classic bar coin game. Hide 0 to 3 coins, call the total of both hands without repeating Blanca's call, and be the first to guess right 3 times.
-- **A week at Álvaro's** (for everyone): one shift per day, from Monday to Sunday. Monday only has coffee and toast and a pointing hand shows what to tap; each day adds new items and a bit more pace. Shifts always end (90–120 seconds), customers who get tired just leave without a tip, and each day earns 1 to 3 stars. One star opens the next day.
-- **Rush hour** (competitive): endless, with 3 lives and a growing pace. Pepe Nacho, the boss, shows up and doubles the tips for a while.
-- **Daily challenge**: rush hour with the same customers and the same twist for every player on a given day.
-
-## Features
-
-- Designed to be fun for children and older players: relaxed pace, no losing on weekdays, visual hints and big, clear buttons.
-- Live bar scene based on the real Álvaro's: white walls, light wood, mustard and mauve armchairs, copper lamps, sunflowers, a TV with football and a window onto the street.
-- Customers walk in, enjoy their order at the counter and walk out; dishes fly from the tray; machines fill up while preparing.
-- **The team at work**: Mari, Andrea, Alejandro and the boss Pepe Nacho appear in the bar and help in their own way.
-- **Goals on TV**: the customers cheer and get a bit more patient.
-- Cheerful background music.
-- Regulars album, records, total tips and a share button.
-- English and Spanish, chiptune sound effects and vibration, all generated in code.
-- Progress is saved in the browser (`localStorage`).
-- Fills phones and tablets: sharp at any size, the bar extends to the sides on wide screens, a full-screen button (automatic on touch devices when a game starts) and an app manifest so it opens full screen when added to the home screen.
+### ⏱️ Rush hour and the daily challenge
+The bar without an end, with three lives and a growing pace, for the competitive ones. The daily challenge gives every player the same customers and the same twist on the same day.
 
 ## The team
 
-You play as **Blanca**, the heart of the bar. The rest of the team works alongside her:
+| | Character | In the game |
+| --- | --- | --- |
+| 👩🏼 | **Blanca** | The player and the heart of the bar. Blonde, and says what she thinks: *"I don't want to see any of you!"* |
+| ☕ | **Mari** | Goes between the coffee machine and the counter; coffee and juice come out faster. |
+| 💬 | **Andrea** | Looks after the customers and calms down the ones who have waited too long. |
+| ⌚ | **Alejandro** | Never without his gold watch. Now and then takes a dish from your tray to a customer. |
+| 📋 | **Pepe Nacho** | The boss. Strolls around with his clipboard; while he is there, tips are doubled. |
 
-| Character | Role in the game |
-| --- | --- |
-| Blanca | The player. Prepares and serves everything. |
-| Mari | Goes between the coffee machine and the counter: coffee and juice come out faster. |
-| Andrea | Looks after the customers: now and then she chats with the one who has waited longest and gives them back patience. |
-| Alejandro | Strolls around checking his gold watch and now and then takes a dish from Blanca's tray to the customer who ordered it. |
-| Pepe Nacho | The boss. He comes in often, strolls around with his clipboard and, while he is there, tips are doubled. |
+The waiters and Pepe Nacho have black hair, and nobody has a beard or a moustache. Their looks are in `src/config.js` and their lines in `src/core/locales/`.
 
-Everyone is in the bar every day, moving around and doing their things.
+## Features
 
-The looks follow what we know: Blanca is blonde, the waiters (Mari, Andrea and Alejandro) and Pepe Nacho have black hair, nobody has a beard or a moustache, and Alejandro wears a gold watch. They are defined in `js/config.js` (`PLAYER`, `HELPERS` and `BOSS`).
+- **For everyone**: one-gesture mini-games, a relaxed week mode with hints, big buttons and clear text.
+- **Made for the bar**: the scenery follows the real Álvaro's Gastrobar — light wood beams, copper lamps, grey brick, mustard and mauve armchairs, the wine fridge and the colourful hat on the wall.
+- **Alive**: customers walk in and out, the team moves around and talks, goals on the TV, music that speeds up with the game.
+- **Shareable**: at the end of a game, the share button makes a score card image for WhatsApp or Instagram.
 
-## Running locally
+  <img src="docs/screenshots/score-card.png" alt="Score card" width="200" />
+- **Full screen** on phones and tablets, and installable with the browser's "Add to home screen".
+- **No server**: progress and records are saved in the browser.
 
-The game is a static site with ES modules, so it needs to be served over HTTP (opening `index.html` directly from disk will not load the modules).
+## Development
 
-```bash
-python3 -m http.server 8000
-# then open http://localhost:8000
-```
-
-## Tests
-
-The game rules live in `js/game.js`, which has no DOM dependencies, so they can be tested with Node.js 18+:
+The game is a static site: HTML, CSS and JavaScript ES modules, with no build step and no dependencies.
 
 ```bash
-npm test
+npm start        # serve on http://localhost:8000
+npm test         # unit tests (Node.js 18+)
+npm run check    # syntax check of every module
 ```
 
-## Deployment
+ES modules need to be served over HTTP; opening `index.html` from disk will not work.
 
-The site is ready for GitHub Pages: in the repository settings, go to **Pages** and publish from the `main` branch, root folder. The `.nojekyll` file makes sure every file is served as is.
-
-## Project structure
+### Project structure
 
 ```
-index.html          Page, menus and screens
-css/style.css       Styles for the menus (the game itself is drawn on a canvas)
-js/main.js          Entry point: menus, input, game loop, saving progress
-js/game.js          Game state and rules (no drawing, testable in Node)
-js/renderer.js      Draws the bar on the canvas
-js/sprites.js       Pixel art: item icons and characters
-js/config.js        Content and tuning: menu, customers, staff, difficulty, daily twists
-js/layout.js        Screen positions in logical pixels (180x320)
-js/i18n.js          English and Spanish text
-js/audio.js         Sound effects with the Web Audio API
-js/storage.js       Saved progress in localStorage
-js/rng.js           Seeded random numbers for the daily challenge
-js/minigames.js     Mini-games mode: the run engine and the ten mini-games
-js/chinos.js        Chinos against Blanca
-tests/              Unit tests for the game rules
-docs/               Game design notes
+index.html            Page and menus
+css/style.css         Menu styles
+assets/icons/         App icons
+src/
+  main.js             Entry point: menus, input, game loop
+  config.js           Game content and tuning
+  core/               Layout, translations, audio, storage, random numbers
+  graphics/           Pixel-art sprites and drawing helpers
+  modes/minigames/    Mini-games engine, renderer and one file per mini-game
+  modes/chinos/       Chinos against Blanca
+  modes/bar/          The week and rush hour: rules and renderer
+  ui/                 Full screen, logo and share card
+tests/                Unit tests
+docs/                 Architecture, game design and screenshots
 ```
 
-## Customising
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how it fits together and how to add a mini-game, and [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md) for the design.
 
-- **Menu and prices**: `ITEMS`, `STATIONS` and `MENUS` in `js/config.js`.
-- **The team and their looks**: `PLAYER`, `HELPERS` and `BOSS` in `js/config.js`.
-- **Catchphrases**: `phrases` in `js/i18n.js`, in both languages.
-- **Days of the week and star targets**: `WEEK` in `js/config.js`.
-- **Rush hour difficulty**: `DIFFICULTY` and `CUSTOMER_TYPES` in `js/config.js`.
+### Customising
 
-See [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md) for the design and the roadmap.
+- **Menu items and tips**: `ITEMS`, `STATIONS` and `MENUS` in `src/config.js`.
+- **The team and their looks**: `PLAYER`, `HELPERS` and `BOSS` in `src/config.js`.
+- **Lines and text**: `src/core/locales/en.js` and `es.js`.
+- **Days of the week and star targets**: `WEEK` in `src/config.js`.
+
+### Deployment
+
+GitHub Pages publishes the `main` branch from the repository root. Changes go to `development` and reach `main` through a pull request; CI runs the checks and tests on both. See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md).
+
+## Roadmap
+
+- Shared weekly ranking and tournaments (needs a small database).
+- Prize codes to show at the till.
+- QR poster for the bar.
+- More mini-games and the team's real lines.
+- Achievements and unlockables.

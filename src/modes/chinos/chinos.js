@@ -4,9 +4,10 @@
 // cannot be repeated. Whoever guesses right wins the round; the first to
 // reach POINTS_TO_WIN wins the match.
 
-import { W, H } from './layout.js';
-import { OUTLINE, shade } from './sprites.js';
-import { rect, box, text, bubble, person, bgTable, fitSize, LOOKS, vignette } from './minigames.js';
+import { W, H } from '../../core/layout.js';
+import { OUTLINE, shade } from '../../graphics/sprites.js';
+import { rect, box, text, bubble, person, fitSize, vignette } from '../../graphics/draw.js';
+import { bgTable, LOOKS } from '../minigames/scenes.js';
 
 export const MAX_COINS = 3;
 export const POINTS_TO_WIN = 3;

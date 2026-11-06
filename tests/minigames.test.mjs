@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { MiniRun, MINIGAME_IDS, LIVES } from '../js/minigames.js';
-import { ChinosGame, blancaGuess, MAX_COINS, POINTS_TO_WIN } from '../js/chinos.js';
-import { t } from '../js/i18n.js';
+import { MiniRun, MINIGAME_IDS, LIVES } from '../src/modes/minigames/run.js';
+import { ChinosGame, blancaGuess, MAX_COINS, POINTS_TO_WIN } from '../src/modes/chinos/chinos.js';
+import { t } from '../src/core/i18n.js';
 
 function step(run, seconds, dt = 0.05) {
   for (let s = 0; s < seconds; s += dt) run.update(dt);
