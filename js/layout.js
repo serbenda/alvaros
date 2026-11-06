@@ -5,15 +5,15 @@ export const H = 320;
 
 export const HUD_H = 18;
 export const SEAT_X = [24, 68, 112, 156];
-export const BUBBLE_Y = 37;
-export const PATIENCE_Y = 55;
-export const CUSTOMER_TOP = 62;
+export const BUBBLE_Y = 33;
+export const PATIENCE_Y = 52;
+export const CUSTOMER_TOP = 60;
 export const COUNTER_Y = 84;
 export const COUNTER_H = 20;
 export const FLOOR_Y = COUNTER_Y + COUNTER_H;
-export const STAFF_TOP = 124;
-export const BOSS_X = 12;
-export const SPEECH_Y = 110;
+export const STAFF_TOP = 120;
+export const BOSS_X = 13;
+export const SPEECH_Y = 104;
 
 export const TRAY = { y: 170, slot: 22, h: 24 };
 export const STATION_PANEL_Y = 200;

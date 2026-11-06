@@ -62,6 +62,8 @@ export class Game {
     this.spawnTimer = 1;
     this.nextId = 1;
     this.floats = [];
+    // Cosmetic effects for the renderer to pick up (particles, confetti...).
+    this.fx = [];
     this.speech = null;
     this.shake = 0;
     this.onFireShown = false;
@@ -197,6 +199,7 @@ export class Game {
     this.onFireShown = false;
     this.shake = 0.3;
     this.float(SEAT_X[c.seat], 64, 'X', COLORS.red, 8);
+    this.fx.push({ kind: 'puff', x: SEAT_X[c.seat], y: 68 });
     this.say(cosmetic(this.t('phrases.bad')));
     this.emit('angry', { type: c.type });
   }
@@ -219,9 +222,12 @@ export class Game {
     c.st = 0;
     c.mood = 'happy';
     this.float(SEAT_X[c.seat], 60, `+${tip}`, COLORS.gold, 7);
+    this.fx.push({ kind: 'sparkle', x: SEAT_X[c.seat], y: 70 });
+    this.fx.push({ kind: 'coins', x: SEAT_X[c.seat], y: 70, n: Math.min(10, 2 + Math.floor(tip / 3)) });
 
     if (this.multiplier > previous) {
       this.float(W / 2, 112, this.t('combo', { n: this.multiplier }), COLORS.orange, 7, 1.3);
+      this.fx.push({ kind: 'confetti' });
       this.emit('combo', { multiplier: this.multiplier });
     }
     if (this.multiplier >= 4 && !this.onFireShown) {
@@ -276,6 +282,7 @@ export class Game {
         s.busy = false;
         s.flash = 0.3;
         this.tray.push(id);
+        this.fx.push({ kind: 'pop', station: STATIONS.indexOf(id) });
         this.emit('ready', { item: id });
       }
     }

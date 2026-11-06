@@ -382,7 +382,7 @@ function frame(now) {
   if (game && !paused) game.update(dt);
   ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
   ctx.imageSmoothingEnabled = false;
-  render(ctx, game, { t, now: now / 1000 });
+  render(ctx, game, { t, now: now / 1000, dt: paused ? 0 : dt });
   requestAnimationFrame(frame);
 }
 
