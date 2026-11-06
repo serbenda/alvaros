@@ -730,6 +730,7 @@ function drawCrewMember(ctx, game, name, now) {
     drawIcon(ctx, w.carry, w.x - 6, top + 12, 0.75);
   }
   nameTag(ctx, def.name, w.x, top + 36, name === 'mari' ? '#8b4a2b' : '#27ae60');
+  if (w.speech && !game.over) speechBubble(ctx, w.speech.text, w.x, top - 14, name === 'mari' ? '#fff1e0' : '#e8f8ee');
 }
 
 /** Andrea walks over to a customer, chats with them and walks away. */
@@ -755,6 +756,7 @@ function drawAndrea(ctx, game, now) {
   if (a.state === 'chat') {
     drawEmote(ctx, 'heart', x, top - 8, now);
   }
+  if (a.speech && !game.over) speechBubble(ctx, a.speech.text, x, top + 28, '#f3e8ff');
 }
 
 function drawPlayer(ctx, game, now) {

@@ -105,6 +105,9 @@ const STRINGS = {
       start: ["We're open!", "Let's go!"],
       good: ['Coming right up!', 'Enjoy!', "That's it!", 'Smooth!', 'Next!'],
       bad: ['Oops, lost one!', 'Sorry, love!', 'Hang on!'],
+      mari: ['Coming right up, one coffee!', 'This coffee machine drives me crazy!', 'Squeaky clean!', 'Who wants a cortado?'],
+      andrea: ['What can I get you?', "They'll be right with you, love", 'Coming, coming!', "Easy, it's on its way"],
+      alejandro: ['Have you seen my watch?', "It's gold, you know", 'Look at the time!', "I've got this one, Blanca"],
       stress: [
         'So stressful!',
         "I don't want to work…",
@@ -221,6 +224,9 @@ const STRINGS = {
       start: ['¡Abrimos!', '¡Vamos allá!'],
       good: ['¡Marchando!', '¡Que aproveche!', '¡Eso es!', '¡Qué arte!', '¡Siguiente!'],
       bad: ['¡Ay, que se me va!', '¡Perdona, cielo!', '¡Un momentito!'],
+      mari: ['¡Marchando un café!', '¡Esta cafetera me vuelve loca!', '¡Limpito, limpito!', '¿Quién quiere un cortado?'],
+      andrea: ['¿Qué le pongo?', 'Enseguida te atienden, cariño', '¡Ya va, ya va!', 'Tranquilo, que ahora sale'],
+      alejandro: ['¿Habéis visto mi reloj?', 'Es de oro, ¿eh?', '¡Mira qué hora es!', 'Este lo llevo yo, Blanca'],
       stress: [
         '¡Qué estrés!',
         'No quiero trabajar…',

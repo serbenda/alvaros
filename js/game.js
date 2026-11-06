@@ -87,6 +87,7 @@ export class Game {
     this.tv = { next: this.between(TV_GOALS.every), cheer: 0 };
     // Mari and Alejandro walk around the floor behind the counter doing their things.
     this.stressT = 6;
+    this.npcTalk = 2;
     this.crew = {};
     if (this.helpers.has('mari')) this.crew.mari = this.makeWalker(-20, 0.5);
     if (this.helpers.has('alejandro')) this.crew.alejandro = this.makeWalker(W + 20, 3);
@@ -413,6 +414,10 @@ export class Game {
     const a = this.andrea;
     const def = HELPERS.andrea;
     a.t += dt;
+    if (a.speech) {
+      a.speech.t -= dt;
+      if (a.speech.t <= 0 || a.state === 'off') a.speech = null;
+    }
     if (a.state === 'off') {
       a.next -= dt;
       if (a.next > 0) return;
@@ -434,6 +439,8 @@ export class Game {
     } else if (a.state === 'walk' && a.t >= 1) {
       a.state = 'chat';
       a.t = 0;
+      this.npcTalk = 0;
+      this.npcSay('andrea', a);
       const c = this.seats[a.seat];
       if (c && c.state === 'wait') {
         c.patience = Math.min(c.maxPatience, c.patience + c.maxPatience * def.patienceBoost);
@@ -449,6 +456,13 @@ export class Game {
       a.state = 'off';
       a.next = this.between(def.every);
     }
+  }
+
+  /** A teammate says one of their lines, if nobody else on the team is talking. */
+  npcSay(who, target) {
+    if (this.npcTalk > 0) return;
+    target.speech = { text: cosmetic(this.t(`phrases.${who}`)), t: 2.2 };
+    this.npcTalk = 3.5;
   }
 
   makeWalker(x, delay) {
@@ -484,8 +498,13 @@ export class Game {
   }
 
   updateCrew(dt) {
+    this.npcTalk = Math.max(0, this.npcTalk - dt);
     for (const [name, w] of Object.entries(this.crew)) {
       w.t += dt;
+      if (w.speech) {
+        w.speech.t -= dt;
+        if (w.speech.t <= 0 || w.task === 'away') w.speech = null;
+      }
       if (w.task === 'walk') {
         const d = w.target - w.x;
         const step = dt * 45;
@@ -513,6 +532,7 @@ export class Game {
       } else {
         w.task = next.task;
         w.dur = next.dur;
+        if (w.task !== 'away' && Math.random() < 0.6) this.npcSay(name, w);
       }
     }
   }
@@ -528,6 +548,8 @@ export class Game {
     const item = c.order[k];
     this.tray.splice(this.tray.indexOf(item), 1);
     w.carry = item;
+    this.npcTalk = 0;
+    this.npcSay('alejandro', w);
     w.task = 'walk';
     w.target = SEAT_X[c.seat];
     w.onArrive = () => {
@@ -631,11 +653,11 @@ export class Game {
     this.stressT -= dt;
     if (this.stressT <= 0) {
       const waiting = this.seats.filter((c) => c && c.state === 'wait').length;
-      if (waiting >= 3 && !this.speech) {
+      if (waiting >= 1 && !this.speech && (waiting >= 3 || Math.random() < 0.5)) {
         this.say(cosmetic(this.t('phrases.stress')), 2);
-        this.stressT = 6 + Math.random() * 5;
+        this.stressT = 5 + Math.random() * 4;
       } else {
-        this.stressT = 1;
+        this.stressT = 1.5;
       }
     }
     this.shake = Math.max(0, this.shake - dt);
