@@ -10,6 +10,8 @@ import {
   SEATS,
   BOSS,
   RUSH_LEVEL,
+  HELPERS,
+  TV_GOALS,
 } from './config.js';
 import { W, HUD_H, SEAT_X, TRAY, BOSS_X, stationRect, traySlotRect, inside, seatAt } from './layout.js';
 import { makeLook } from './sprites.js';
@@ -34,7 +36,7 @@ export const COLORS = {
 export class Game {
   /**
    * @param {object} opts
-   * @param {object} opts.staff     Entry from STAFF.
+   * @param {object} opts.staff     The player (PLAYER).
    * @param {Function} opts.t       Translation function.
    * @param {Function} [opts.rng]   Random function (seeded for the daily challenge).
    * @param {object} [opts.twist]   Daily twist from DAILY_TWISTS.
@@ -45,6 +47,7 @@ export class Game {
   constructor({ staff, t, rng = Math.random, twist = null, level = RUSH_LEVEL, isNewType = () => false, onEvent = () => {} }) {
     this.level = level;
     this.available = new Set(level.stations || STATIONS);
+    this.helpers = new Set(level.helpers || []);
     this.staff = staff;
     this.t = t;
     this.rng = rng;
@@ -79,9 +82,17 @@ export class Game {
     this.player = { x: W / 2, target: W / 2 };
     this.boss = { active: false, t: 0, next: BOSS.firstAfter * this.bossFactor(), x: -14 };
     this.currentPhase = this.phase();
+    // Andrea walks over to calm a customer; the TV shows a goal now and then.
+    this.andrea = { state: 'off', seat: -1, t: 0, next: this.between(HELPERS.andrea.every) };
+    this.tv = { next: this.between(TV_GOALS.every), cheer: 0 };
+    this.bell = 0;
 
     this.say(cosmetic(t('phrases.start')));
     if (twist) this.float(W / 2, 122, t(`twists.${twist.id}`), COLORS.gold, 6, 2.4);
+    if (level.newHelpers && level.newHelpers.length) {
+      const names = level.newHelpers.map((id) => HELPERS[id].name).join(', ');
+      this.float(W / 2, 156, t('helperToday', { name: names }), COLORS.orange, 5, 3.2);
+    }
     if (level.intro && level.intro.length) {
       const names = level.intro.map((id) => t(`items.${id}`)).join(', ');
       this.float(W / 2, 140, t('newItem', { name: names }), COLORS.green, 5, 3);
@@ -198,6 +209,22 @@ export class Game {
   }
 
   // ---- Helpers ------------------------------------------------------------
+
+  between([min, max]) {
+    return min + this.rng() * (max - min);
+  }
+
+  /** Combined preparation speed for a station, including teammates on shift. */
+  prepRate(id) {
+    let rate = this.staff.prepSpeed;
+    const own = this.staff.prepBonus && this.staff.prepBonus[id];
+    if (own) rate *= own;
+    for (const name of this.helpers) {
+      const bonus = HELPERS[name].prepBonus && HELPERS[name].prepBonus[id];
+      if (bonus) rate *= bonus;
+    }
+    return rate;
+  }
 
   randInt(min, max) {
     return min + Math.floor(this.rng() * (max - min + 1));
@@ -339,7 +366,25 @@ export class Game {
     if (!this.level.boss) return;
     if (b.active) {
       b.t -= dt;
-      b.x = Math.min(BOSS_X, b.x + dt * 60);
+      // Pepe Nacho strolls around keeping an eye on things
+      if (b.target === undefined) b.target = BOSS_X + 30;
+      const d = b.target - b.x;
+      const step = dt * 25;
+      if (Math.abs(d) <= step) {
+        b.x = b.target;
+        b.wait = (b.wait || 0) - dt;
+        if (b.wait <= 0) {
+          b.target = BOSS_X + Math.random() * 60;
+          b.wait = 1 + Math.random() * 1.5;
+        }
+      } else {
+        b.x += Math.sign(d) * step;
+      }
+      b.sayT = (b.sayT || 0) - dt;
+      if (b.sayT <= 0) {
+        b.speech = cosmetic(this.t('phrases.boss'));
+        b.sayT = 3.5;
+      }
       if (b.t <= 0) {
         b.active = false;
         b.next = (BOSS.every[0] + this.rng() * (BOSS.every[1] - BOSS.every[0])) * this.bossFactor();
@@ -347,7 +392,9 @@ export class Game {
         this.emit('bossLeaves', {});
       }
     } else {
-      b.x = Math.max(-14, b.x - dt * 60);
+      b.x = Math.max(-14, b.x - dt * 40);
+      b.speech = null;
+      b.target = undefined;
       b.next -= dt;
       if (b.next <= 0) {
         b.active = true;
@@ -357,6 +404,69 @@ export class Game {
         this.emit('bossArrives', {});
       }
     }
+  }
+
+  // ---- Teammates and TV -----------------------------------------------------
+
+  updateAndrea(dt) {
+    if (!this.helpers.has('andrea')) return;
+    const a = this.andrea;
+    const def = HELPERS.andrea;
+    a.t += dt;
+    if (a.state === 'off') {
+      a.next -= dt;
+      if (a.next > 0) return;
+      // Go to the waiting customer with the least patience left
+      let target = null;
+      for (const c of this.seats) {
+        if (!c || c.state !== 'wait') continue;
+        if (c.patience / c.maxPatience > 0.75) continue;
+        if (!target || c.patience / c.maxPatience < target.patience / target.maxPatience) target = c;
+      }
+      if (!target) {
+        a.next = 2;
+        return;
+      }
+      a.state = 'walk';
+      a.seat = target.seat;
+      a.from = target.seat < 2 ? -16 : W + 16;
+      a.t = 0;
+    } else if (a.state === 'walk' && a.t >= 1) {
+      a.state = 'chat';
+      a.t = 0;
+      const c = this.seats[a.seat];
+      if (c && c.state === 'wait') {
+        c.patience = Math.min(c.maxPatience, c.patience + c.maxPatience * def.patienceBoost);
+        c.cheer = 1;
+        this.float(SEAT_X[a.seat], 46, '+', COLORS.green, 8, 0.9);
+        this.fx.push({ kind: 'hearts', x: SEAT_X[a.seat], y: 66 });
+        this.emit('andrea', {});
+      }
+    } else if (a.state === 'chat' && a.t >= 1.2) {
+      a.state = 'leave';
+      a.t = 0;
+    } else if (a.state === 'leave' && a.t >= 1) {
+      a.state = 'off';
+      a.next = this.between(def.every);
+    }
+  }
+
+  updateTv(dt) {
+    const tv = this.tv;
+    tv.cheer = Math.max(0, tv.cheer - dt);
+    tv.next -= dt;
+    if (tv.next > 0) return;
+    tv.next = this.between(TV_GOALS.every);
+    tv.cheer = 2;
+    tv.goals = (tv.goals || 0) + 1;
+    for (const c of this.seats) {
+      if (!c || c.state !== 'wait') continue;
+      c.patience = Math.min(c.maxPatience, c.patience + c.maxPatience * TV_GOALS.patienceBoost);
+      c.cheer = 1.5;
+    }
+    this.float(W / 2, 96, this.t('goal'), COLORS.gold, 8, 1.6);
+    this.fx.push({ kind: 'confetti' });
+    this.emit('goal', {});
   }
 
   // ---- Main update --------------------------------------------------------
@@ -373,14 +483,15 @@ export class Game {
       const s = this.stations[id];
       if (s.flash > 0) s.flash = Math.max(0, s.flash - dt);
       if (!s.busy) continue;
-      const bonus = (this.staff.prepBonus && this.staff.prepBonus[id]) || 1;
-      s.t += dt * this.staff.prepSpeed * bonus;
+      s.t += dt * this.prepRate(id);
       if (s.t >= s.dur) {
         s.busy = false;
         s.flash = 0.3;
         this.tray.push(id);
         this.fx.push({ kind: 'pop', station: STATIONS.indexOf(id) });
-        this.emit('ready', { item: id });
+        const kitchen = this.helpers.has('alejandro') && HELPERS.alejandro.prepBonus[id];
+        if (kitchen) this.bell = 0.6;
+        this.emit(kitchen ? 'bell' : 'ready', { item: id });
       }
     }
 
@@ -412,6 +523,10 @@ export class Game {
     }
 
     this.updateBoss(dt);
+    this.updateAndrea(dt);
+    this.updateTv(dt);
+    this.bell = Math.max(0, this.bell - dt);
+    for (const c of this.seats) if (c && c.cheer > 0) c.cheer = Math.max(0, c.cheer - dt);
 
     const p = this.player;
     const step = dt * 170;

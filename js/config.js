@@ -58,68 +58,62 @@ export const MAX_STRIKES = 3;
  */
 export const BOSS = {
   name: 'Pepe Nacho',
-  firstAfter: 35,
-  every: [55, 85],
+  firstAfter: 30,
+  every: [45, 70],
   duration: 12,
   tipMult: 2,
   look: { skin: '#e0ac69', hair: '#4a4a4a', hairStyle: 'bald', shirt: '#ecf0f1', accessory: 'boss' },
 };
 
 /**
- * Bar staff. Blanca is the main character and is always available.
- * The rest unlock with the total stars earned in the week mode (`unlock`).
- * Looks are placeholders until we have each person's description.
+ * Blanca, the player. She is the only playable character.
  *
- * Abilities:
  * - prepSpeed: multiplier for every station.
- * - prepBonus: extra multiplier for specific items.
  * - patienceBonus: multiplier for customer patience.
  * - trayCapacity: how many items fit on the tray.
  * - tipBonus: multiplier for every tip.
  */
-export const STAFF = [
-  {
-    id: 'blanca',
-    name: 'Blanca',
-    unlock: 0,
-    prepSpeed: 1,
-    patienceBonus: 1,
-    trayCapacity: 3,
-    tipBonus: 1.1,
-    look: { skin: '#f6cfa5', hair: '#e6be5a', hairStyle: 'long', shirt: '#1f1f1f', apron: '#f4ecd8' },
-  },
-  {
-    id: 'mari',
+export const PLAYER = {
+  id: 'blanca',
+  name: 'Blanca',
+  prepSpeed: 1,
+  patienceBonus: 1,
+  trayCapacity: 3,
+  tipBonus: 1.1,
+  look: { skin: '#f6cfa5', hair: '#e6be5a', hairStyle: 'long', shirt: '#1f1f1f', apron: '#f4ecd8' },
+};
+
+/**
+ * Blanca's teammates. They are not playable: they work in the bar alongside her
+ * and help in their own way. Each day of the week says who is on shift.
+ * Looks are placeholders until we have each person's description.
+ *
+ * - Mari runs the coffee machine: coffee and juice are ready faster.
+ * - Alejandro cooks in the kitchen: toast, tapas and menus are ready faster.
+ * - Andrea looks after the customers: every so often she chats with the one
+ *   who has been waiting the longest and gives them back some patience.
+ */
+export const HELPERS = {
+  mari: {
     name: 'Mari',
-    unlock: 3,
-    prepSpeed: 1,
-    prepBonus: { coffee: 1.7, juice: 1.7 },
-    patienceBonus: 1,
-    trayCapacity: 3,
-    tipBonus: 1,
+    prepBonus: { coffee: 1.6, juice: 1.6 },
     look: { skin: '#ffdbac', hair: '#8b4513', hairStyle: 'bun', shirt: '#1f1f1f', apron: '#f4ecd8' },
   },
-  {
-    id: 'andrea',
+  andrea: {
     name: 'Andrea',
-    unlock: 7,
-    prepSpeed: 1,
-    patienceBonus: 1.25,
-    trayCapacity: 3,
-    tipBonus: 1,
-    look: { skin: '#e0ac69', hair: '#1a1a1a', hairStyle: 'long', shirt: '#1f1f1f', apron: '#f4ecd8' },
+    every: [13, 20],
+    patienceBoost: 0.5,
+    look: { skin: '#e0ac69', hair: '#1a1a1a', hairStyle: 'ponytail', shirt: '#1f1f1f', apron: '#f4ecd8' },
   },
-  {
-    id: 'alejandro',
+  alejandro: {
     name: 'Alejandro',
-    unlock: 12,
-    prepSpeed: 1,
-    patienceBonus: 1,
-    trayCapacity: 4,
-    tipBonus: 1,
-    look: { skin: '#f1c27d', hair: '#2c1b10', hairStyle: 'short', shirt: '#1f1f1f', apron: '#f4ecd8', beard: true },
+    prepBonus: { toast: 1.4, tapa: 1.4, menu: 1.4 },
+    look: { skin: '#f1c27d', hair: '#2c1b10', hairStyle: 'short', shirt: '#ffffff', apron: '#f4ecd8', beard: true, chefHat: true },
   },
-];
+};
+
+/** Football on the TV: now and then there is a goal and the customers cheer. */
+export const TV_GOALS = { every: [28, 45], patienceBoost: 0.15 };
 
 /** Daily challenge twists. One is picked per day and applied to everyone. */
 export const DAILY_TWISTS = [
@@ -141,6 +135,7 @@ export const RUSH_LEVEL = {
   strikes: MAX_STRIKES,
   boss: true,
   endless: true,
+  helpers: ['mari', 'andrea', 'alejandro'],
 };
 
 const ALL = STATIONS;
@@ -157,6 +152,8 @@ const ALL = STATIONS;
 export const WEEK = [
   {
     id: 'monday',
+    boss: true,
+    helpers: ['mari'],
     stations: ['coffee', 'toast'],
     customers: ['regular', 'kid'],
     duration: 90,
@@ -169,6 +166,8 @@ export const WEEK = [
   },
   {
     id: 'tuesday',
+    boss: true,
+    helpers: ['mari', 'andrea'],
     stations: ['coffee', 'juice', 'toast'],
     customers: ['regular', 'kid'],
     duration: 100,
@@ -181,6 +180,8 @@ export const WEEK = [
   },
   {
     id: 'wednesday',
+    boss: true,
+    helpers: ['mari', 'andrea', 'alejandro'],
     stations: ['coffee', 'juice', 'toast', 'beer', 'tapa'],
     customers: ['regular', 'kid', 'hurry'],
     duration: 110,
@@ -192,6 +193,8 @@ export const WEEK = [
   },
   {
     id: 'thursday',
+    boss: true,
+    helpers: ['mari', 'andrea', 'alejandro'],
     stations: ALL,
     customers: ['regular', 'kid', 'hurry', 'tourist'],
     duration: 120,
@@ -203,6 +206,8 @@ export const WEEK = [
   },
   {
     id: 'friday',
+    boss: true,
+    helpers: ['mari', 'andrea', 'alejandro'],
     stations: ALL,
     customers: ['regular', 'kid', 'hurry', 'tourist'],
     duration: 120,
@@ -214,6 +219,8 @@ export const WEEK = [
   },
   {
     id: 'saturday',
+    boss: true,
+    helpers: ['mari', 'andrea', 'alejandro'],
     stations: ALL,
     customers: ['regular', 'kid', 'hurry', 'tourist', 'critic'],
     duration: 120,
@@ -221,11 +228,12 @@ export const WEEK = [
     patience: 1.35,
     maxOrder: 3,
     startMinutes: 12 * 60,
-    boss: true,
     targets: [90, 250, 1050],
   },
   {
     id: 'sunday',
+    boss: true,
+    helpers: ['mari', 'andrea', 'alejandro'],
     stations: ALL,
     customers: ['regular', 'kid', 'hurry', 'tourist', 'critic'],
     duration: 120,
@@ -233,7 +241,6 @@ export const WEEK = [
     patience: 1.3,
     maxOrder: 3,
     startMinutes: 10 * 60,
-    boss: true,
     targets: [80, 220, 950],
   },
 ];
@@ -242,4 +249,6 @@ export const WEEK = [
 WEEK.forEach((day, i) => {
   const before = new Set(i > 0 ? WEEK[i - 1].stations : []);
   day.intro = i > 0 ? day.stations.filter((id) => !before.has(id)) : [];
+  const helpersBefore = new Set(i > 0 ? WEEK[i - 1].helpers : []);
+  day.newHelpers = day.helpers.filter((id) => !helpersBefore.has(id));
 });

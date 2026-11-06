@@ -20,7 +20,7 @@ import {
   stationRect,
   traySlotRect,
 } from './layout.js';
-import { STATIONS, MAX_STRIKES, STAFF, BOSS, CLOCK } from './config.js';
+import { STATIONS, MAX_STRIKES, PLAYER, BOSS, CLOCK, HELPERS } from './config.js';
 import { drawIcon, drawPerson, drawHeart, drawCoin, shade, OUTLINE } from './sprites.js';
 import { ENTER_TIME, ENJOY_TIME, LEAVE_TIME } from './game.js';
 
@@ -322,6 +322,11 @@ function spawnFx(game) {
         });
         break;
       }
+      case 'hearts':
+        for (let i = 0; i < 4; i++) {
+          addParticle({ kind: 'heart', x: fx.x + (Math.random() - 0.5) * 14, y: fx.y, vx: (Math.random() - 0.5) * 6, vy: -18 - Math.random() * 8, life: 1 });
+        }
+        break;
       case 'confetti':
         for (let i = 0; i < 40; i++) {
           addParticle({
@@ -387,7 +392,7 @@ function updateParticles(dt) {
 function drawParticles(ctx, front) {
   for (const p of particles) {
     const k = p.t / p.life;
-    const isFront = p.kind === 'coin' || p.kind === 'confetti' || p.kind === 'item';
+    const isFront = p.kind === 'coin' || p.kind === 'confetti' || p.kind === 'item' || p.kind === 'heart';
     if (isFront !== front) continue;
     switch (p.kind) {
       case 'star': {
@@ -420,6 +425,10 @@ function drawParticles(ctx, front) {
         drawIcon(ctx, p.id, x, y, sc);
         break;
       }
+      case 'heart':
+        ctx.globalAlpha = 1 - k;
+        drawHeart(ctx, p.x - 3.5, p.y - 3, true);
+        break;
       case 'smoke':
         ctx.globalAlpha = (1 - k) * 0.7;
         box(ctx, p.x - p.size / 2, p.y - p.size / 2, p.size + k * 3, p.size + k * 3, '#6b6b6b');
@@ -493,6 +502,10 @@ function customerPose(c, now) {
     }
   } else if (c.state === 'enjoy') {
     top += Math.round(Math.sin(c.st * 10) * 0.5);
+  }
+  if (c.cheer > 0 && c.state === 'wait') {
+    top -= Math.abs(Math.sin(c.cheer * 12)) * 4;
+    mood = 'happy';
   }
   if (walking) top -= Math.abs(Math.sin(now * 14 + c.id)) * 1.5;
   return { x, top, mood };
@@ -607,21 +620,140 @@ function drawShadow(ctx, x, y, w) {
   ctx.globalAlpha = 1;
 }
 
+function speechBubble(ctx, str, cx, y, color = '#fffaf0') {
+  ctx.font = `5px ${FONT}`;
+  const w = Math.ceil(ctx.measureText(str).width) + 8;
+  const x = clamp(Math.round(cx - w / 2), 2, W - w - 2);
+  const tail = clamp(Math.round(cx), x + 3, x + w - 4);
+  box(ctx, x - 1, y - 1, w + 2, 12, OUTLINE, 2);
+  box(ctx, x, y, w, 10, color, 2);
+  rect(ctx, tail - 1, y + 10, 3, 1, color);
+  rect(ctx, tail, y + 11, 1, 1, color);
+  rect(ctx, tail - 2, y + 10, 1, 1, OUTLINE);
+  rect(ctx, tail + 2, y + 10, 1, 1, OUTLINE);
+  rect(ctx, tail - 1, y + 11, 1, 1, OUTLINE);
+  rect(ctx, tail + 1, y + 11, 1, 1, OUTLINE);
+  rect(ctx, tail, y + 12, 1, 1, OUTLINE);
+  text(ctx, str, x + 4, y + 2.5, { size: 5, color: '#3a2518' });
+}
+
+function nameTag(ctx, name, cx, y, color) {
+  ctx.font = `4px ${FONT}`;
+  const w = Math.ceil(ctx.measureText(name).width) + 4;
+  box(ctx, cx - w / 2 - 0.5, y - 0.5, w + 1, 7, OUTLINE, 1);
+  box(ctx, cx - w / 2, y, w, 6, color, 1);
+  text(ctx, name, cx, y + 1, { size: 4, color: '#ffffff', align: 'center' });
+}
+
 function drawBoss(ctx, game, now) {
   if (!game || game.boss.x <= -13) return;
-  const bob = game.boss.active ? Math.round(Math.sin(now * 2) * 0.6) : 0;
-  const top = STAFF_TOP + bob;
-  drawShadow(ctx, game.boss.x, STAFF_TOP + 34, 14);
-  drawPerson(ctx, BOSS.look, game.boss.x, top, { mood: 'neutral', legs: true, blink: now % 4 < 0.12 });
-  if (game.boss.active) {
-    box(ctx, game.boss.x - 7, top - 12, 14, 9, OUTLINE, 1);
-    box(ctx, game.boss.x - 6, top - 11, 12, 7, '#c0392b', 1);
-    text(ctx, 'x2', game.boss.x, top - 10, { size: 5, color: '#fff6c0', align: 'center' });
+  const b = game.boss;
+  const walking = b.active ? b.target !== undefined && Math.abs(b.target - b.x) > 0.5 : true;
+  const step = walking ? Math.round(Math.sin(now * 10) * 2) : 0;
+  const top = STAFF_TOP - 6 - (walking ? Math.abs(step) * 0.4 : 0);
+  drawShadow(ctx, b.x, top + 34, 14);
+  drawPerson(ctx, BOSS.look, b.x, top, { mood: b.active && !walking ? 'happy' : 'neutral', legs: true, step, blink: now % 4 < 0.12 });
+  // Clipboard in his hand
+  rect(ctx, b.x + 6.5, top + 16.5, 5, 7, OUTLINE);
+  rect(ctx, b.x + 7, top + 17, 4, 6, '#f4f4f8');
+  rect(ctx, b.x + 7.5, top + 18.5, 3, 0.5, '#9aa3a8');
+  rect(ctx, b.x + 7.5, top + 20, 3, 0.5, '#9aa3a8');
+  nameTag(ctx, BOSS.name, b.x, top + 36, '#c0392b');
+  if (b.active) {
+    box(ctx, b.x - 7, top - 12, 14, 9, OUTLINE, 1);
+    box(ctx, b.x - 6, top - 11, 12, 7, '#c0392b', 1);
+    text(ctx, 'x2', b.x, top - 10, { size: 5, color: '#fff6c0', align: 'center' });
+  }
+}
+
+/** Mari at the coffee machine, on the left of the bar. */
+function drawMari(ctx, game, now) {
+  if (!game || !game.helpers.has('mari')) return;
+  const busy = game.stations.coffee.busy || game.stations.juice.busy;
+  const x = 13;
+  const top = STAFF_TOP - 8 + (busy ? Math.round(Math.sin(now * 14)) * 0.5 : 0);
+  drawPerson(ctx, HELPERS.mari.look, x, top, { mood: busy ? 'happy' : 'neutral', blink: (now + 1) % 3.7 < 0.12 });
+  // Coffee machine in front of her
+  const my = top + 14;
+  box(ctx, -1, my - 1, 24, 18, OUTLINE, 1);
+  rect(ctx, 0, my, 22, 16, '#c9ced2');
+  rect(ctx, 0, my, 22, 1.5, '#eef1f3');
+  rect(ctx, 0, my + 4, 22, 1, '#8a9398');
+  rect(ctx, 3, my + 6, 3, 4, '#2b2b2b');
+  rect(ctx, 15, my + 6, 3, 4, '#2b2b2b');
+  rect(ctx, 9, my + 2, 4, 2, busy ? '#2ecc71' : '#7f8c8d');
+  if (busy) {
+    rect(ctx, 4, my + 10, 1, 3, '#6f3b1e');
+    rect(ctx, 16, my + 10, 1, 3, '#6f3b1e');
+  }
+  rect(ctx, 2, my + 13, 5, 2, '#ffffff');
+  rect(ctx, 14, my + 13, 5, 2, '#ffffff');
+  nameTag(ctx, HELPERS.mari.name, x, my + 18, '#8b4a2b');
+}
+
+/** Alejandro cooking behind the kitchen hatch, on the right of the bar. */
+function drawAlejandro(ctx, game, now) {
+  if (!game || !game.helpers.has('alejandro')) return;
+  const busy = game.stations.toast.busy || game.stations.tapa.busy || game.stations.menu.busy;
+  const hx = W - 24;
+  const hy = FLOOR_Y + 4;
+  // Wall with the hatch
+  rect(ctx, hx - 2, FLOOR_Y, 26, 46, PALETTE.wall);
+  rect(ctx, hx - 2, FLOOR_Y, 1, 46, PALETTE.wallShade);
+  rect(ctx, hx, hy, 22, 24, '#5a6b73');
+  for (let y = hy; y < hy + 24; y += 4) rect(ctx, hx, y, 22, 0.5, '#4a5a62');
+  const sway = busy ? Math.sin(now * 8) * 1.5 : 0;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(hx, hy, 22, 24);
+  ctx.clip();
+  drawPerson(ctx, HELPERS.alejandro.look, hx + 11 + sway, hy + 9, { mood: busy ? 'happy' : 'neutral', blink: (now + 2) % 4.1 < 0.12 });
+  ctx.restore();
+  // Frame and sill
+  outline(ctx, hx - 1, hy - 1, 24, 26, PALETTE.wood, 1.5);
+  rect(ctx, hx - 2, hy + 23, 26, 3, PALETTE.wood);
+  rect(ctx, hx - 2, hy + 23, 26, 0.75, PALETTE.woodLight);
+  // Service bell
+  const ring = game.bell > 0 ? Math.sin(now * 60) * 1 : 0;
+  rect(ctx, hx + 2.5 + ring, hy + 19.5, 5, 3.5, OUTLINE);
+  rect(ctx, hx + 3 + ring, hy + 20, 4, 3, '#d4a017');
+  rect(ctx, hx + 4.5 + ring, hy + 18.5, 1, 1.5, OUTLINE);
+  if (game.bell > 0) {
+    text(ctx, '¡DING!', hx + 5, hy - 8 - (0.6 - game.bell) * 6, { size: 4, color: '#f5c542', align: 'center', outline: OUTLINE });
+  }
+  if (busy && Math.random() < 0.2) {
+    addParticle({ kind: 'steam', x: hx + 6 + Math.random() * 10, y: hy + 14, vx: 0, vy: -10, life: 0.6, size: 2 });
+  }
+  nameTag(ctx, HELPERS.alejandro.name, hx + 11, hy + 28, '#27ae60');
+}
+
+/** Andrea walks over to a customer, chats with them and walks away. */
+function drawAndrea(ctx, game, now) {
+  if (!game || !game.helpers.has('andrea')) return;
+  const a = game.andrea;
+  if (a.state === 'off') return;
+  const seatX = SEAT_X[a.seat] + (a.seat < 2 ? 14 : -14);
+  let x = seatX;
+  let walking = false;
+  if (a.state === 'walk') {
+    x = a.from + (seatX - a.from) * easeInOut(Math.min(1, a.t));
+    walking = true;
+  } else if (a.state === 'leave') {
+    x = seatX + (a.from - seatX) * easeInOut(Math.min(1, a.t));
+    walking = true;
+  }
+  const top = CUSTOMER_TOP - 2 - (walking ? Math.abs(Math.sin(now * 14)) * 1.5 : 0);
+  drawPerson(ctx, HELPERS.andrea.look, x, top, { mood: 'happy', blink: now % 3 < 0.12 });
+  // Notepad
+  rect(ctx, x - 7.5, top + 15.5, 4, 5, OUTLINE);
+  rect(ctx, x - 7, top + 16, 3, 4, '#ffffff');
+  if (a.state === 'chat') {
+    drawEmote(ctx, 'heart', x, top - 8, now);
   }
 }
 
 function drawPlayer(ctx, game, now) {
-  const staff = game ? game.staff : STAFF[0];
+  const staff = game ? game.staff : PLAYER;
   let x = W / 2 + Math.sin(now * 0.8) * 40;
   let walking = true;
   let mood = 'happy';
@@ -632,8 +764,21 @@ function drawPlayer(ctx, game, now) {
   }
   const step = walking ? Math.round(Math.sin(now * 16) * 2) : 0;
   const top = STAFF_TOP - (walking ? Math.abs(step) * 0.5 : 0);
+  if (walking && game && Math.random() < 0.3) {
+    addParticle({ kind: 'smoke', x: x + (Math.random() - 0.5) * 6, y: STAFF_TOP + 33, vx: 0, vy: -4, life: 0.4, size: 1.5 });
+  }
   drawShadow(ctx, x, STAFF_TOP + 34, 16);
   drawPerson(ctx, staff.look, x, top, { mood, legs: true, step, blink: now % 3.2 < 0.12 });
+  // Blanca carries what is on the tray
+  if (game && game.tray.length) {
+    const ty = top + 20;
+    rect(ctx, x - 11, ty + 3.5, 22, 2, OUTLINE);
+    rect(ctx, x - 10.5, ty + 3.75, 21, 1.25, '#c8d1d7');
+    game.tray.forEach((id, i) => {
+      drawIcon(ctx, id, x - 10 + i * (20 / Math.max(1, game.tray.length)), ty - 4 + Math.sin(now * 16 + i) * (walking ? 0.5 : 0), 0.5);
+    });
+  }
+  nameTag(ctx, staff.name, x, STAFF_TOP + 37, '#d49a0c');
 }
 
 function drawSpeech(ctx, game) {
@@ -655,7 +800,7 @@ function drawSpeech(ctx, game) {
 }
 
 function drawTray(ctx, game) {
-  const cap = game ? game.trayCapacity : STAFF[0].trayCapacity;
+  const cap = game ? game.trayCapacity : PLAYER.trayCapacity;
   const first = traySlotRect(0, cap);
   const total = cap * TRAY.slot;
   const x = first.x - 5;
@@ -1052,12 +1197,16 @@ function drawTv(ctx, game, now) {
   rect(ctx, bx - 0.75, by - 0.75, 1.5, 1.5, '#ffffff');
   // Scoreboard
   rect(ctx, x + 1, y + 1, 15, 4, 'rgba(0,0,0,0.6)');
-  const goals = game ? Math.floor(game.time / 40) % 4 : 1;
+  const goals = game ? game.tv.goals || 0 : 1;
   ctx.font = `3px ${FONT}`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillStyle = '#ffffff';
   ctx.fillText(`${goals}-${Math.max(0, goals - 1)}`, x + 3, y + 1.6);
+  if (game && game.tv.cheer > 0 && Math.sin(now * 12) > -0.3) {
+    rect(ctx, x, y + h / 2 - 5, w, 10, 'rgba(0,0,0,0.55)');
+    text(ctx, 'GOL', x + w / 2, y + h / 2 - 3.5, { size: 7, color: '#f5c542', align: 'center' });
+  }
   // Screen sheen and scanlines
   ctx.globalAlpha = 0.12;
   for (let i = 0; i < h; i += 1.5) rect(ctx, x, y + i, w, 0.5, '#000');
@@ -1141,9 +1290,12 @@ export function render(ctx, game, { t, now, dt = 0 }) {
   drawLamps(ctx, now);
   drawChairs(ctx);
   if (game) drawCustomers(ctx, game, now);
+  drawAndrea(ctx, game, now);
   ctx.drawImage(layer('counter', paintCounter), 0, 0, W, H);
   if (game) drawCounterItems(ctx, game);
   ctx.drawImage(layer('floor', paintFloor), 0, 0, W, H);
+  drawAlejandro(ctx, game, now);
+  drawMari(ctx, game, now);
   drawBoss(ctx, game, now);
   drawPlayer(ctx, game, now);
   drawParticles(ctx, false);
@@ -1156,6 +1308,9 @@ export function render(ctx, game, { t, now, dt = 0 }) {
   if (game) {
     drawHud(ctx, game, now, dt);
     if (!game.over) drawSpeech(ctx, game);
+    if (!game.over && game.boss.active && game.boss.speech && !game.speech) {
+      speechBubble(ctx, game.boss.speech, game.boss.x, SPEECH_Y - 6, '#ffe9e4');
+    }
     drawFloats(ctx, game);
   }
   drawParticles(ctx, true);

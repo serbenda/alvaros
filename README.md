@@ -24,22 +24,26 @@ Keyboard (desktop): `1`–`6` stations, `Q W E R` customers, `Z X C V` tray slot
 - Designed to be fun for children and older players: relaxed pace, no losing on weekdays, visual hints and big, clear buttons.
 - Live bar scene based on the real Álvaro's: white walls, light wood, mustard and mauve armchairs, copper lamps, sunflowers, a TV with football and a window onto the street.
 - Customers walk in, enjoy their order at the counter and walk out; dishes fly from the tray; machines fill up while preparing.
-- **The team**: Blanca is always available. Mari, Andrea and Alejandro unlock with stars, each with a different ability.
+- **The team at work**: Mari, Andrea, Alejandro and the boss Pepe Nacho appear in the bar and help in their own way.
+- **Goals on TV**: the customers cheer and get a bit more patient.
+- Cheerful background music.
 - Regulars album, records, total tips and a share button.
 - English and Spanish, chiptune sound effects and vibration, all generated in code.
 - Progress is saved in the browser (`localStorage`).
 
 ## The team
 
-| Character | Unlocks at | Ability |
-| --- | --- | --- |
-| Blanca | From the start | +10% tips. Main character. |
-| Mari | 3 stars | Coffee and juice are ready much faster. |
-| Andrea | 7 stars | Customers wait 25% longer. |
-| Alejandro | 12 stars | Bigger tray: room for 4 items. |
-| Pepe Nacho (the boss) | Event | Doubles tips while he is around. |
+You play as **Blanca**, the heart of the bar. The rest of the team works alongside her:
 
-The looks are placeholders except for Blanca's blonde hair. Each character's look is defined in `js/config.js`.
+| Character | Role in the game |
+| --- | --- |
+| Blanca | The player. Prepares and serves everything. |
+| Mari | Runs the coffee machine: coffee and juice come out faster. On shift every day. |
+| Andrea | Looks after the customers: now and then she chats with the one who has waited longest and gives them back patience. From Tuesday. |
+| Alejandro | Cooks behind the kitchen hatch and rings the bell: toast, tapas and menus come out faster. From Wednesday. |
+| Pepe Nacho | The boss. He strolls around the bar with his clipboard and, while he is there, tips are doubled. |
+
+The looks are placeholders except for Blanca's blonde hair. They are defined in `js/config.js` (`PLAYER`, `HELPERS` and `BOSS`).
 
 ## Running locally
 
@@ -84,7 +88,7 @@ docs/               Game design notes
 ## Customising
 
 - **Menu and prices**: `ITEMS`, `STATIONS` and `MENUS` in `js/config.js`.
-- **Staff and their looks**: `STAFF` and `BOSS` in `js/config.js`.
+- **The team and their looks**: `PLAYER`, `HELPERS` and `BOSS` in `js/config.js`.
 - **Catchphrases**: `phrases` in `js/i18n.js`, in both languages.
 - **Days of the week and star targets**: `WEEK` in `js/config.js`.
 - **Rush hour difficulty**: `DIFFICULTY` and `CUSTOMER_TYPES` in `js/config.js`.

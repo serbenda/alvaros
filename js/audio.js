@@ -4,6 +4,9 @@ export class Sfx {
   constructor() {
     this.ctx = null;
     this.muted = false;
+    this.musicTimer = null;
+    this.musicStep = 0;
+    this.nextNoteTime = 0;
   }
 
   /** Must be called from a user gesture before sounds can play on mobile. */
@@ -79,11 +82,60 @@ export class Sfx {
       case 'start':
         this.arpeggio([392, 523, 659, 784], 0.07, { vol: 0.05 });
         break;
+      case 'bell':
+        this.tone(1568, 0.5, { type: 'triangle', vol: 0.07 });
+        this.tone(2093, 0.4, { type: 'sine', vol: 0.04, delay: 0.01 });
+        break;
+      case 'goal':
+        this.arpeggio([523, 659, 784, 1046, 784, 1046], 0.07, { vol: 0.05 });
+        this.tone(150, 0.5, { type: 'sawtooth', vol: 0.02, to: 300 });
+        break;
+      case 'andrea':
+        this.arpeggio([880, 1175], 0.08, { type: 'triangle', vol: 0.05 });
+        break;
       case 'gameover':
         this.arpeggio([523, 392, 330, 262], 0.16, { type: 'triangle', vol: 0.07 });
         break;
       default:
         break;
+    }
+  }
+
+  // ---- Background music ----------------------------------------------------
+  // A cheerful little loop: bass on the beat and a melody on top, scheduled a
+  // little ahead of time so it stays in rhythm.
+
+  startMusic() {
+    if (this.musicTimer || !this.ctx) return;
+    this.nextNoteTime = this.ctx.currentTime + 0.05;
+    this.musicTimer = setInterval(() => this.scheduleMusic(), 50);
+  }
+
+  stopMusic() {
+    clearInterval(this.musicTimer);
+    this.musicTimer = null;
+  }
+
+  scheduleMusic() {
+    if (!this.ctx) return;
+    const stepTime = 60 / 132 / 2; // eighth notes at 132 bpm
+    // C - Am - F - G, two bars each
+    const bass = [131, 131, 110, 110, 87, 87, 98, 98];
+    const melody = [
+      523, 0, 659, 784, 659, 0, 523, 0, 440, 0, 523, 659, 523, 0, 440, 0,
+      349, 0, 440, 523, 440, 0, 349, 0, 392, 0, 494, 587, 494, 0, 392, 494,
+    ];
+    while (this.nextNoteTime < this.ctx.currentTime + 0.2) {
+      const step = this.musicStep % 64;
+      const when = this.nextNoteTime - this.ctx.currentTime;
+      if (!this.muted) {
+        if (step % 2 === 0) this.tone(bass[Math.floor(step / 8)], stepTime * 1.6, { type: 'triangle', vol: 0.035, delay: Math.max(0, when) });
+        const note = melody[step % 32];
+        if (note) this.tone(note, stepTime * 0.9, { type: 'square', vol: 0.012, delay: Math.max(0, when) });
+        if (step % 4 === 2) this.tone(4000, 0.03, { type: 'square', vol: 0.006, delay: Math.max(0, when) });
+      }
+      this.nextNoteTime += stepTime;
+      this.musicStep++;
     }
   }
 }

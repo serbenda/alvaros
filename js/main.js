@@ -1,6 +1,6 @@
 // Entry point: wires the canvas, menus, input, sound and saved progress.
 
-import { STAFF, STATIONS, DAILY_TWISTS, CUSTOMER_TYPES, WEEK, RUSH_LEVEL } from './config.js';
+import { PLAYER, HELPERS, BOSS, STATIONS, DAILY_TWISTS, CUSTOMER_TYPES, WEEK, RUSH_LEVEL } from './config.js';
 import { W, H } from './layout.js';
 import { Game } from './game.js';
 import { render } from './renderer.js';
@@ -91,8 +91,7 @@ function starsText(n, max = 3) {
 }
 
 function selectedStaff() {
-  const found = STAFF.find((s) => s.id === state.staff && totalStars() >= s.unlock);
-  return found || STAFF[0];
+  return PLAYER;
 }
 
 function portrait(look, size = 32, silhouette = false) {
@@ -107,34 +106,30 @@ function portrait(look, size = 32, silhouette = false) {
 
 // ---- Menus --------------------------------------------------------------------
 
+/** The Álvaro's team, shown on the title screen. Only Blanca is playable. */
 function renderTeam() {
   const list = $('team-list');
   list.innerHTML = '';
-  const current = selectedStaff();
-  for (const member of STAFF) {
-    const unlocked = totalStars() >= member.unlock;
+  const team = [
+    { id: 'blanca', name: PLAYER.name, look: PLAYER.look },
+    ...Object.entries(HELPERS).map(([id, h]) => ({ id, name: h.name, look: h.look })),
+    { id: 'boss', name: BOSS.name, look: BOSS.look },
+  ];
+  for (const member of team) {
     const button = document.createElement('button');
-    button.className = 'member';
-    if (member.id === current.id) button.classList.add('selected');
-    if (!unlocked) button.classList.add('locked');
+    button.className = member.id === 'blanca' ? 'member selected' : 'member';
     button.type = 'button';
-    button.appendChild(portrait(member.look, 32, !unlocked));
+    button.appendChild(portrait(member.look, 32));
     const name = document.createElement('span');
     name.className = 'member-name';
-    name.textContent = unlocked ? member.name : '???';
+    name.textContent = member.name;
     button.appendChild(name);
     button.addEventListener('click', () => {
-      if (!unlocked) {
-        toast(t('unlockAt', { n: member.unlock }));
-        return;
-      }
-      state.staff = member.id;
-      save(state);
-      renderTeam();
+      $('team-desc').textContent = `${member.name}: ${t(`staff.${member.id}`)}`;
     });
     list.appendChild(button);
   }
-  $('team-desc').textContent = `${current.name}: ${t(`staff.${current.id}`)}`;
+  $('team-desc').textContent = `${PLAYER.name}: ${t('staff.blanca')}`;
 }
 
 function renderTitle() {
@@ -241,6 +236,16 @@ function onEvent(type, data) {
     case 'onfire':
       sfx.play('onfire');
       break;
+    case 'bell':
+      sfx.play('bell');
+      break;
+    case 'goal':
+      sfx.play('goal');
+      vibrate([30, 40, 30, 40, 60]);
+      break;
+    case 'andrea':
+      sfx.play('andrea');
+      break;
     case 'missed':
       sfx.play('discard');
       break;
@@ -262,6 +267,7 @@ function onEvent(type, data) {
       pauseGame();
       break;
     case 'gameover':
+      sfx.stopMusic();
       sfx.play('gameover');
       vibrate(200);
       finishGame(data);
@@ -296,11 +302,11 @@ function startGame(newMode, dayIndex = day) {
   save(state);
   hideScreens();
   sfx.play('start');
+  sfx.startMusic();
 }
 
 function finishGame(summary) {
   lastScore = summary.score;
-  const unlockedBefore = STAFF.filter((s) => totalStars() >= s.unlock).map((s) => s.id);
   state.totalTips += summary.score;
 
   let isRecord = false;
@@ -321,7 +327,6 @@ function finishGame(summary) {
     isRecord = true;
   }
   save(state);
-  const newcomers = STAFF.filter((s) => totalStars() >= s.unlock && !unlockedBefore.includes(s.id));
 
   setTimeout(() => {
     const week = mode === 'week';
@@ -356,9 +361,6 @@ function finishGame(summary) {
     $('btn-next').classList.toggle('hidden', !canAdvance);
     $('btn-retry').classList.toggle('primary', !canAdvance);
 
-    const unlock = $('over-unlock');
-    unlock.textContent = newcomers.map((s) => t('unlocked', { name: s.name })).join(' ');
-    unlock.classList.toggle('hidden', newcomers.length === 0);
     show('over');
   }, 1200);
 }
@@ -366,16 +368,19 @@ function finishGame(summary) {
 function pauseGame() {
   if (!game || game.over || paused) return;
   paused = true;
+  sfx.stopMusic();
   show('pause');
 }
 
 function resumeGame() {
   paused = false;
+  sfx.startMusic();
   hideScreens();
   lastFrame = performance.now();
 }
 
 function quitToTitle() {
+  sfx.stopMusic();
   game = null;
   paused = false;
   renderTitle();

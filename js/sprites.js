@@ -408,6 +408,16 @@ export function drawPerson(ctx, look, cx, top, opts = {}) {
     fill(5.5, 5, 1, 0.5, OUTLINE);
   }
 
+  if (look.chefHat) {
+    fill(-0.5, -6.5, 13, 6, OUTLINE);
+    fill(0, -6, 12, 5, '#ffffff');
+    fill(1, -8, 4, 3, OUTLINE);
+    fill(1.5, -7.5, 3, 2.5, '#ffffff');
+    fill(7, -8, 4, 3, OUTLINE);
+    fill(7.5, -7.5, 3, 2.5, '#ffffff');
+    fill(0, -2, 12, 1, '#dcdce4');
+  }
+
   switch (look.accessory) {
     case 'tie':
       fill(4, 11, 4, 1, '#ffffff');
