@@ -86,6 +86,7 @@ export class Game {
     this.andrea = { state: 'off', seat: -1, t: 0, next: this.between(HELPERS.andrea.every) };
     this.tv = { next: this.between(TV_GOALS.every), cheer: 0 };
     // Mari and Alejandro walk around the floor behind the counter doing their things.
+    this.stressT = 6;
     this.crew = {};
     if (this.helpers.has('mari')) this.crew.mari = this.makeWalker(-20, 0.5);
     if (this.helpers.has('alejandro')) this.crew.alejandro = this.makeWalker(W + 20, 3);
@@ -626,6 +627,17 @@ export class Game {
       this.speech.t -= dt;
       if (this.speech.t <= 0) this.speech = null;
     }
+    // When the bar fills up, Blanca lets everyone know how she feels
+    this.stressT -= dt;
+    if (this.stressT <= 0) {
+      const waiting = this.seats.filter((c) => c && c.state === 'wait').length;
+      if (waiting >= 3 && !this.speech) {
+        this.say(cosmetic(this.t('phrases.stress')), 2);
+        this.stressT = 6 + Math.random() * 5;
+      } else {
+        this.stressT = 1;
+      }
+    }
     this.shake = Math.max(0, this.shake - dt);
 
     const phase = this.phase();
@@ -693,6 +705,7 @@ export class Game {
     }
     if (this.reservedSlots() >= this.trayCapacity) {
       this.float(W / 2, TRAY.y - 6, this.t('trayFull'), COLORS.red, 5);
+      if (!this.speech && Math.random() < 0.4) this.say(cosmetic(this.t('phrases.stress')), 2);
       this.emit('nope', {});
       return;
     }
