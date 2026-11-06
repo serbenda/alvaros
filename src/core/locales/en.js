@@ -6,6 +6,8 @@ export default {
   play: 'Play',
   moreModes: 'More modes',
   dailyShort: 'Daily',
+  prizeLabel: 'Code for the bar',
+  prizeHint: 'Show it at the bar: the best score of the week wins a prize.',
   stickersTitle: 'Stickers',
   regularsTitle: 'Regulars',
   stickerCount: '{n} of {total} stickers',

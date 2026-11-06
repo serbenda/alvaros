@@ -6,6 +6,8 @@ export default {
   play: 'Jugar',
   moreModes: 'Más modos',
   dailyShort: 'Del día',
+  prizeLabel: 'Código para la barra',
+  prizeHint: 'Enséñalo en la barra: el mejor récord de la semana tiene premio.',
   stickersTitle: 'Pegatinas',
   regularsTitle: 'Clientes',
   stickerCount: '{n} de {total} pegatinas',

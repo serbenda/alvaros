@@ -867,3 +867,51 @@ p {
   font-size: 14px;
   animation: blink 0.8s steps(2) infinite, pop 0.5s ease-out;
 }
+
+/* Prize code: a ticket to show at the bar */
+.prize {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  width: min(100%, 300px);
+  padding: 0.55rem 0.8rem;
+  background: #fff3c4;
+  border: 2px dashed #b8930a;
+  border-radius: 6px;
+  animation: pop 0.5s ease-out;
+}
+
+.prize::before,
+.prize::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  background: var(--panel);
+  border-radius: 50%;
+}
+
+.prize::before { left: -8px; }
+.prize::after { right: -8px; }
+
+.prize-label {
+  font-size: 7px;
+  color: var(--orange);
+}
+
+.prize-code {
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--gold);
+  user-select: all;
+  -webkit-user-select: all;
+}
+
+.prize-hint {
+  font-size: 6px;
+  line-height: 1.5;
+}

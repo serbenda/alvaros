@@ -75,3 +75,7 @@ docs/                   Design notes, architecture and screenshots
 - `sw.js` is a network-first service worker: online players always get the latest version, and the cached copy is used without a connection. It is registered at the end of `main.js` on HTTPS and localhost.
 - `src/ui/analytics.js` sends GoatCounter events (`partida/alvaros`, `partida/alvaros/<mode>`, `compartir/alvaros/<mode>`). The page view itself is counted by the snippet in `index.html`. If the script is blocked, the calls do nothing.
 - `poster.html` reuses the logo and the team sprites and draws a QR code with qrcode-generator from cdnjs; without it, the address is still printed.
+
+## Prize codes
+
+`src/core/prize.js` makes and reads codes like `M16-2BP-9WV`: the mode letter and score, the day (days since 1 January 2026, base 32) and a 3-character check made from a hash of the rest. `verify.html` uses the same module, so it works offline. The rules are public, so the codes stop casual edits, not a determined cheat; a shared ranking would need a server.

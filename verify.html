@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Álvaro's Gastrobar — Comprobar código</title>
+  <meta name="robots" content="noindex" />
+  <!-- Staff page: checks the prize code a player shows at the bar. Works offline. -->
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      padding: 28px 16px;
+      font: 18px/1.4 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+      color: #3b2416;
+      background: #fff3dc;
+    }
+    h1 { margin: 0; font-size: 26px; text-align: center; color: #8c3b2a; }
+    p { margin: 0; text-align: center; }
+    form { display: flex; flex-direction: column; gap: 12px; width: min(100%, 420px); }
+    input {
+      padding: 14px;
+      font: bold 26px ui-monospace, monospace;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border: 3px solid #3b2416;
+      border-radius: 10px;
+      background: #fff;
+    }
+    button {
+      padding: 14px;
+      font: bold 20px system-ui, sans-serif;
+      color: #fff;
+      background: #8c3b2a;
+      border: 0;
+      border-radius: 10px;
+    }
+    .result { width: min(100%, 420px); padding: 16px; border-radius: 10px; text-align: center; font-size: 20px; }
+    .ok { background: #d8f3dc; border: 3px solid #1e8449; }
+    .bad { background: #fde2e1; border: 3px solid #c0392b; }
+    .result strong { display: block; font-size: 34px; margin: 6px 0; }
+    .old { color: #b4560f; font-weight: bold; }
+    .note { max-width: 420px; font-size: 14px; opacity: 0.75; }
+    a { color: #8c5a8f; }
+  </style>
+</head>
+<body>
+  <h1>🎟️ Comprobar código</h1>
+  <p>Escribe el código que enseña el jugador al final de la partida.</p>
+  <form id="form">
+    <input id="code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="M14-2KD-7QX" aria-label="Código" />
+    <button type="submit">Comprobar</button>
+  </form>
+  <div id="result" class="result" hidden></div>
+  <p class="note">El código guarda el modo, la puntuación y el día en que se jugó. Si alguien cambia un número, deja de ser válido. Pide ver también la pantalla del móvil.</p>
+  <p class="note"><a href="./">Volver al juego</a></p>
+
+  <script type="module">
+    import { readCode, dayNumber } from './src/core/prize.js';
+
+    const MODES = { mini: 'Minijuegos', rush: 'Hora punta', daily: 'Reto del día' };
+    const UNITS = { mini: 'retos superados', rush: 'de propinas', daily: 'de propinas' };
+    const form = document.getElementById('form');
+    const input = document.getElementById('code');
+    const out = document.getElementById('result');
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const read = readCode(input.value);
+      out.hidden = false;
+      if (!read) {
+        out.className = 'result bad';
+        out.textContent = '❌ Código no válido. Revisa que esté bien escrito.';
+        return;
+      }
+      const ago = dayNumber() - read.day;
+      const when = read.date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+      const score = read.mode === 'mini' ? `${read.score} ${UNITS.mini}` : `${read.score} € ${UNITS[read.mode]}`;
+      const age = ago === 0 ? 'Hoy' : ago === 1 ? 'Ayer' : ago < 0 ? 'Fecha futura: revisa el móvil' : `Hace ${ago} días`;
+      out.className = 'result ok';
+      out.innerHTML = '';
+      const lines = [`✅ Código válido · ${MODES[read.mode]}`];
+      out.append(lines[0]);
+      const strong = document.createElement('strong');
+      strong.textContent = score;
+      out.append(strong, `Jugado el ${when}`);
+      const ageEl = document.createElement('div');
+      ageEl.textContent = age;
+      if (ago > 7 || ago < 0) ageEl.className = 'old';
+      out.append(ageEl);
+    });
+  </script>
+</body>
+</html>

@@ -91,6 +91,7 @@ The waiters and Pepe Nacho have black hair, and nobody has a beard or a moustach
 - **Stickers to collect**: 14 stickers in the album (beat Blanca at chinos, find the gold watch, win every mini-game…), and Blanca comments on every result.
 - **Works offline** after the first visit, so a bad signal in the bar does not stop a game.
 - **Poster for the bar**: [`poster.html`](https://bendi.dev/alvaros/poster.html) is an A4 poster with a QR code to the game and a space to write the week's record. Open it and press *Print*.
+- **Prize codes**: after mini-games, rush hour or the daily challenge the end screen shows a code such as `M16-2BP-9WV`. The staff type it on [`verify.html`](https://bendi.dev/alvaros/verify.html), which says if it is valid, the score and the day it was played. Changing any number makes the code invalid. It needs no server; it stops made-up scores, not a determined cheat.
 - **Visit and play counter**: [GoatCounter](https://serbenda.goatcounter.com) counts visits and the events `partida/alvaros` (every game started), `partida/alvaros/<mode>` and `compartir/alvaros/<mode>`. No cookies and no personal data.
 - **No server**: progress and records are saved in the browser.
 
@@ -123,6 +124,7 @@ src/
   ui/                 Full screen, logo, share card, stickers and analytics
 sw.js                 Offline cache (service worker)
 poster.html           Printable QR poster for the bar
+verify.html           Staff page to check prize codes
 tests/                Unit tests
 docs/                 Architecture, game design and screenshots
 ```
@@ -153,7 +155,6 @@ Please follow the [code of conduct](CODE_OF_CONDUCT.md). Security issues: see [S
 ## Roadmap
 
 - Shared weekly ranking and tournaments (needs a small database).
-- Prize codes to show at the till.
 - More mini-games and the team's real lines.
 - More stickers and unlockables.
 

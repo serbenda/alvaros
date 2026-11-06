@@ -17,6 +17,7 @@ import { drawLogo } from './ui/logo.js';
 import { shareCard } from './ui/share.js';
 import { trackGameStart, trackShare } from './ui/analytics.js';
 import { STICKERS, checkStickers } from './ui/stickers.js';
+import { makeCode } from './core/prize.js';
 
 const PORTRAIT_SCALE = 4;
 let SCALE = 4;
@@ -494,6 +495,10 @@ function showOverExtras(isRecord, summary) {
   stickers.textContent = newStickers.length ? `${t('stickersEarned')} ${newStickers.map((st) => st.icon).join(' ')}` : '';
   stickers.classList.toggle('hidden', !newStickers.length);
   $('over-record').classList.toggle('celebrate', isRecord && summary.score > 0 && mode !== 'chinos');
+  // Prize code to show at the bar (mini-games, rush hour and the daily challenge)
+  const code = makeCode(mode, summary.score);
+  $('prize-code').textContent = code || '';
+  $('over-prize').classList.toggle('hidden', !code);
 }
 
 /** End screen for the mini-games and the chinos. */
