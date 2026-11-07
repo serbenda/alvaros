@@ -1,5 +1,27 @@
 // Tiny chiptune sound effects with the Web Audio API. No audio files needed.
 
+/** A short silent WAV file, made in memory. */
+function silentWavUrl() {
+  const samples = 4410;
+  const bytes = new DataView(new ArrayBuffer(44 + samples));
+  const str = (o, t) => [...t].forEach((ch, i) => bytes.setUint8(o + i, ch.charCodeAt(0)));
+  str(0, 'RIFF');
+  bytes.setUint32(4, 36 + samples, true);
+  str(8, 'WAVE');
+  str(12, 'fmt ');
+  bytes.setUint32(16, 16, true);
+  bytes.setUint16(20, 1, true);
+  bytes.setUint16(22, 1, true);
+  bytes.setUint32(24, 44100, true);
+  bytes.setUint32(28, 44100, true);
+  bytes.setUint16(32, 1, true);
+  bytes.setUint16(34, 8, true);
+  str(36, 'data');
+  bytes.setUint32(40, samples, true);
+  for (let i = 0; i < samples; i++) bytes.setUint8(44 + i, 128);
+  return URL.createObjectURL(new Blob([bytes], { type: 'audio/wav' }));
+}
+
 export class Sfx {
   constructor() {
     this.ctx = null;
@@ -10,18 +32,54 @@ export class Sfx {
     this.tempo = 1;
   }
 
-  /** Must be called from a user gesture before sounds can play on mobile. */
+  /**
+   * Must be called from a user gesture before sounds can play on mobile.
+   * Safe to call many times: it also wakes the audio up again after iOS
+   * interrupts it (a call, locking the phone, switching apps).
+   */
   unlock() {
     try {
+      // iPhone: play through the silent switch, like a video would
+      if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback';
       if (!this.ctx) {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return;
         this.ctx = new AudioCtx();
       }
-      if (this.ctx.state === 'suspended') this.ctx.resume();
+      // 'suspended' on first load, 'interrupted' on iOS after a call or the lock screen
+      if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
+      if (!this.primed) {
+        // iOS only starts Web Audio after a sound is played inside the gesture
+        const buffer = this.ctx.createBuffer(1, 1, 22050);
+        const source = this.ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(this.ctx.destination);
+        source.start(0);
+        this.primed = true;
+      }
+      this.unmuteSwitch();
     } catch {
       this.ctx = null;
     }
+  }
+
+  /**
+   * Older iPhones (before iOS 17) mute Web Audio when the silent switch is on.
+   * Playing a silent looping <audio> element moves the page to the media
+   * channel, which the switch does not mute.
+   */
+  unmuteSwitch() {
+    if (navigator.audioSession || this.silentTag || typeof document === 'undefined') return;
+    const ua = navigator.userAgent || '';
+    const iOS = /iPad|iPhone|iPod/.test(ua) || (ua.includes('Macintosh') && navigator.maxTouchPoints > 1);
+    if (!iOS) return;
+    const tag = document.createElement('audio');
+    tag.setAttribute('x-webkit-airplay', 'deny');
+    tag.preload = 'auto';
+    tag.loop = true;
+    tag.src = silentWavUrl();
+    tag.play().catch(() => {});
+    this.silentTag = tag;
   }
 
   tone(freq, dur, { type = 'square', vol = 0.06, delay = 0, to = null } = {}) {

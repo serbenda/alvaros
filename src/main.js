@@ -637,6 +637,15 @@ async function share() {
 
 // ---- Input --------------------------------------------------------------------
 
+// Wake the sound up on any touch or key, not only when a game starts (iOS is strict
+// about which events may start audio, and suspends it after a call or the lock screen).
+for (const type of ['touchend', 'pointerup', 'click', 'keydown']) {
+  window.addEventListener(type, () => sfx.unlock(), { capture: true, passive: true });
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && sfx.ctx && sfx.ctx.state !== 'running') sfx.ctx.resume().catch(() => {});
+});
+
 canvas.addEventListener('pointerdown', (event) => {
   if (!game || paused) return;
   event.preventDefault();

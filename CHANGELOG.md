@@ -25,6 +25,9 @@ All notable changes to this project are documented here.
 - Community files: contributing guide, issue templates (bug, idea or new mini-game), pull request template, code of conduct and security policy.
 - Proprietary license (all rights reserved).
 
+### Fixed
+- Sound on iPhone: it now plays with the silent switch on, starts on the first touch and comes back after a call, the lock screen or switching apps.
+
 ### Changed
 - Funnier Bendi Studios credit: the cup snores ("z z z") until you pour the coffee and then wakes up grinning, with new lines ("1 employee, 0 meetings", "This game cost €0 and 214 coffees").
 - Stressed Blanca now grits her teeth with red cheeks and an anger mark; before, the frown and the red tint over her face and hair could look like a moustache.
