@@ -20,3 +20,5 @@ export function trackGameStart(mode) {
 export function trackShare(mode) {
   count(`compartir/alvaros/${mode}`, `Compartido: ${mode}`);
 }
+
+export function trackSponsor() { count('sponsor/alvaros', 'Café para el creador'); }

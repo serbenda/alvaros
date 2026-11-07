@@ -5,6 +5,8 @@ All notable changes to this project are documented here.
 ## [Unreleased]
 
 ### Added
+- "Made by Bendi": a pixel coffee cup on the main menu with a different funny line each time; tap it and it fills up and opens GitHub Sponsors. Plus the repository's Sponsor button.
+- Friendlier help: Blanca says hello and explains each mode in a colour card; the bar instructions fold away.
 - Prize codes on the end screen and a staff page (`verify.html`) to check them at the bar.
 - Stickers to collect in the album, with a toast when you earn one and a list on the end screen.
 - Blanca comments on every result, and a new record gets a celebration.
@@ -22,6 +24,8 @@ All notable changes to this project are documented here.
 - Proprietary license (all rights reserved).
 
 ### Changed
+- Stressed Blanca now grits her teeth with red cheeks and an anger mark; before, the frown and the red tint over her face and hair could look like a moustache.
+- Softer bar counter: wide wooden panels with a gradient instead of a grid of bright posts.
 - Brighter mini-game scenery: bunting garland, warm wall, pictures, a plant, varied bricks and floor tiles, wooden tables with planks and knots, and a counter with a brass rail.
 - The title menu is centred on the screen over a warm, striped backdrop.
 - Simpler menu: mini-games and chinos up front, the week, rush hour and the daily challenge folded under "More modes".

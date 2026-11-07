@@ -7,6 +7,8 @@ Quick mini-games, chinos against Blanca and a week behind the bar. For everyone 
 
 [**▶ Play now**](https://bendi.dev/alvaros/) · English and Spanish · Phones, tablets and desktop · No install
 
+[![Sponsor](https://img.shields.io/badge/Buy_Bendi_a_coffee-%E2%98%95-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/serbenda)
+
 <img src="docs/screenshots/menu.png" alt="Title menu" width="230" />
 <img src="docs/screenshots/minigame-intro.png" alt="Mini-game intro" width="230" />
 <img src="docs/screenshots/bar.png" alt="A shift at the bar" width="230" />
@@ -157,6 +159,10 @@ Please follow the [code of conduct](CODE_OF_CONDUCT.md). Security issues: see [S
 - Shared weekly ranking and tournaments (needs a small database).
 - More mini-games and the team's real lines.
 - More stickers and unlockables.
+
+## Buy the creator a coffee ☕
+
+The game is free and has no ads. If you liked it, you can pour one for the person who made it: in the game, tap the coffee cup at the bottom of the main menu, or go straight to [GitHub Sponsors](https://github.com/sponsors/serbenda).
 
 ## License
 

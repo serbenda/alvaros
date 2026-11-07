@@ -414,16 +414,20 @@ export function drawPerson(ctx, look, cx, top, opts = {}) {
       fill(12.5, 0, 1.5, 2.5, '#7ec8e3');
       break;
     case 'angry':
-      fill(2.5, 3, 2.5, 1, OUTLINE);
-      fill(7, 3, 2.5, 1, OUTLINE);
-      fill(4, 3.5, 1, 1, OUTLINE);
-      fill(7, 3.5, 1, 1, OUTLINE);
-      fill(4, 8.5, 4, 1, OUTLINE);
-      fill(3.5, 9.5, 1, 1, OUTLINE);
-      fill(7.5, 9.5, 1, 1, OUTLINE);
-      ctx.globalAlpha *= 0.4;
-      fill(0, 0, 12, 11, '#e74c3c');
-      ctx.globalAlpha /= 0.4;
+      // Frowning brows, a gritted-teeth mouth and red cheeks (no tint over the hair)
+      fill(2, 3, 3, 0.9, OUTLINE);
+      fill(4.2, 3.6, 1, 0.9, OUTLINE);
+      fill(7, 3, 3, 0.9, OUTLINE);
+      fill(6.8, 3.6, 1, 0.9, OUTLINE);
+      rfill(3.6, 8.2, 4.8, 2.3, OUTLINE, 0.6);
+      fill(4.1, 8.7, 3.8, 1.3, '#ffffff');
+      fill(5.3, 8.7, 0.4, 1.3, '#c9c2b8');
+      fill(6.4, 8.7, 0.4, 1.3, '#c9c2b8');
+      rfill(0.4, 6.8, 2.6, 1.8, '#ef6b5e', 0.6);
+      rfill(9, 6.8, 2.6, 1.8, '#ef6b5e', 0.6);
+      // Little anger mark on the forehead
+      fill(9.5, -0.5, 0.8, 2.4, '#e74c3c');
+      fill(8.7, 0.3, 2.4, 0.8, '#e74c3c');
       break;
     default:
       fill(4.5, 8.8, 3, 0.8, OUTLINE);

@@ -81,6 +81,14 @@
           <button id="btn-sound" class="tool" type="button"></button>
           <button id="btn-fullscreen" class="tool" type="button"></button>
         </nav>
+
+        <button id="btn-coffee" class="coffee" type="button">
+          <canvas id="coffee-cup" width="96" height="96" aria-hidden="true"></canvas>
+          <span class="coffee-text">
+            <strong data-i18n="coffeeTitle"></strong>
+            <span id="coffee-sub"></span>
+          </span>
+        </button>
       </section>
 
       <section id="screen-week" class="screen hidden">
@@ -90,10 +98,19 @@
         <button class="btn" type="button" data-back data-i18n="back"></button>
       </section>
 
-      <section id="screen-howto" class="screen hidden">
+      <section id="screen-howto" class="screen hidden howto-screen">
         <h2 data-i18n="howTo"></h2>
-        <ol id="howto-list" class="howto"></ol>
-        <p class="hint" data-i18n="keyboardHint"></p>
+        <div class="howto-hello">
+          <canvas id="howto-blanca" width="96" height="96" aria-hidden="true"></canvas>
+          <p class="howto-bubble" data-i18n="howToHello"></p>
+        </div>
+        <div id="howto-list" class="howto-cards"></div>
+        <details class="howto-more">
+          <summary data-i18n="howToBarTitle"></summary>
+          <ol id="howto-bar" class="howto"></ol>
+          <p class="hint" data-i18n="keyboardHint"></p>
+        </details>
+        <p class="howto-tip" data-i18n="howToTip"></p>
         <button class="btn primary" type="button" data-back data-i18n="gotIt"></button>
       </section>
 

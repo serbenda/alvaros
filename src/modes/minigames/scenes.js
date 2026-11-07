@@ -204,21 +204,24 @@ export function bgTable(ctx, top) {
   });
 }
 
-/** The bar counter seen from the front: wood top, panels and a brass foot rail. */
+/** The bar counter seen from the front: wood top, soft panels and a brass foot rail. */
 export function counter(ctx, y) {
   rect(ctx, 0, y - 1, W, 7, '#dcae74');
   rect(ctx, 0, y - 1, W, 1.5, '#f6d6a2');
-  rect(ctx, 0, y + 5, W, 1, '#8a5a32');
-  rect(ctx, 0, y + 6, W, H - y - 6, '#7a523b');
-  for (let x = 3; x < W; x += 30) {
-    box(ctx, x, y + 10, 24, H - y - 16, '#6a4532', 2);
-    rect(ctx, x + 1, y + 11, 22, 1, '#94684c');
-    rect(ctx, x + 26, y + 6, 4, H - y - 6, '#dcae74');
-    rect(ctx, x + 26, y + 6, 1, H - y - 6, '#f0cc94');
+  rect(ctx, 0, y + 5, W, 1.5, '#8a5a32');
+  const g = ctx.createLinearGradient(0, y + 6, 0, H);
+  g.addColorStop(0, '#8a5d40');
+  g.addColorStop(1, '#6e4a33');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, y + 6, W, H - y - 6);
+  for (let x = 4; x < W; x += 44) {
+    box(ctx, x, y + 11, 40, H - y - 18, 'rgba(60,35,20,0.28)', 3);
+    rect(ctx, x + 2, y + 12, 36, 0.8, 'rgba(255,220,170,0.25)');
   }
-  const rail = Math.min(H - 8, y + 44);
-  rect(ctx, 0, rail, W, 2.5, '#d4a640');
-  rect(ctx, 0, rail, W, 0.8, '#f8e08a');
+  const rail = Math.min(H - 10, y + 46);
+  rect(ctx, 0, rail + 2, W, 1, 'rgba(40,20,10,0.35)');
+  rect(ctx, 0, rail, W, 2, '#d4a640');
+  rect(ctx, 0, rail, W, 0.7, '#f8e08a');
 }
 
 export const rand = (a, b) => a + Math.random() * (b - a);
