@@ -20,7 +20,7 @@ Quick mini-games, chinos against Blanca and a week behind the bar. For everyone 
 ## Game modes
 
 ### 🎮 Mini-games
-Fifteen one-gesture challenges, one after another, faster every four wins. Four lives; your score is how many you survive.
+Sixteen one-gesture challenges, one after another, faster every four wins. Four lives; your score is how many you survive.
 
 | | Mini-game | With | Gesture |
 | --- | --- | --- | --- |
@@ -39,8 +39,9 @@ Fifteen one-gesture challenges, one after another, faster every four wins. Four 
 | 📺 | Put the football on | Pepe Nacho | Stop on the right channel |
 | 🫙 | Catch the tips | Blanca | Move the jar with your finger |
 | 🚪 | Open the bar | Blanca | Tap fast to pull the shutter up |
+| 🎀 | Where is Valentina? | Valentina | Tap her when she peeks out from her hiding place |
 
-Add `?mini=<id>` to the URL to play a single one: `pour`, `watch`, `hide`, `calm`, `toast`, `wipe`, `coffee`, `tortilla`, `count`, `order`, `stack`, `fly`, `channel`, `tips`, `shutter`.
+Add `?mini=<id>` to the URL to play a single one: `pour`, `watch`, `hide`, `calm`, `toast`, `wipe`, `coffee`, `tortilla`, `count`, `order`, `stack`, `fly`, `channel`, `tips`, `shutter`, `valentina`.
 
 <img src="docs/screenshots/minigame-pour.png" alt="Pour the beer" width="200" />
 <img src="docs/screenshots/minigame-watch.png" alt="The gold watch" width="200" />
@@ -76,6 +77,7 @@ The bar without an end, with three lives and a growing pace, for the competitive
 | ☕ | **Mari** | Goes between the coffee machine and the counter; coffee and juice come out faster. |
 | 💬 | **Andrea** | Looks after the customers and calms down the ones who have waited too long. |
 | ⌚ | **Alejandro** | Never without his gold watch. Now and then takes a dish from your tray to a customer. |
+| 🎀 | **Valentina** | Blanca's daughter, blonde like her mum. Drops by the bar and plays hide and seek. |
 | 📋 | **Pepe Nacho** | The boss. Strolls around with his clipboard; while he is there, tips are doubled. |
 
 The waiters and Pepe Nacho have black hair, and nobody has a beard or a moustache. They tease each other too (*"Don't stress me out, Blanca!"*): the jokes appear before each mini-game, in the team strip of the menu and at the bar. Their looks are in `src/config.js` and their lines (`phrases` and `quips`) in `src/core/locales/`.

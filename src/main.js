@@ -1,6 +1,6 @@
 // Entry point: wires the canvas, menus, input, sound and saved progress.
 
-import { PLAYER, HELPERS, BOSS, STATIONS, DAILY_TWISTS, CUSTOMER_TYPES, WEEK, RUSH_LEVEL } from './config.js';
+import { PLAYER, HELPERS, BOSS, VALENTINA, STATIONS, DAILY_TWISTS, CUSTOMER_TYPES, WEEK, RUSH_LEVEL } from './config.js';
 import { W, H } from './core/layout.js';
 import { Game } from './modes/bar/game.js';
 import { render, setRenderScale, drawStar } from './modes/bar/renderer.js';
@@ -139,6 +139,7 @@ function renderTeam() {
     { id: 'blanca', name: PLAYER.name, look: PLAYER.look },
     ...Object.entries(HELPERS).map(([id, h]) => ({ id, name: h.name, look: h.look })),
     { id: 'boss', name: BOSS.name, look: BOSS.look },
+    { id: 'valentina', name: VALENTINA.name, look: VALENTINA.look },
   ];
   for (const member of team) {
     const button = document.createElement('button');

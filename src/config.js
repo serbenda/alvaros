@@ -83,6 +83,13 @@ export const PLAYER = {
   look: { skin: '#f6cfa5', hair: '#e6be5a', hairStyle: 'long', shirt: '#1f1f1f', apron: '#f4ecd8' },
 };
 
+/** Valentina, Blanca's daughter: blonde like her mum. She drops by the bar and plays hide and seek. */
+export const VALENTINA = {
+  id: 'valentina',
+  name: 'Valentina',
+  look: { skin: '#f6cfa5', hair: '#e6be5a', hairStyle: 'long', shirt: '#f06292', accessory: 'none' },
+};
+
 /**
  * Blanca's teammates. They are not playable: they move around the bar doing
  * their own things and help in their own way. Looks are placeholders except

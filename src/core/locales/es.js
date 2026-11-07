@@ -26,6 +26,7 @@ export default {
   stickerNew: '¡Pegatina nueva: {name}!',
   stickersEarned: 'Pegatinas nuevas:',
   stickers: {
+    valentina: { name: 'Te pillé', desc: 'Encuentra a Valentina jugando al escondite' },
     first: { name: '¡La primera!', desc: 'Gana un minijuego' },
     ten: { name: 'Racha buena', desc: 'Supera 10 retos en una partida' },
     twentyfive: { name: 'Leyenda del bar', desc: 'Supera 25 retos en una partida' },
@@ -106,6 +107,11 @@ export default {
     channel: { title: '¡PON EL FÚTBOL!', sub: 'Toca cuando salga el partido en la tele' },
     tips: { title: '¡CAZA LAS PROPINAS!', sub: 'Mueve el bote con el dedo' },
     shutter: { title: '¡ABRE EL BAR!', sub: 'Toca rápido para subir la persiana' },
+    valentina: { title: '¿DÓNDE ESTÁ VALENTINA?', sub: 'Tócala cuando se asome' },
+    giggle: '¡Jijiji!',
+    foundYou: '¡Me has pillado!',
+    notFound: '¡No me encuentras!',
+    whereIs: '¿Valentina…?',
     flyLine: '¡Fuera, fuera!',
     tipsJar: 'BOTE',
     shutterOk: '¡Abrimos!',
@@ -214,6 +220,7 @@ export default {
     critic: { name: 'El crítico', desc: 'Pedidos grandes, poca paciencia, propinón.' },
   },
   staff: {
+    valentina: 'La hija de Blanca, rubia como su madre. La que de verdad manda en el bar.',
     blanca: 'Juegas con Blanca, el alma del bar.',
     mari: 'Va de la cafetera a la barra: el café y el zumo salen más rápido.',
     andrea: 'Atiende a la clientela y calma a quien lleva rato esperando.',
@@ -229,6 +236,7 @@ export default {
     bossDay: 'El jefe anda cerca',
   },
   quips: {
+    valentina: ['¡Mamá, no te estreses!', 'Mamá, ¿me das un zumo?', 'Pepe Nacho, ¿me das una piruleta?', '¡Cuando sea mayor tendré mi propio bar!', 'Alejandro, ¿me dejas tu reloj?', 'Mari, ¡yo también sé hacer cafés!'],
     blanca: ['¡No me estreses, que muerdo!', 'Hoy no es mi día… ni el de mañana', 'Pepe Nacho, ¿cuándo son mis vacaciones?', '¡Alejandro, deja el reloj y trabaja!', 'Yo solo quería un café tranquila…', '¡Como alguien pida otra tostada, me voy!'],
     mari: ['¡No me estreses, Blanca!', 'Blanca, respira… y pásame las tazas', 'Yo con la cafetera, que nos entendemos', 'Otro cortado y me hago barista oficial', '¡Que esta barra no se limpia sola!'],
     andrea: ['Blanca, sonríe, que te miran', 'Tranquila, Blanca, que yo lo apaño', '¡No me estreses, Blanca, que me lío con las comandas!', 'Esa mesa lleva diez minutos mirándome…', 'Ahora mismo te atiendo, cariño. O casi'],

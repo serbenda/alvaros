@@ -26,6 +26,7 @@ export default {
   stickerNew: 'New sticker: {name}!',
   stickersEarned: 'New stickers:',
   stickers: {
+    valentina: { name: 'Found you', desc: 'Find Valentina playing hide and seek' },
     first: { name: 'First one!', desc: 'Win a mini-game' },
     ten: { name: 'On a roll', desc: 'Win 10 challenges in one game' },
     twentyfive: { name: 'Bar legend', desc: 'Win 25 challenges in one game' },
@@ -106,6 +107,11 @@ export default {
     channel: { title: 'PUT THE FOOTBALL ON!', sub: 'Tap when the match is on the TV' },
     tips: { title: 'CATCH THE TIPS!', sub: 'Move the jar with your finger' },
     shutter: { title: 'OPEN THE BAR!', sub: 'Tap fast to pull the shutter up' },
+    valentina: { title: 'WHERE IS VALENTINA?', sub: 'Tap her when she peeks out' },
+    giggle: 'Hee hee!',
+    foundYou: 'You found me!',
+    notFound: "You can't find me!",
+    whereIs: 'Valentina…?',
     flyLine: 'Shoo! Shoo!',
     tipsJar: 'TIPS',
     shutterOk: "We're open!",
@@ -214,6 +220,7 @@ export default {
     critic: { name: 'The Critic', desc: 'Big orders, little patience, huge tips.' },
   },
   staff: {
+    valentina: "Blanca's daughter, blonde like her mum. The one who really runs the bar.",
     blanca: 'You play as Blanca, the heart of the bar.',
     mari: 'Goes between the coffee machine and the counter: coffee and juice come out faster.',
     andrea: 'Looks after the customers and calms down the ones who wait too long.',
@@ -229,6 +236,7 @@ export default {
     bossDay: 'The boss is around',
   },
   quips: {
+    valentina: ["Mum, don't stress!", 'Mum, can I have a juice?', 'Pepe Nacho, can I have a lollipop?', "When I grow up I'll have my own bar!", 'Alejandro, can I borrow your watch?', 'Mari, I can make coffee too!'],
     blanca: ["Don't stress me out, I bite!", 'Today is not my day… nor tomorrow', 'Pepe Nacho, when are my holidays?', 'Alejandro, drop the watch and work!', 'I only wanted a quiet coffee…', 'One more toast order and I quit!'],
     mari: ["Don't stress me out, Blanca!", 'Blanca, breathe… and pass me the cups', 'Me and the coffee machine get along', 'One more cortado and I am a pro barista', "This counter won't clean itself!"],
     andrea: ["Blanca, smile, they're looking", "Easy, Blanca, I've got this", "Don't stress me out, Blanca, I'll mix up the orders!", "That table has been staring at me for ages…", "I'll be right with you, love. Almost"],

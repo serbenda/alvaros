@@ -1106,3 +1106,26 @@ p {
   line-height: 1.7;
   color: var(--green);
 }
+
+/* Team strip with six people (Valentina included): share the width evenly */
+.title-screen .team-list {
+  width: 100%;
+  gap: 0.25rem;
+}
+
+.title-screen .member {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+
+.title-screen .member canvas {
+  width: 100%;
+  max-width: 44px;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.title-screen .member-name {
+  font-size: 5px;
+}
