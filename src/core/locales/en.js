@@ -20,7 +20,7 @@ export default {
     'The cup is asleep. Wake it up, there are mini-games to make.',
     "Blanca buys the beers. Bendi's coffees are on you 😉",
   ],
-  coffeeThanks: "I'M AWAKE! ❤ Thanks. Opening GitHub Sponsors…",
+  coffeeThanks: "I'M AWAKE! ❤ Thanks for the coffee.",
   prizeLabel: 'Code for the bar',
   prizeHint: 'Show it at the bar: the best score of the week wins a prize.',
   stickersTitle: 'Stickers',

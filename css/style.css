@@ -919,6 +919,8 @@ p {
 /* Buy the creator a coffee (GitHub Sponsors) */
 .coffee {
   display: flex;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
   align-items: center;
   gap: 0.6rem;
   width: min(100%, 320px);

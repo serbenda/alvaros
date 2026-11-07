@@ -20,7 +20,7 @@ export default {
     'La taza está dormida. Despiértala, que hay que hacer más minijuegos.',
     'Blanca invita a las cañas. Los cafés de Bendi, tú 😉',
   ],
-  coffeeThanks: '¡DESPIERTO! ❤ Gracias. Abriendo GitHub Sponsors…',
+  coffeeThanks: '¡DESPIERTO! ❤ Gracias por el café.',
   prizeLabel: 'Código para la barra',
   prizeHint: 'Enséñalo en la barra: el mejor récord de la semana tiene premio.',
   stickersTitle: 'Pegatinas',

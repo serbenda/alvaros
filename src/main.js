@@ -709,18 +709,20 @@ $('btn-play').addEventListener('click', () => {
 $('btn-rush').addEventListener('click', () => startGame('rush'));
 
 // "Buy the creator a coffee": pour it, then open GitHub Sponsors
+// The link opens GitHub Sponsors on the tap; the cup fills up and wakes up meanwhile,
+// so it is awake when the player comes back to the game.
 const coffee = mountCoffee($('coffee-cup'), () => {
   $('coffee-sub').textContent = t('coffeeThanks');
   sfx.play('complete');
-  trackSponsor();
-  window.open(SPONSOR_URL, '_blank', 'noopener');
   setTimeout(() => {
     coffee.reset();
     renderCoffee();
-  }, 4000);
+  }, 6000);
 });
+$('btn-coffee').href = SPONSOR_URL;
 $('btn-coffee').addEventListener('click', () => {
   sfx.play('prep');
+  trackSponsor();
   coffee.pour();
 });
 $('btn-mini').addEventListener('click', () => startGame('mini'));
