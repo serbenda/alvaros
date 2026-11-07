@@ -198,11 +198,40 @@ function renderWeek() {
 function renderHowTo() {
   const list = $('howto-list');
   list.innerHTML = '';
+  for (const card of t('howToCards')) {
+    const el = document.createElement('div');
+    el.className = 'howto-card';
+    const icon = document.createElement('span');
+    icon.className = 'howto-icon';
+    icon.textContent = card.icon;
+    const body = document.createElement('div');
+    const title = document.createElement('strong');
+    title.textContent = card.title;
+    const text = document.createElement('p');
+    text.textContent = card.text;
+    body.append(title, text);
+    el.append(icon, body);
+    list.appendChild(el);
+  }
+  const bar = $('howto-bar');
+  bar.innerHTML = '';
   for (const step of t('howToSteps')) {
     const li = document.createElement('li');
     li.textContent = step;
-    list.appendChild(li);
+    bar.appendChild(li);
   }
+  // Blanca says hello
+  const c = $('howto-blanca');
+  const g = c.getContext('2d');
+  g.setTransform(c.width / 32, 0, 0, c.width / 32, 0, 0);
+  g.clearRect(0, 0, 32, 32);
+  drawPerson(g, PLAYER.look, 16, 6 + (PLAYER.look.offset || 0), { mood: 'happy' });
+}
+
+/** A funny line for the coffee button, different every time the menu is shown. */
+function renderCoffee() {
+  const lines = t('coffeeLines');
+  $('coffee-sub').textContent = lines[Math.floor(Math.random() * lines.length)];
 }
 
 function renderStickers() {
@@ -261,6 +290,7 @@ function applyLanguage() {
   renderTitle();
   renderWeek();
   renderHowTo();
+  renderCoffee();
 }
 
 // ---- Game flow ------------------------------------------------------------------
@@ -671,7 +701,7 @@ const coffee = mountCoffee($('coffee-cup'), () => {
   window.open(SPONSOR_URL, '_blank', 'noopener');
   setTimeout(() => {
     coffee.reset();
-    $('coffee-sub').textContent = t('coffeeSub');
+    renderCoffee();
   }, 4000);
 });
 $('btn-coffee').addEventListener('click', () => {

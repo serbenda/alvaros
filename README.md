@@ -162,7 +162,7 @@ Please follow the [code of conduct](CODE_OF_CONDUCT.md). Security issues: see [S
 
 ## Buy the creator a coffee ☕
 
-The game is free and has no ads. If you liked it, you can pour one for the person who made it: in the game, open **Help** and tap the coffee cup, or go straight to [GitHub Sponsors](https://github.com/sponsors/serbenda).
+The game is free and has no ads. If you liked it, you can pour one for the person who made it: in the game, tap the coffee cup at the bottom of the main menu, or go straight to [GitHub Sponsors](https://github.com/sponsors/serbenda).
 
 ## License
 

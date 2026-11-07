@@ -957,3 +957,123 @@ p {
   font-size: 8px;
   color: #b8327f;
 }
+
+/* Coffee on the title menu: compact */
+.title-screen .coffee {
+  width: min(100%, 340px);
+  padding: 0.35rem 0.6rem;
+  gap: 0.5rem;
+}
+
+.title-screen .coffee canvas {
+  width: 36px;
+  height: 36px;
+}
+
+/* Friendly help screen */
+.howto-screen {
+  justify-content: safe center;
+  gap: 0.7rem;
+}
+
+.howto-hello {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  width: min(100%, 330px);
+}
+
+.howto-hello canvas {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  image-rendering: pixelated;
+}
+
+.howto-bubble {
+  position: relative;
+  margin: 0 0 0.9rem;
+  padding: 0.55rem 0.7rem;
+  font-size: 8px;
+  line-height: 1.7;
+  text-align: left;
+  background: #fffaf0;
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px #d9a868, 0 3px 0 rgba(90, 54, 29, 0.2);
+}
+
+.howto-bubble::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  bottom: 8px;
+  border: 6px solid transparent;
+  border-right-color: #d9a868;
+  border-left: 0;
+}
+
+.howto-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: min(100%, 330px);
+}
+
+.howto-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  background: #fff3dc;
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px #ecc48d;
+  animation: pop 0.4s ease-out both;
+}
+
+.howto-card:nth-child(2) { animation-delay: 0.05s; background: #fde9e4; }
+.howto-card:nth-child(3) { animation-delay: 0.1s; background: #efe6f0; }
+.howto-card:nth-child(4) { animation-delay: 0.15s; background: #fff6c8; }
+.howto-card:nth-child(5) { animation-delay: 0.2s; background: #e4f4ea; }
+
+.howto-icon {
+  flex: none;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.howto-card strong {
+  font-size: 8px;
+  color: var(--gold);
+}
+
+.howto-card p {
+  margin: 0.3rem 0 0;
+  font-size: 6.5px;
+  line-height: 1.7;
+}
+
+.howto-more {
+  width: min(100%, 330px);
+  font-size: 7px;
+  text-align: left;
+}
+
+.howto-more summary {
+  padding: 0.3rem 0;
+  color: var(--orange);
+  cursor: pointer;
+}
+
+.howto-more .howto {
+  font-size: 7px;
+  line-height: 1.7;
+}
+
+.howto-tip {
+  max-width: 320px;
+  margin: 0;
+  font-size: 7px;
+  line-height: 1.7;
+  color: var(--green);
+}
