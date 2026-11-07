@@ -1129,3 +1129,20 @@ p {
 .title-screen .member-name {
   font-size: 5px;
 }
+
+/* Bendi Studios credit: a little wiggle so it asks to be tapped */
+.title-screen .coffee canvas {
+  width: 38px;
+  height: 38px;
+  animation: snooze 2.6s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+@keyframes snooze {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg) translateY(1px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-screen .coffee canvas { animation: none; }
+}
