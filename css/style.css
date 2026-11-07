@@ -958,16 +958,45 @@ p {
   color: #b8327f;
 }
 
-/* Coffee on the title menu: compact */
+/* Coffee on the title menu: a studio credit at the foot of the menu */
 .title-screen .coffee {
   width: min(100%, 340px);
-  padding: 0.35rem 0.6rem;
-  gap: 0.5rem;
+  margin-top: 0.1rem;
+  padding: 0.45rem 0.4rem 0.2rem;
+  gap: 0.45rem;
+  justify-content: center;
+  background: none;
+  border: 0;
+  border-top: 1px dashed rgba(138, 90, 50, 0.35);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.title-screen .coffee:active {
+  transform: scale(0.97);
+  box-shadow: none;
 }
 
 .title-screen .coffee canvas {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
+}
+
+.title-screen .coffee-text {
+  gap: 0.25rem;
+  font-size: 6px;
+  color: rgba(74, 44, 24, 0.75);
+}
+
+.title-screen .coffee-text strong {
+  font-size: 7px;
+  letter-spacing: 0.5px;
+  color: #8a5a32;
+}
+
+.title-screen .coffee:hover .coffee-text strong,
+.title-screen .coffee:focus-visible .coffee-text strong {
+  color: #b8327f;
 }
 
 /* Friendly help screen */
