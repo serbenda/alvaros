@@ -76,8 +76,40 @@ export function mountCoffee(canvas, onFull) {
       R(21, 0, 4, top + 19 - level, '#6b3f1d');
       R(22, 0, 1, top + 19 - level, '#8a5a32');
     }
-    // Steam
-    if (fill > 0.3 || !pouring) {
+    // Face: asleep until the coffee is poured, wide awake when it is full
+    const fy = top + 7;
+    if (done) {
+      // Wide awake: big white eyes and a grin, readable on the coffee
+      R(14, fy - 1, 6, 6, '#ffffff');
+      R(26, fy - 1, 6, 6, '#ffffff');
+      R(16, fy + 1, 3, 3, OUTLINE);
+      R(28, fy + 1, 3, 3, OUTLINE);
+      R(18, fy + 6, 10, 2, '#ffffff');
+      R(17, fy + 5, 1, 1, '#ffffff');
+      R(28, fy + 5, 1, 1, '#ffffff');
+      R(12, fy + 5, 3, 2, '#f4a29a');
+      R(31, fy + 5, 3, 2, '#f4a29a');
+    } else {
+      const open = pouring ? 2 : 1;
+      const ink = fill > 0.55 ? '#fffaf0' : OUTLINE;
+      R(15, fy + 2, 4, open, ink);
+      R(27, fy + 2, 4, open, ink);
+      R(21, fy + 5, 4, 1, ink);
+    }
+    // Snoring or steam
+    if (!pouring) {
+      for (let i = 0; i < 3; i++) {
+        const k = (t * 0.6 + i / 3) % 1;
+        ctx.globalAlpha = 1 - k;
+        const zx = Math.round(30 + k * 10 + i * 2);
+        const zy = Math.round(top - 3 - k * 17);
+        const z = 3 + i;
+        for (let j = 0; j < z; j++) R(zx + z - 1 - j, zy + j, 1, 1, '#5a3a22');
+        R(zx, zy, z, 1, '#5a3a22');
+        R(zx, zy + z - 1, z, 1, '#5a3a22');
+      }
+      ctx.globalAlpha = 1;
+    } else if (fill > 0.3) {
       ctx.globalAlpha = done ? 0.8 : 0.45;
       for (let i = 0; i < 3; i++) {
         const y = top - 4 - ((t * 10 + i * 6) % 14);

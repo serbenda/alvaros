@@ -26,6 +26,7 @@ All notable changes to this project are documented here.
 - Proprietary license (all rights reserved).
 
 ### Changed
+- Funnier Bendi Studios credit: the cup snores ("z z z") until you pour the coffee and then wakes up grinning, with new lines ("1 employee, 0 meetings", "This game cost €0 and 214 coffees").
 - Stressed Blanca now grits her teeth with red cheeks and an anger mark; before, the frown and the red tint over her face and hair could look like a moustache.
 - Softer bar counter: wide wooden panels with a gradient instead of a grid of bright posts.
 - Brighter mini-game scenery: bunting garland, warm wall, pictures, a plant, varied bricks and floor tiles, wooden tables with planks and knots, and a counter with a brass rail.
