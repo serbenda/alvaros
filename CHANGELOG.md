@@ -26,6 +26,7 @@ All notable changes to this project are documented here.
 - Proprietary license (all rights reserved).
 
 ### Fixed
+- The coffee opens GitHub Sponsors on phones: it is now a real link opened on the tap itself, instead of a popup opened after the animation, which mobile browsers block.
 - Sound on iPhone: it now plays with the silent switch on, starts on the first touch and comes back after a call, the lock screen or switching apps.
 
 ### Changed
