@@ -5,6 +5,7 @@ All notable changes to this project are documented here.
 ## [Unreleased]
 
 ### Added
+- "Buy Bendi a coffee": a pixel cup on the help screen that fills up when tapped and opens GitHub Sponsors, plus the repository's Sponsor button.
 - Prize codes on the end screen and a staff page (`verify.html`) to check them at the bar.
 - Stickers to collect in the album, with a toast when you earn one and a list on the end screen.
 - Blanca comments on every result, and a new record gets a celebration.

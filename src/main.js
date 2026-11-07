@@ -15,7 +15,8 @@ import { mulberry32, hashString } from './core/rng.js';
 import { fullscreenSupported, isFullscreen, enterFullscreen, exitFullscreen, autoFullscreen } from './ui/fullscreen.js';
 import { drawLogo } from './ui/logo.js';
 import { shareCard } from './ui/share.js';
-import { trackGameStart, trackShare } from './ui/analytics.js';
+import { trackGameStart, trackShare, trackSponsor } from './ui/analytics.js';
+import { mountCoffee, SPONSOR_URL } from './ui/coffee.js';
 import { STICKERS, checkStickers } from './ui/stickers.js';
 import { makeCode } from './core/prize.js';
 
@@ -661,6 +662,22 @@ $('btn-play').addEventListener('click', () => {
   show('week');
 });
 $('btn-rush').addEventListener('click', () => startGame('rush'));
+
+// "Buy the creator a coffee": pour it, then open GitHub Sponsors
+const coffee = mountCoffee($('coffee-cup'), () => {
+  $('coffee-sub').textContent = t('coffeeThanks');
+  sfx.play('complete');
+  trackSponsor();
+  window.open(SPONSOR_URL, '_blank', 'noopener');
+  setTimeout(() => {
+    coffee.reset();
+    $('coffee-sub').textContent = t('coffeeSub');
+  }, 4000);
+});
+$('btn-coffee').addEventListener('click', () => {
+  sfx.play('prep');
+  coffee.pour();
+});
 $('btn-mini').addEventListener('click', () => startGame('mini'));
 $('btn-more').addEventListener('click', () => {
   const panel = $('more-modes');

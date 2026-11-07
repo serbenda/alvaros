@@ -915,3 +915,45 @@ p {
   font-size: 6px;
   line-height: 1.5;
 }
+
+/* Buy the creator a coffee (GitHub Sponsors) */
+.coffee {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: min(100%, 320px);
+  padding: 0.5rem 0.7rem;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  background: #fff3dc;
+  border: 2px solid #ea4aaa;
+  border-radius: 10px;
+  box-shadow: 0 3px 0 #b8327f;
+  cursor: pointer;
+}
+
+.coffee:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #b8327f;
+}
+
+.coffee canvas {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+}
+
+.coffee-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 6.5px;
+  line-height: 1.5;
+}
+
+.coffee-text strong {
+  font-size: 8px;
+  color: #b8327f;
+}
