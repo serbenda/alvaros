@@ -13,6 +13,7 @@ export const STICKERS = [
   { id: 'beer', icon: '🍺', when: (e) => e.type === 'miniWin' && e.data.id === 'pour' },
   { id: 'tortilla', icon: '🍳', when: (e) => e.type === 'miniWin' && e.data.id === 'tortilla' },
   { id: 'watch', icon: '⌚', when: (e) => e.type === 'miniWin' && e.data.id === 'watch' },
+  { id: 'valentina', icon: '🎀', when: (e) => e.type === 'miniWin' && e.data.id === 'valentina' },
   { id: 'boss', icon: '🙈', when: (e) => e.type === 'miniWin' && e.data.id === 'hide' },
   { id: 'all', icon: '🎖️', when: (e, s) => MINIGAME_IDS.every((id) => s.miniWon && s.miniWon[id]) },
   { id: 'fast', icon: '⚡', when: (e) => e.type === 'speedup' && e.data.speed >= 1.6 },

@@ -4,7 +4,7 @@
 import { W, H } from '../../core/layout.js';
 import { OUTLINE } from '../../graphics/sprites.js';
 import { rect, box, glow } from '../../graphics/draw.js';
-import { PLAYER, HELPERS, BOSS } from '../../config.js';
+import { PLAYER, HELPERS, BOSS, VALENTINA } from '../../config.js';
 
 export const LOOKS = {
   blanca: PLAYER.look,
@@ -12,6 +12,7 @@ export const LOOKS = {
   andrea: HELPERS.andrea.look,
   alejandro: HELPERS.alejandro.look,
   boss: BOSS.look,
+  valentina: VALENTINA.look,
 };
 
 const BUNTING = ['#e9b820', '#e0664a', '#8c7279', '#3aa58c', '#5b8fd6'];

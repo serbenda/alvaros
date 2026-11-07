@@ -383,7 +383,7 @@ export class Game {
       }
       b.sayT = (b.sayT || 0) - dt;
       if (b.sayT <= 0) {
-        b.speech = cosmetic(this.t('phrases.boss'));
+        b.speech = cosmetic([...this.t('phrases.boss'), ...this.t('quips.boss')]);
         b.sayT = 3.5;
       }
       if (b.t <= 0) {
@@ -401,7 +401,7 @@ export class Game {
         b.active = true;
         b.t = BOSS.duration;
         this.float(W / 2, 122, this.t('bossArrives'), COLORS.red, 6, 2);
-        this.say(cosmetic(this.t('phrases.boss')), 2);
+        this.say(cosmetic([...this.t('phrases.boss'), ...this.t('quips.boss')]), 2);
         this.emit('bossArrives', {});
       }
     }
@@ -461,7 +461,7 @@ export class Game {
   /** A teammate says one of their lines, if nobody else on the team is talking. */
   npcSay(who, target) {
     if (this.npcTalk > 0) return;
-    target.speech = { text: cosmetic(this.t(`phrases.${who}`)), t: 2.2 };
+    target.speech = { text: cosmetic([...this.t(`phrases.${who}`), ...this.t(`quips.${who}`)]), t: 2.2 };
     this.npcTalk = 3.5;
   }
 
@@ -654,7 +654,7 @@ export class Game {
     if (this.stressT <= 0) {
       const waiting = this.seats.filter((c) => c && c.state === 'wait').length;
       if (waiting >= 1 && !this.speech && (waiting >= 3 || Math.random() < 0.5)) {
-        this.say(cosmetic(this.t('phrases.stress')), 2);
+        this.say(cosmetic([...this.t('phrases.stress'), ...this.t('quips.blanca')]), 2);
         this.stressT = 5 + Math.random() * 4;
       } else {
         this.stressT = 1.5;
@@ -727,7 +727,7 @@ export class Game {
     }
     if (this.reservedSlots() >= this.trayCapacity) {
       this.float(W / 2, TRAY.y - 6, this.t('trayFull'), COLORS.red, 5);
-      if (!this.speech && Math.random() < 0.4) this.say(cosmetic(this.t('phrases.stress')), 2);
+      if (!this.speech && Math.random() < 0.4) this.say(cosmetic([...this.t('phrases.stress'), ...this.t('quips.blanca')]), 2);
       this.emit('nope', {});
       return;
     }

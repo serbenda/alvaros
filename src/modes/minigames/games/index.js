@@ -16,7 +16,8 @@ import fly from './fly.js';
 import channel from './channel.js';
 import tips from './tips.js';
 import shutter from './shutter.js';
+import valentina from './valentina.js';
 
-export const GAMES = [pour, watch, hide, calm, toast, wipe, coffee, tortilla, count, order, stack, fly, channel, tips, shutter];
+export const GAMES = [pour, watch, hide, calm, toast, wipe, coffee, tortilla, count, order, stack, fly, channel, tips, shutter, valentina];
 
 export const MINIGAME_IDS = GAMES.map((g) => g.id);

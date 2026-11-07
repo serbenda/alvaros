@@ -3,7 +3,7 @@
 
 import { W, H } from '../../core/layout.js';
 import { drawHeart, OUTLINE } from '../../graphics/sprites.js';
-import { rect, box, text, fitSize, wrap, person, vignette } from '../../graphics/draw.js';
+import { FONT, rect, box, text, fitSize, wrap, person, vignette } from '../../graphics/draw.js';
 import { LOOKS } from './scenes.js';
 import { LIVES, HUD_H } from './run.js';
 
@@ -34,6 +34,30 @@ function drawHud(ctx, run, now) {
   }
 }
 
+/** A joke from the character of the mini-game, in a speech bubble over their head. */
+function drawQuip(ctx, run, t, who) {
+  const quips = t(`quips.${who}`);
+  if (!Array.isArray(quips) || !quips.length) return;
+  const quip = quips[(run.played * 7 + run.def.id.length) % quips.length];
+  const size = 5;
+  const lines = wrap(ctx, quip, 140, size);
+  const lh = size + 3;
+  ctx.font = `${size}px ${FONT}`;
+  const w = Math.ceil(Math.max(...lines.map((l) => ctx.measureText(l).width))) + 10;
+  const h = lines.length * lh + 5;
+  const x = Math.round(W / 2 - w / 2);
+  const y = 62 - h;
+  box(ctx, x - 1, y - 1, w + 2, h + 2, OUTLINE, 3);
+  box(ctx, x, y, w, h, '#fffaf0', 3);
+  rect(ctx, W / 2 - 2, y + h, 5, 2, '#fffaf0');
+  rect(ctx, W / 2 - 1, y + h + 2, 3, 2, '#fffaf0');
+  rect(ctx, W / 2 - 3, y + h, 1, 2, OUTLINE);
+  rect(ctx, W / 2 + 3, y + h, 1, 2, OUTLINE);
+  rect(ctx, W / 2 - 2, y + h + 2, 1, 2, OUTLINE);
+  rect(ctx, W / 2 + 2, y + h + 2, 1, 2, OUTLINE);
+  lines.forEach((line, i) => text(ctx, line, W / 2, y + 3 + i * lh, { size, color: '#3a2518', align: 'center' }));
+}
+
 function drawIntro(ctx, run, t) {
   const k = Math.min(1, run.pt / 0.25);
   // Mustard curtain sliding away to reveal the next scene
@@ -48,6 +72,7 @@ function drawIntro(ctx, run, t) {
   ctx.globalAlpha = 1;
   const who = run.def.who;
   if (LOOKS[who]) person(ctx, LOOKS[who], 90, 70 - (1 - k) * 20, 2.4, { mood: 'happy', legs: who === 'boss' });
+  if (LOOKS[who] && k >= 1) drawQuip(ctx, run, t, who);
   const title = t(`mini.${run.def.id}.title`);
   const y = 170;
   const pop = k < 1 ? 0.6 + k * 0.5 : 1 + Math.sin(run.pt * 10) * 0.03;
