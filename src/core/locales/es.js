@@ -12,6 +12,7 @@ export default {
     'Sin anuncios. Solo café ☕ Toca la taza y sírvele uno a Bendi.',
     'Más cafés = más minijuegos. Tú decides ☕',
     'Detrás de cada caña hay un programador pidiendo café ☕',
+    'Pepe Nacho paga las nóminas. El café de Bendi, tú ☕',
     'Blanca invita a las cañas. Los cafés de Bendi, tú 😉',
     'Si Blanca no se estresa, es gracias al café de Bendi ☕',
     'Bendi aún no ha ganado a Blanca a los chinos. Consuélale con un café.',

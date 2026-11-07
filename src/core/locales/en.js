@@ -12,6 +12,7 @@ export default {
     'No ads. Just coffee ☕ Tap the cup and pour Bendi one.',
     'More coffee = more mini-games. Your call ☕',
     'Behind every beer there is a developer asking for coffee ☕',
+    'Pepe Nacho pays the wages. Bendi\'s coffee is on you ☕',
     'Blanca buys the beers. Bendi\'s coffees are on you 😉',
     'If Blanca stays calm, thank Bendi\'s coffee ☕',
     'Bendi still hasn\'t beaten Blanca at chinos. Cheer him up with a coffee.',
