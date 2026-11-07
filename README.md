@@ -78,7 +78,7 @@ The bar without an end, with three lives and a growing pace, for the competitive
 | ⌚ | **Alejandro** | Never without his gold watch. Now and then takes a dish from your tray to a customer. |
 | 📋 | **Pepe Nacho** | The boss. Strolls around with his clipboard; while he is there, tips are doubled. |
 
-The waiters and Pepe Nacho have black hair, and nobody has a beard or a moustache. Their looks are in `src/config.js` and their lines in `src/core/locales/`.
+The waiters and Pepe Nacho have black hair, and nobody has a beard or a moustache. They tease each other too (*"Don't stress me out, Blanca!"*): the jokes appear before each mini-game, in the team strip of the menu and at the bar. Their looks are in `src/config.js` and their lines (`phrases` and `quips`) in `src/core/locales/`.
 
 ## Features
 

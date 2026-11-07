@@ -149,8 +149,13 @@ function renderTeam() {
     name.className = 'member-name';
     name.textContent = member.name;
     button.appendChild(name);
+    let taps = 0;
     button.addEventListener('click', () => {
-      $('team-desc').textContent = `${member.name}: ${t(`staff.${member.id}`)}`;
+      for (const b of list.children) b.classList.toggle('selected', b === button);
+      const quips = t(`quips.${member.id}`);
+      $('team-desc').textContent = taps++ === 0
+        ? `${member.name}: ${t(`staff.${member.id}`)}`
+        : `${member.name}: «${quips[(taps - 2) % quips.length]}»`;
     });
     list.appendChild(button);
   }

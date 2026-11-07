@@ -228,6 +228,13 @@ export default {
     critics: 'Critics in town',
     bossDay: 'The boss is around',
   },
+  quips: {
+    blanca: ["Don't stress me out, I bite!", 'Today is not my day… nor tomorrow', 'Pepe Nacho, when are my holidays?', 'Alejandro, drop the watch and work!', 'I only wanted a quiet coffee…', 'One more toast order and I quit!'],
+    mari: ["Don't stress me out, Blanca!", 'Blanca, breathe… and pass me the cups', 'Me and the coffee machine get along', 'One more cortado and I am a pro barista', "This counter won't clean itself!"],
+    andrea: ["Blanca, smile, they're looking", "Easy, Blanca, I've got this", "Don't stress me out, Blanca, I'll mix up the orders!", "That table has been staring at me for ages…", "I'll be right with you, love. Almost"],
+    alejandro: ["Don't stress me out, Blanca, my watch will stop", 'Have you seen how it shines today?', 'Late… but in style', 'Blanca, my watch says it is break time', "It's gold, you know. Don't touch it"],
+    boss: ['Blanca, am I paying for that stress too?', 'Less moaning, more serving!', 'You come here to have fun… to work, I mean', "Alejandro, that watch won't pour beers", 'Team, the customer is king!'],
+  },
   phrases: {
     start: ["We're open!", "Let's go!"],
     good: ['Coming right up!', 'Enjoy!', "That's it!", 'Smooth!', 'Next!'],

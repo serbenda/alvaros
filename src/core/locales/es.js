@@ -228,6 +228,13 @@ export default {
     critics: 'Críticos en la ciudad',
     bossDay: 'El jefe anda cerca',
   },
+  quips: {
+    blanca: ['¡No me estreses, que muerdo!', 'Hoy no es mi día… ni el de mañana', 'Pepe Nacho, ¿cuándo son mis vacaciones?', '¡Alejandro, deja el reloj y trabaja!', 'Yo solo quería un café tranquila…', '¡Como alguien pida otra tostada, me voy!'],
+    mari: ['¡No me estreses, Blanca!', 'Blanca, respira… y pásame las tazas', 'Yo con la cafetera, que nos entendemos', 'Otro cortado y me hago barista oficial', '¡Que esta barra no se limpia sola!'],
+    andrea: ['Blanca, sonríe, que te miran', 'Tranquila, Blanca, que yo lo apaño', '¡No me estreses, Blanca, que me lío con las comandas!', 'Esa mesa lleva diez minutos mirándome…', 'Ahora mismo te atiendo, cariño. O casi'],
+    alejandro: ['No me estreses, Blanca, que se me para el reloj', '¿Habéis visto qué brillo tiene hoy?', 'Llego tarde… pero con estilo', 'Blanca, mi reloj dice que es hora del descanso', 'Es de oro, ¿eh? No lo toquéis'],
+    boss: ['Blanca, ¿ese estrés también lo pago yo?', '¡Menos quejarse y más servir!', 'Aquí se viene a disfrutar… a trabajar, digo', 'Alejandro, ese reloj no pone cañas', '¡Equipo, que la clientela manda!'],
+  },
   phrases: {
     start: ['¡Abrimos!', '¡Vamos allá!'],
     good: ['¡Marchando!', '¡Que aproveche!', '¡Eso es!', '¡Qué arte!', '¡Siguiente!'],

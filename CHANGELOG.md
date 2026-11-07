@@ -5,6 +5,7 @@ All notable changes to this project are documented here.
 ## [Unreleased]
 
 ### Added
+- Jokes between the team ("Don't stress me out, Blanca!"): said in a speech bubble before each mini-game, when you tap someone in the team strip again, and at the bar.
 - "A Bendi Studios game": a studio-style credit at the foot of the main menu, with a pixel coffee cup and a different funny line each time; tap it and it fills up and opens GitHub Sponsors. Plus the repository's Sponsor button.
 - Friendlier help: Blanca says hello and explains each mode in a colour card; the bar instructions fold away.
 - Prize codes on the end screen and a staff page (`verify.html`) to check them at the bar.
